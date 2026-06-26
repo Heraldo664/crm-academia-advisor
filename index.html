@@ -447,8 +447,8 @@
 
     <div id="dash-geral">
 
-      <!-- ─── KPIs MACRO: 3 números que importam ─────────────────────── -->
-      <div id="dash-kpis-macro" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
+      <!-- ─── KPIs MACRO: 4 números que importam ─────────────────────── -->
+      <div id="dash-kpis-macro" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
         <div id="kpi-leads-mes" style="background:var(--surface);padding:24px 28px;text-align:center">
           <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Leads este mês</div>
           <div id="kpi-leads-num" style="font-size:52px;font-weight:900;color:var(--accent);line-height:1;letter-spacing:-2px">—</div>
@@ -459,10 +459,15 @@
           <div id="kpi-fat-num" style="font-size:52px;font-weight:900;color:var(--gold);line-height:1;letter-spacing:-2px">—</div>
           <div id="kpi-fat-sub" style="font-size:12px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
-        <div id="kpi-meta-mes" style="background:var(--surface);padding:24px 28px;text-align:center">
+        <div id="kpi-meta-mes" style="background:var(--surface);padding:24px 28px;text-align:center;border-right:1px solid var(--border)">
           <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">% da Meta</div>
           <div id="kpi-meta-num" style="font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px;color:var(--muted)">—</div>
           <div id="kpi-meta-sub" style="font-size:12px;color:var(--muted);margin-top:6px">carregando...</div>
+        </div>
+        <div id="kpi-eficiencia-mes" style="background:var(--surface);padding:24px 28px;text-align:center" title="Combina taxa de conversão, saúde do pipeline (leads sem interação recente) e aderência ao follow-up automático">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Nota de Eficiência Comercial</div>
+          <div id="kpi-eficiencia-num" style="font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px;color:var(--muted)">—</div>
+          <div id="kpi-eficiencia-sub" style="font-size:12px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
       </div>
       <!-- ──────────────────────────────────────────────────────────────── -->
@@ -804,6 +809,18 @@
     <div class="section-title">Roteiro de Diagnóstico para o Closer</div>
     <div class="diagnostic-script" id="diag-script"></div>
 
+    <!-- GUIAS / CURSOS (ISCAS) -->
+    <div class="panel" id="panel-guias">
+      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span style="display:flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Guias &amp; Cursos (Iscas)</span>
+        <button id="btn-novo-guia" class="btn btn-primary btn-sm" style="display:none" onclick="openGuiaModal()">+ Novo Guia</button>
+      </div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px">Envie um guia gratuito no primeiro contato (LinkedIn, Instagram...) para qualificar o lead antes do diagnóstico. Clique para copiar a mensagem pronta com o link.</p>
+      <div id="guias-list" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <p class="empty">Carregando guias...</p>
+      </div>
+    </div>
+
     <!-- SCRIPTS LINKEDIN -->
     <div class="panel" style="margin-top:0">
       <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
@@ -947,56 +964,56 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
     <div class="page-header"><div class="page-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Treinamento</div></div>
 
     <div class="panel">
-      <div class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Vídeos de Treinamento</div>
+      <div class="panel-title" style="font-size:18px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Vídeos de Treinamento</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div>
-          <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Como Utilizar o CRM Comercial</span></div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Aprenda a usar o sistema para maximizar sua produtividade comercial.</p>
+          <div style="font-size:19px;font-weight:700;margin-bottom:8px;color:var(--text)"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Como Utilizar o CRM Comercial</span></div>
+          <p style="font-size:16px;color:var(--muted);margin-bottom:12px">Aprenda a usar o sistema para maximizar sua produtividade comercial.</p>
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
             <div style="font-size:40px;margin-bottom:12px">▶️</div>
-            <p style="color:var(--muted);margin-bottom:14px;font-size:13px">Vídeo de treinamento do sistema</p>
-            <a href="https://www.youtube.com/@AcademiaAdvisor" target="_blank" class="btn btn-primary" style="text-decoration:none">Assistir Treinamento</a>
+            <p style="color:var(--muted);margin-bottom:14px;font-size:17px">Vídeo de treinamento do sistema</p>
+            <a href="https://www.youtube.com/@AcademiaAdvisor" target="_blank" class="btn btn-primary" style="text-decoration:none;font-size:16px">Assistir Treinamento</a>
           </div>
         </div>
         <div>
-          <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Treinamento Comercial</span></div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Scripts, diagnóstico, objeções e como acelerar promoções no mercado financeiro.</p>
+          <div style="font-size:19px;font-weight:700;margin-bottom:8px;color:var(--text)"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Treinamento Comercial</span></div>
+          <p style="font-size:16px;color:var(--muted);margin-bottom:12px">Scripts, diagnóstico, objeções e como acelerar promoções no mercado financeiro.</p>
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
             <div style="margin-bottom:12px;display:flex;justify-content:center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;flex-shrink:0;color:var(--accent)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
-            <p style="color:var(--muted);margin-bottom:14px;font-size:13px">Treinamento comercial da equipe</p>
-            <a href="https://www.youtube.com/@AcademiaAdvisor" target="_blank" class="btn btn-primary" style="text-decoration:none">Assistir Treinamento</a>
+            <p style="color:var(--muted);margin-bottom:14px;font-size:17px">Treinamento comercial da equipe</p>
+            <a href="https://www.youtube.com/@AcademiaAdvisor" target="_blank" class="btn btn-primary" style="text-decoration:none;font-size:16px">Assistir Treinamento</a>
           </div>
         </div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Recursos Rápidos</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Conteúdos de alta performance comercial para o time.</p>
+      <div class="panel-title" style="font-size:18px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Recursos Rápidos</div>
+      <p style="font-size:16px;color:var(--muted);margin-bottom:16px">Conteúdos de alta performance comercial para o time.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div style="background:var(--surface2);border-radius:10px;padding:16px">
           <div style="margin-bottom:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-          <div style="font-weight:700;margin-bottom:4px">Roteiro de Diagnóstico</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Dominar o roteiro de 9 passos para o diagnóstico de carreira</div>
-          <button class="btn btn-ghost btn-sm" onclick="navigateTo('scripts')">Ver Scripts →</button>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">Roteiro de Diagnóstico</div>
+          <div style="font-size:15px;color:var(--muted);margin-bottom:12px">Dominar o roteiro de 9 passos para o diagnóstico de carreira</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:14px" onclick="navigateTo('scripts')">Ver Scripts →</button>
         </div>
         <div style="background:var(--surface2);border-radius:10px;padding:16px">
           <div style="margin-bottom:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div>
-          <div style="font-weight:700;margin-bottom:4px">Scripts LinkedIn</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Posts semanais e comentários estratégicos para prospecção</div>
-          <button class="btn btn-ghost btn-sm" onclick="navigateTo('scripts')">Ver Posts →</button>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">Scripts LinkedIn</div>
+          <div style="font-size:15px;color:var(--muted);margin-bottom:12px">Posts semanais e comentários estratégicos para prospecção</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:14px" onclick="navigateTo('scripts')">Ver Posts →</button>
         </div>
         <div style="background:var(--surface2);border-radius:10px;padding:16px">
           <div style="margin-bottom:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-          <div style="font-weight:700;margin-bottom:4px">Meta de Conexões</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">60 conexões por semana (10/dia · seg a sáb) para manter o funil cheio</div>
-          <button class="btn btn-ghost btn-sm" onclick="navigateTo('daily')">Registrar →</button>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">Meta de Conexões</div>
+          <div style="font-size:15px;color:var(--muted);margin-bottom:12px">60 conexões por semana (10/dia · seg a sáb) para manter o funil cheio</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:14px" onclick="navigateTo('daily')">Registrar →</button>
         </div>
         <div style="background:var(--surface2);border-radius:10px;padding:16px">
           <div style="margin-bottom:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-          <div style="font-weight:700;margin-bottom:4px">Regra de Comissão</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Entenda como funciona a comissão escalonada e maximize seus ganhos</div>
-          <button class="btn btn-ghost btn-sm" onclick="typeof openRegraComissao === 'function' && openRegraComissao()">Ver Regra →</button>
+          <div style="font-weight:700;font-size:18px;margin-bottom:4px">Regra de Comissão</div>
+          <div style="font-size:15px;color:var(--muted);margin-bottom:12px">Entenda como funciona a comissão escalonada e maximize seus ganhos</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:14px" onclick="typeof openRegraComissao === 'function' && openRegraComissao()">Ver Regra →</button>
         </div>
       </div>
     </div>
@@ -1177,6 +1194,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
             <option value="session_kick">Sessão Encerrada</option>
           </select>
           <button class="btn btn-ghost btn-sm" onclick="loadAuditLog()">↻ Atualizar</button>
+          <button id="sec-audit-clear-btn" class="btn btn-danger btn-sm" style="display:none" onclick="limparHistoricoAuditoria()">🗑 Limpar histórico</button>
           <span id="sec-audit-count" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
         </div>
         <div style="overflow-x:auto;max-height:340px;overflow-y:auto">
@@ -1188,9 +1206,10 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
                 <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase">Ação</th>
                 <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase">Detalhe</th>
                 <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase">Dispositivo</th>
+                <th id="sec-audit-th-acoes" style="padding:8px 12px;text-align:center;color:var(--muted);font-size:10px;text-transform:uppercase;display:none">Ações</th>
               </tr>
             </thead>
-            <tbody id="sec-audit-tbody"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+            <tbody id="sec-audit-tbody"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1338,6 +1357,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
           <option value="">Selecione…</option>
           <option>Ser contratado no banco</option>
           <option>Mudar de instituição</option>
+          <option>Mudar de Segmento</option>
           <option>Ser promovido e ganhar mais</option>
         </select>
       </div>
@@ -1690,6 +1710,11 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
       </div>
     </div>
     <div id="profile-err" class="err"></div>
+    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:4px">
+      <label style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:block">Último Acesso</label>
+      <div id="profile-ultimo-acesso-data" style="font-size:15px;font-weight:700;color:var(--text)">—</div>
+      <div id="profile-ultimo-acesso-device" style="font-size:12px;color:var(--muted);margin-top:3px">—</div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-profile')">Fechar</button>
       <button class="btn btn-primary" onclick="saveProfilePhoto()">Salvar Foto</button>
@@ -1721,6 +1746,22 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Fechar</button>
       <button class="btn btn-primary" onclick="testarSomNotificacao()">Testar Som</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CADASTRAR/EDITAR GUIA (Admin) -->
+<div class="modal-bg" id="modal-guia">
+  <div class="modal" style="width:460px">
+    <div class="modal-title" id="modal-guia-title">Novo Guia</div>
+    <div class="field"><label>Título *</label><input id="guia-titulo" placeholder="Ex: GUIA ITAÚ ION"></div>
+    <div class="field"><label>Descrição curta</label><input id="guia-descricao" placeholder="Ex: Curso gratuito para quem quer entrar no Itaú Ion"></div>
+    <div class="field"><label>Link do guia/curso *</label><input id="guia-link" placeholder="https://..."></div>
+    <input type="hidden" id="guia-id">
+    <div id="guia-err" class="err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-guia')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveGuia()" id="guia-save-btn">Salvar</button>
     </div>
   </div>
 </div>
@@ -1862,6 +1903,7 @@ let tarefas = [];
 let metas = [];
 let historicoStatus = [];
 let solicitacoesSenha = [];
+let guias = [];
 let currentView = 'kanban';
 let currentDashView = 'geral';
 let selectedObjetivos = [];
@@ -1895,6 +1937,33 @@ function getDeviceInfo() {
   else if (/Mac OS/.test(ua)) os = 'Mac';
   else if (/Linux/.test(ua)) os = 'Linux';
   return `${device} · ${browser}${os ? ' · ' + os : ''}`;
+}
+
+// ─── Localização aproximada (cidade/UF) via IP, sem pedir permissão do navegador ──
+let _cachedLocation = null;
+async function getLocationLabel() {
+  if (_cachedLocation !== null) return _cachedLocation;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    const res = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('geo lookup failed');
+    const data = await res.json();
+    const cidade = data.city || '';
+    const uf = data.region_code || '';
+    _cachedLocation = cidade ? `${cidade}${uf ? '-' + uf : ''}` : '';
+  } catch(e) {
+    _cachedLocation = '';
+  }
+  return _cachedLocation;
+}
+
+// Combina dispositivo + navegador + SO + localização (ex: "Desktop · Edge · Windows · Valença-BA")
+async function getDeviceInfoComLocalizacao() {
+  const base = getDeviceInfo();
+  const local = await getLocationLabel();
+  return local ? `${base} · ${local}` : base;
 }
 
 // ─── Limite de tentativas (localStorage por nome) ────────────────────────
@@ -2035,11 +2104,11 @@ async function doLogin() {
 
     // ── Gerar token de sessão único ───────────────────────────────────
     const sessionToken = gerarSessionToken();
-    const deviceInfo = getDeviceInfo();
+    const deviceInfo = await getDeviceInfoComLocalizacao();
     const now = new Date().toISOString();
 
     // ── Salvar sessão local ──────────────────────────────────────────
-    user = { ...colab, session_token: sessionToken };
+    user = { ...colab, session_token: sessionToken, ultimo_device: deviceInfo, ultimo_login: now };
     localStorage.setItem('crm_session', JSON.stringify({ id: user.id, nome: user.nome, senha: user.senha, session_token: sessionToken }));
     clearAttempts(nome);
 
@@ -2210,7 +2279,7 @@ function startAutoRefresh() {
 
       ws.onopen = () => {
         // Subscrever às tabelas críticas
-        const tabelas = ['leads', 'daily_reports', 'tarefas'];
+        const tabelas = ['leads', 'daily_reports', 'tarefas', 'guias'];
         tabelas.forEach(tabela => {
           ws.send(JSON.stringify({
             topic: `realtime:public:${tabela}`,
@@ -2318,11 +2387,12 @@ async function recarregarDados() {
 
   try {
     const prevLen = leads.length;
-    [leads, dailyReports, tarefas, historicoStatus] = await Promise.all([
+    [leads, dailyReports, tarefas, historicoStatus, guias] = await Promise.all([
       getAll('leads', '?select=*&order=criado_em.desc').catch(() => leads),
       get('daily_reports', '?select=*&order=data.desc').catch(() => dailyReports),
       get('tarefas', '?select=*&order=data.asc').catch(() => tarefas),
       get('historico_status', '?select=*&order=criado_em.desc&limit=5000').catch(() => historicoStatus),
+      get('guias', '?select=*&order=titulo.asc').catch(() => guias),
     ]);
 
     // Re-renderiza apenas a página atual
@@ -2340,6 +2410,8 @@ async function recarregarDados() {
       renderDashGeral();
     } else if (currentPage === 'daily') {
       renderDaily();
+    } else if (currentPage === 'scripts') {
+      if (typeof renderGuiasList === 'function') renderGuiasList();
     }
 
     if (leads.length !== prevLen) {
@@ -2359,10 +2431,10 @@ async function recarregarDados() {
 
 
 
-// ─── Timeout de inatividade — aviso aos 25min, logout aos 30min ─────────
+// ─── Timeout de inatividade — aviso aos 55min, logout aos 60min ─────────
 let _lastUserAction = Date.now();
-const INACTIVITY_WARN    = 25 * 60 * 1000; // 25 min — mostrar aviso
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 min — deslogar se ignorar
+const INACTIVITY_WARN    = 55 * 60 * 1000; // 55 min — mostrar aviso
+const INACTIVITY_TIMEOUT = 60 * 60 * 1000; // 60 min — deslogar se ignorar
 let _inactivityWarned = false;
 let _inactivityCountdownTimer = null;
 
@@ -2390,7 +2462,7 @@ function showInactivityWarning() {
       <div style="background:var(--surface);border:2px solid var(--yellow);border-radius:16px;padding:32px 36px;max-width:380px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.7)">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <div style="font-size:18px;font-weight:900;margin-bottom:8px;color:var(--text)">Ainda está aí?</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Detectamos inatividade por 25 minutos.<br>Sua sessão será encerrada em <strong id="inactivity-countdown" style="color:var(--yellow);font-size:15px">5:00</strong></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Detectamos inatividade por 55 minutos.<br>Sua sessão será encerrada em <strong id="inactivity-countdown" style="color:var(--yellow);font-size:15px">5:00</strong></div>
         <button onclick="renovarSessao()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Continuar trabalhando</button>
       </div>
     `;
@@ -2404,7 +2476,7 @@ function showInactivityWarning() {
     if (el) {
       const m = Math.floor(secondsLeft / 60);
       const s = secondsLeft % 60;
-      el.textContent = `\${m}:\${s.toString().padStart(2,'0')}`;
+      el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
     }
     if (secondsLeft <= 0) {
       clearInterval(_inactivityCountdownTimer);
@@ -2417,7 +2489,7 @@ function showInactivityWarning() {
 function renovarSessao() {
   resetInactivityTimer();
   // Registrar que o usuário confirmou presença
-  try { patch('colaboradores', { ultima_atividade: new Date().toISOString() }, `id=eq.\${user.id}`).catch(() => {}); } catch(e) {}
+  try { patch('colaboradores', { ultima_atividade: new Date().toISOString() }, `id=eq.${user.id}`).catch(() => {}); } catch(e) {}
 }
 
 async function forcarLogoutInatividade() {
@@ -2426,11 +2498,11 @@ async function forcarLogoutInatividade() {
     await post('audit_log', {
       colaborador_id: user.id, colaborador_nome: user.nome,
       acao: 'logout',
-      detalhe: 'Timeout de inatividade (30 min sem resposta)',
+      detalhe: 'Timeout de inatividade (1h sem resposta)',
       device_info: getDeviceInfo(),
       session_token: user.session_token || null
     }).catch(() => {});
-    await patch('colaboradores', { session_token: null }, `id=eq.\${user.id}`).catch(() => {});
+    await patch('colaboradores', { session_token: null }, `id=eq.${user.id}`).catch(() => {});
   } catch(e) {}
   localStorage.removeItem('crm_session');
   user = null;
@@ -2455,14 +2527,14 @@ function startActivityTracking() {
   const verificarSessao = async () => {
     if (!user || !user.id) return;
     try {
-      // Verificar inatividade — aviso aos 25min, logout aos 30min
+      // Verificar inatividade — aviso aos 55min, logout aos 60min
       const tempoSemAcao = Date.now() - _lastUserAction;
       if (tempoSemAcao > INACTIVITY_TIMEOUT) {
-        // Passou dos 30min sem responder o aviso — forçar logout
+        // Passou dos 60min sem responder o aviso — forçar logout
         forcarLogoutInatividade();
         return;
       } else if (tempoSemAcao > INACTIVITY_WARN && !_inactivityWarned) {
-        // Entre 25-30min — mostrar aviso com countdown
+        // Entre 55-60min — mostrar aviso com countdown
         showInactivityWarning();
       }
       // Verificar se token ainda é válido (detecta login simultâneo)
@@ -2541,7 +2613,7 @@ function navigateTo(pageId) {
     if (typeof renderCloserAgenda === 'function') renderCloserAgenda();
   }
   if (pageId === 'daily') { renderDaily(); renderAvisosColabList(); }
-  if (pageId === 'scripts') renderDiagScript();
+  if (pageId === 'scripts') { renderDiagScript(); renderGuiasList(); }
   if (pageId === 'admin') { renderAdmin(); if (typeof renderProgramasList === 'function') renderProgramasList(); renderAvisosAdminList(); renderAvisosTemplates(); renderAvisosAutoList(); renderDistribuicaoFila(); renderWhatsappInteracoes(); renderPerformanceComercial(); loadRespostasAvisoAuto().then(renderRespostasAvisoAuto); loadAuditLog(); iniciarAuditPoll(); }
 }
 
@@ -2985,13 +3057,14 @@ function renderCycleTime() {
 
 async function loadData() {
   try {
-    [colaboradores, leads, dailyReports, tarefas, metas, historicoStatus] = await Promise.all([
+    [colaboradores, leads, dailyReports, tarefas, metas, historicoStatus, guias] = await Promise.all([
       get('colaboradores', '?select=*&order=nome'),
       getAll('leads', '?select=*&order=criado_em.desc'),
       get('daily_reports', '?select=*&order=data.desc'),
       get('tarefas', '?select=*&order=data.asc').catch(() => []),
       get('metas', '?select=*').catch(() => []),
-      get('historico_status', '?select=*&order=criado_em.desc&limit=5000').catch(() => [])
+      get('historico_status', '?select=*&order=criado_em.desc&limit=5000').catch(() => []),
+      get('guias', '?select=*&order=titulo.asc').catch(() => [])
     ]);
     if (user.papel === 'admin') {
       solicitacoesSenha = await get('solicitacoes_senha', '?select=*&order=criado_em.desc').catch(() => []);
@@ -3158,6 +3231,59 @@ function renderKPIsMacro() {
     const diasRestantes = diasMes - hoje.getDate();
     metaSub.textContent = pct >= 100 ? '🎉 Meta batida!' : diasRestantes + ' dias restantes no mês';
     if (pct >= 100) metaSub.style.color = 'var(--green)';
+  }
+
+  renderNotaEficiencia();
+}
+
+// ─── Nota de Eficiência Comercial (0 a 10) ──────────────────────────────
+// Combina 3 pilares com pesos iguais, a partir de dados já carregados:
+//  1) Conversão: % de leads ativos (não "Contatar") que fecharam
+//  2) Saúde do pipeline: % de leads SEM alerta de follow-up (sem risco de esfriar)
+//  3) Ritmo comercial: % de leads "Contatar" sendo atendidos a tempo (sem atraso de SLA)
+function renderNotaEficiencia() {
+  const el = document.getElementById('kpi-eficiencia-num');
+  const sub = document.getElementById('kpi-eficiencia-sub');
+  if (!el) return;
+
+  const ativos = leads.filter(l => l.status && l.status !== 'Perdido');
+  const totalAtivos = ativos.length;
+
+  // Pilar 1 — Conversão (fechados / leads que já passaram de "Contatar")
+  const avancaram = ativos.filter(l => l.status !== 'Contatar').length;
+  const fechados = ativos.filter(l => l.status === 'Fechado').length;
+  const pConversao = avancaram > 0 ? fechados / avancaram : 0;
+
+  // Pilar 2 — Saúde do pipeline (sem alerta de follow-up estagnado)
+  const comAlerta = ativos.filter(l => typeof followupAlerta === 'function' && followupAlerta(l)).length;
+  const pSaude = totalAtivos > 0 ? 1 - (comAlerta / totalAtivos) : 1;
+
+  // Pilar 3 — Ritmo no primeiro contato (leads em "Contatar" há mais de 4h, sem SLA)
+  const filaContatar = leads.filter(l => l.status === 'Contatar');
+  const atrasados = filaContatar.filter(l => {
+    if (!l.criado_em) return false;
+    const minutos = (Date.now() - new Date(l.criado_em)) / 60000;
+    return minutos > 240; // mais de 4h sem contato = atraso de SLA
+  }).length;
+  const pRitmo = filaContatar.length > 0 ? 1 - (atrasados / filaContatar.length) : 1;
+
+  const nota = totalAtivos === 0 && filaContatar.length === 0
+    ? null
+    : Math.round((pConversao * 0.4 + pSaude * 0.35 + pRitmo * 0.25) * 100) / 10;
+
+  if (nota === null) {
+    el.textContent = '—';
+    el.style.color = 'var(--muted)';
+    if (sub) sub.textContent = 'sem dados suficientes ainda';
+    return;
+  }
+
+  const corNota = nota >= 8 ? 'var(--green)' : nota >= 6 ? 'var(--yellow)' : 'var(--red)';
+  const conceito = nota >= 9 ? 'Excelente' : nota >= 8 ? 'Ótimo' : nota >= 6.5 ? 'Bom' : nota >= 5 ? 'Atenção' : 'Crítico';
+  el.textContent = nota.toFixed(1);
+  el.style.color = corNota;
+  if (sub) {
+    sub.innerHTML = `<span style="color:${corNota};font-weight:700">${conceito}</span> · conversão, follow-up e ritmo de contato`;
   }
 }
 
@@ -5030,6 +5156,122 @@ function copyScript(btn) {
 }
 
 // ============================================================
+// GUIAS / CURSOS (ISCAS) — enviadas no primeiro contato para qualificar o lead
+// ============================================================
+function renderGuiasList() {
+  const el = document.getElementById('guias-list');
+  if (!el) return;
+  const isAdmin = user && user.papel === 'admin';
+  const btnNovo = document.getElementById('btn-novo-guia');
+  if (btnNovo) btnNovo.style.display = isAdmin ? '' : 'none';
+
+  if (!guias || guias.length === 0) {
+    el.innerHTML = '<p class="empty">Nenhum guia cadastrado ainda.' + (isAdmin ? ' Clique em "+ Novo Guia" para cadastrar o primeiro.' : '') + '</p>';
+    return;
+  }
+
+  el.innerHTML = guias.map(g => `
+    <div style="background:var(--surface2);border-radius:10px;padding:16px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="font-weight:700;font-size:15px;color:var(--text)">🎓 ${g.titulo}</div>
+        ${isAdmin ? `<div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:11px" onclick="openGuiaModal('${g.id}')">✎</button>
+          <button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:11px" onclick="deleteGuia('${g.id}')">✕</button>
+        </div>` : ''}
+      </div>
+      ${g.descricao ? `<div style="font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:10px">${g.descricao}</div>` : '<div style="margin-bottom:10px"></div>'}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="copiarMensagemGuia('${g.id}', this)">
+          <span style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 0 2 2v1"/></svg> Copiar mensagem</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="copiarLinkGuia('${g.id}', this)">Copiar link</button>
+        <a href="${g.link}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">Abrir ↗</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function copiarLinkGuia(id, btn) {
+  const g = guias.find(x => x.id === id);
+  if (!g) return;
+  navigator.clipboard.writeText(g.link).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copiado!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function copiarMensagemGuia(id, btn) {
+  const g = guias.find(x => x.id === id);
+  if (!g) return;
+  const mensagem = `Oi! Vi seu perfil e queria te indicar algo que pode te ajudar: o ${g.titulo}, um curso gratuito${g.descricao ? ' — ' + g.descricao : ''}. Olha aqui: ${g.link}`;
+  navigator.clipboard.writeText(mensagem).then(() => {
+    const orig = btn.innerHTML;
+    btn.textContent = 'Copiado!';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+function openGuiaModal(id) {
+  document.getElementById('guia-err').textContent = '';
+  if (id) {
+    const g = guias.find(x => x.id === id);
+    if (!g) return;
+    document.querySelector('#modal-guia .modal-title').textContent = 'Editar Guia';
+    document.getElementById('guia-id').value = g.id;
+    document.getElementById('guia-titulo').value = g.titulo || '';
+    document.getElementById('guia-descricao').value = g.descricao || '';
+    document.getElementById('guia-link').value = g.link || '';
+  } else {
+    document.querySelector('#modal-guia .modal-title').textContent = 'Novo Guia';
+    document.getElementById('guia-id').value = '';
+    document.getElementById('guia-titulo').value = '';
+    document.getElementById('guia-descricao').value = '';
+    document.getElementById('guia-link').value = '';
+  }
+  document.getElementById('modal-guia').classList.add('open');
+}
+
+async function saveGuia() {
+  if (!user || user.papel !== 'admin') return;
+  const id = document.getElementById('guia-id').value;
+  const titulo = document.getElementById('guia-titulo').value.trim();
+  let link = document.getElementById('guia-link').value.trim();
+  const descricao = document.getElementById('guia-descricao').value.trim();
+  const err = document.getElementById('guia-err');
+  if (!titulo) { err.textContent = 'Informe o título do guia.'; return; }
+  if (!link) { err.textContent = 'Informe o link do guia/curso.'; return; }
+  if (!/^https?:\/\//i.test(link)) link = 'https://' + link;
+  try {
+    if (id) {
+      const res = await patch('guias', { titulo, descricao: descricao || null, link }, `id=eq.${id}`);
+      const idx = guias.findIndex(g => g.id === id);
+      if (res && res[0] && idx >= 0) guias[idx] = res[0];
+    } else {
+      const res = await post('guias', { titulo, descricao: descricao || null, link, criado_por: user.id });
+      if (res && res[0]) guias.push(res[0]);
+      guias.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+    }
+    closeModal('modal-guia');
+    renderGuiasList();
+  } catch(e) {
+    err.textContent = 'Erro ao salvar: ' + e.message;
+  }
+}
+
+async function deleteGuia(id) {
+  if (!user || user.papel !== 'admin') return;
+  if (!confirm('Excluir este guia? Os colaboradores não poderão mais enviá-lo.')) return;
+  try {
+    await del('guias', `id=eq.${id}`);
+    guias = guias.filter(g => g.id !== id);
+    renderGuiasList();
+  } catch(e) {
+    alert('Erro ao excluir guia: ' + e.message);
+  }
+}
+
+// ============================================================
 // ASSISTENTE DE OBJEÇÕES — Voz (Web Speech API) + IA (Claude via Edge Function)
 // ============================================================
 const SCRIPTS_FN_URL = 'https://spnhtjqwafqubgybyobx.supabase.co/functions/v1/gerar-script';
@@ -5611,6 +5853,12 @@ async function deleteColab(id) {
 function openProfileModal() {
   document.getElementById('profile-name-display').textContent = user.nome;
   document.getElementById('profile-role-display').textContent = user.papel;
+  const dataEl = document.getElementById('profile-ultimo-acesso-data');
+  const deviceEl = document.getElementById('profile-ultimo-acesso-device');
+  if (dataEl && deviceEl) {
+    dataEl.textContent = user.ultimo_login ? new Date(user.ultimo_login).toLocaleString('pt-BR') : '—';
+    deviceEl.textContent = user.ultimo_device || '—';
+  }
   const preview = document.getElementById('profile-photo-preview');
   pendingPhotoBase64 = null;
   if (user.foto_url) {
@@ -7615,6 +7863,12 @@ function renderAuditoria() {
   const countEl = document.getElementById('sec-audit-count');
   if (!tbody) return;
 
+  const isAdmin = user && user.papel === 'admin';
+  const thAcoes = document.getElementById('sec-audit-th-acoes');
+  if (thAcoes) thAcoes.style.display = isAdmin ? '' : 'none';
+  const clearBtn = document.getElementById('sec-audit-clear-btn');
+  if (clearBtn) clearBtn.style.display = isAdmin ? '' : 'none';
+
   // Populate filter selects
   const filtroColab = document.getElementById('sec-audit-filtro');
   if (filtroColab && filtroColab.options.length === 1) {
@@ -7648,14 +7902,57 @@ function renderAuditoria() {
   };
 
   tbody.innerHTML = logs.length === 0
-    ? '<tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>'
+    ? `<tr><td colspan="${isAdmin ? 6 : 5}" class="empty">Nenhum registro encontrado.</td></tr>`
     : logs.map(l => `<tr onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
         <td style="padding:8px 12px;font-size:11px;color:var(--muted);white-space:nowrap">${new Date(l.criado_em).toLocaleString('pt-BR')}</td>
         <td style="padding:8px 12px;font-weight:600;font-size:12px">${l.colaborador_nome || '—'}</td>
         <td style="padding:8px 12px">${acaoLabel[l.acao] || `<span style="font-size:11px">${l.acao}</span>`}</td>
         <td style="padding:8px 12px;font-size:11px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.detalhe || ''}">${l.detalhe || '—'}</td>
         <td style="padding:8px 12px;font-size:11px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.device_info || ''}">${l.device_info || '—'}</td>
+        ${isAdmin ? `<td style="padding:8px 12px;text-align:center"><button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:11px" onclick="excluirRegistroAuditoria('${l.id}')">✕</button></td>` : ''}
       </tr>`).join('');
+}
+
+// ── Admin: excluir um registro individual do histórico de auditoria ──────
+async function excluirRegistroAuditoria(id) {
+  if (!user || user.papel !== 'admin') return;
+  if (!confirm('Excluir este registro do histórico?')) return;
+  try {
+    await del('audit_log', `id=eq.${id}`);
+    auditLogCache = auditLogCache.filter(l => l.id !== id);
+    renderAuditoria();
+  } catch(e) {
+    alert('Erro ao excluir registro: ' + e.message);
+  }
+}
+
+// ── Admin: limpar todo o histórico de auditoria (respeitando filtros) ────
+async function limparHistoricoAuditoria() {
+  if (!user || user.papel !== 'admin') return;
+  const filtroColabVal = document.getElementById('sec-audit-filtro')?.value || '';
+  const filtroAcaoVal = document.getElementById('sec-audit-acao')?.value || '';
+  const temFiltro = filtroColabVal || filtroAcaoVal;
+  const msg = temFiltro
+    ? 'Excluir todos os registros visíveis com os filtros atuais? Esta ação não pode ser desfeita.'
+    : 'Excluir TODO o histórico de auditoria? Esta ação não pode ser desfeita.';
+  if (!confirm(msg)) return;
+  try {
+    if (temFiltro) {
+      let logs = auditLogCache;
+      if (filtroColabVal) logs = logs.filter(l => l.colaborador_id === filtroColabVal);
+      if (filtroAcaoVal) logs = logs.filter(l => l.acao === filtroAcaoVal);
+      const ids = logs.map(l => l.id);
+      for (const id of ids) { await del('audit_log', `id=eq.${id}`).catch(() => {}); }
+      const idSet = new Set(ids);
+      auditLogCache = auditLogCache.filter(l => !idSet.has(l.id));
+    } else {
+      await del('audit_log', `id=neq.00000000-0000-0000-0000-000000000000`);
+      auditLogCache = [];
+    }
+    renderAuditoria();
+  } catch(e) {
+    alert('Erro ao limpar histórico: ' + e.message);
+  }
 }
 
 
