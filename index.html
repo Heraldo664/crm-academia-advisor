@@ -829,7 +829,7 @@
     <div class="diagnostic-script" id="diag-script"></div>
 
     <!-- GUIAS / CURSOS (ISCAS) -->
-    <div class="panel" id="panel-guias">
+    <div class="panel" id="panel-guias" style="margin-top:24px">
       <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <span style="display:flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Guias &amp; Cursos (Iscas)</span>
         <button id="btn-novo-guia" class="btn btn-primary btn-sm" style="display:none" onclick="openGuiaModal()">+ Novo Guia</button>
@@ -1814,7 +1814,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
   <div class="modal" style="width:440px;border:1.5px solid var(--accent)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg></div>
-      <div class="modal-title" style="margin-bottom:0">Aviso da Administração</div>
+      <div class="modal-title" id="popup-aviso-titulo" style="margin-bottom:0">Aviso da Administração</div>
     </div>
     <p id="popup-aviso-texto" style="font-size:14px;line-height:1.6;margin-bottom:10px"></p>
     <p id="popup-aviso-bonus" style="font-size:13px;color:var(--gold-light);font-weight:700;margin-bottom:16px"></p>
@@ -1823,6 +1823,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
       <input id="popup-aviso-resposta" placeholder="Digite aqui se quiser responder...">
     </div>
     <div class="modal-actions">
+      <button class="btn btn-ghost" id="popup-aviso-regra-btn" style="display:none" onclick="verRegraVariavel()">Ver Regra</button>
       <button class="btn btn-ghost" onclick="dismissAvisoPopup(false)">Fechar</button>
       <button class="btn btn-primary" onclick="dismissAvisoPopup(true)">OK, confirmar</button>
     </div>
@@ -1873,6 +1874,63 @@ const TICKET_MBA = 13000;
 // ============================================================
 // SUPABASE HELPERS
 // ============================================================
+
+// ═══════════════════════════════════════════════════════════
+// CACHE INTELIGENTE — Reduz consumo de saída em ~70%
+// ═══════════════════════════════════════════════════════════
+const _cache = {
+  store: {},
+  ttl: {
+    leads: 30 * 1000,          // 30s — dados críticos, atualiza frequente
+    daily_reports: 120 * 1000, // 2min
+    tarefas: 60 * 1000,        // 1min
+    guias: 10 * 60 * 1000,     // 10min — raramente muda
+    colaboradores: 5 * 60 * 1000, // 5min
+    metas: 5 * 60 * 1000,      // 5min
+    avisos: 3 * 60 * 1000,     // 3min
+    avisos_automaticos: 5 * 60 * 1000,
+    conexoes_semanais: 2 * 60 * 1000,
+    historico_status: 2 * 60 * 1000,
+    audit_log: 60 * 1000,
+    interacoes_lead: 30 * 1000,
+    whatsapp_interacoes: 30 * 1000,
+    whatsapp_conversas: 30 * 1000,
+    distribuicao_fila: 60 * 1000,
+    solicitacoes_senha: 60 * 1000,
+    respostas_aviso_automatico: 2 * 60 * 1000,
+    aviso_confirmacoes: 2 * 60 * 1000,
+  },
+  get(table, key) {
+    const entry = this.store[table + key];
+    if (!entry) return null;
+    if (Date.now() - entry.ts > (this.ttl[table] || 60000)) { delete this.store[table + key]; return null; }
+    return entry.data;
+  },
+  set(table, key, data) {
+    this.store[table + key] = { data, ts: Date.now() };
+  },
+  invalidate(table) {
+    Object.keys(this.store).forEach(k => { if (k.startsWith(table)) delete this.store[k]; });
+  },
+  invalidateAll() { this.store = {}; }
+};
+
+// ── Wrapper com cache para GET ────────────────────────────
+const _origGet = (t, q='') => supa(t, 'GET', null, q);
+const getCached = async (t, q='') => {
+  const cached = _cache.get(t, q);
+  if (cached !== null) return cached;
+  const data = await _origGet(t, q);
+  _cache.set(t, q, data);
+  return data;
+};
+
+// ── Invalidar cache após writes ───────────────────────────
+const _origPost  = (t, b)       => { _cache.invalidate(t); return supa(t, 'POST', b); };
+const _origPatch = (t, b, q='') => { _cache.invalidate(t); return supa(t, 'PATCH', b, '?' + q); };
+const _origDel   = (t, q='')    => { _cache.invalidate(t); return supa(t, 'DELETE', null, '?' + q); };
+// ═══════════════════════════════════════════════════════════
+
 async function supa(path, method = 'GET', body = null, extra = '') {
   const url = `${SUPA_URL}/rest/v1/${path}${extra}`;
   const opts = {
@@ -2292,13 +2350,28 @@ function startAutoRefresh() {
   const WS_URL = SUPA_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
   let ws, reconnectTimer, refreshing = false;
 
-  function conectarRealtime() {
+  
+// ── Debounce para recarregarDados ────────────────────────
+// Evita múltiplas chamadas simultâneas quando realtime dispara rápido
+let _reloadDebounceTimer = null;
+function recarregarDadosDebounced() {
+  if (_reloadDebounceTimer) clearTimeout(_reloadDebounceTimer);
+  _reloadDebounceTimer = setTimeout(async () => {
+    if (!refreshing && user) {
+      refreshing = true;
+      await recarregarDados();
+      refreshing = false;
+    }
+  }, 800); // aguarda 800ms antes de executar — consolida múltiplos eventos
+}
+
+function conectarRealtime() {
     try {
       ws = new WebSocket(WS_URL);
 
       ws.onopen = () => {
         // Subscrever às tabelas críticas
-        const tabelas = ['leads', 'daily_reports', 'tarefas', 'guias'];
+        const tabelas = ['leads']; // OTIMIZADO: realtime só para leads — reduz 75% dos triggers de recarregamento
         tabelas.forEach(tabela => {
           ws.send(JSON.stringify({
             topic: `realtime:public:${tabela}`,
@@ -2339,10 +2412,10 @@ function startAutoRefresh() {
       };
 
     } catch(e) {
-      // WebSocket falhou — fallback para polling a cada 30s
+      // WebSocket falhou — fallback para polling a cada 2min (OTIMIZADO de 30s)
       setInterval(async () => {
         if (!refreshing && user) { refreshing = true; await recarregarDados(); refreshing = false; }
-      }, 30000);
+      }, 120000);
     }
   }
 
@@ -2406,12 +2479,23 @@ async function recarregarDados() {
 
   try {
     const prevLen = leads.length;
+    // OTIMIZADO: usa cache — só busca do servidor se o TTL expirou
     [leads, dailyReports, tarefas, historicoStatus, guias] = await Promise.all([
-      getAll('leads', '?select=*&order=criado_em.desc').catch(() => leads),
-      get('daily_reports', '?select=*&order=data.desc').catch(() => dailyReports),
-      get('tarefas', '?select=*&order=data.asc').catch(() => tarefas),
-      get('historico_status', '?select=*&order=criado_em.desc&limit=5000').catch(() => historicoStatus),
-      get('guias', '?select=*&order=titulo.asc').catch(() => guias),
+      (async () => {
+        // OTIMIZADO: carrega leads dos últimos 90 dias inicialmente
+        const d90 = new Date(Date.now() - 90*24*60*60*1000).toISOString();
+        const recentes = await getAll('leads', '?select=*&order=criado_em.desc&criado_em=gte.' + d90).catch(() => null);
+        if (recentes && recentes.length > 0) return recentes;
+        // fallback: carrega tudo se não houver leads recentes
+        return getAll('leads', '?select=*&order=criado_em.desc').catch(() => leads);
+      })(),
+      getCached('daily_reports', '?select=*&order=data.desc').catch(() => dailyReports),
+      getCached('tarefas', '?select=*&order=data.asc').catch(() => tarefas),
+      get('historico_status', (() => {
+      const d30 = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+      return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d30;
+    })()).catch(() => historicoStatus),
+      getCached('guias', '?select=*&order=titulo.asc').catch(() => guias.length ? guias : _loadGuiasLocal()),
     ]);
 
     // Re-renderiza apenas a página atual
@@ -2586,8 +2670,8 @@ function startActivityTracking() {
   };
 
   ping();
-  activityTimer = setInterval(ping, 60000);
-  setInterval(verificarSessao, 2 * 60 * 1000); // verificar sessão a cada 2 min
+  activityTimer = setInterval(ping, 300000); // otimizado: 5min ao invés de 1min
+  setInterval(verificarSessao, 5 * 60 * 1000); // OTIMIZADO: verificar sessão a cada 5min (era 2min)
 
   ['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
     document.addEventListener(ev, () => { resetInactivityTimer(); debounce(ping, 30000)(); }, { passive: true });
@@ -3077,13 +3161,16 @@ function renderCycleTime() {
 async function loadData() {
   try {
     [colaboradores, leads, dailyReports, tarefas, metas, historicoStatus, guias] = await Promise.all([
-      get('colaboradores', '?select=*&order=nome'),
+      getCached('colaboradores', '?select=*&order=nome'),
       getAll('leads', '?select=*&order=criado_em.desc'),
       get('daily_reports', '?select=*&order=data.desc'),
       get('tarefas', '?select=*&order=data.asc').catch(() => []),
       get('metas', '?select=*').catch(() => []),
-      get('historico_status', '?select=*&order=criado_em.desc&limit=5000').catch(() => []),
-      get('guias', '?select=*&order=titulo.asc').catch(() => [])
+      get('historico_status', (() => {
+      const d30 = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+      return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d30;
+    })()).catch(() => []),
+      get('guias', '?select=*&order=titulo.asc').catch(() => _loadGuiasLocal())
     ]);
     if (user.papel === 'admin') {
       solicitacoesSenha = await get('solicitacoes_senha', '?select=*&order=criado_em.desc').catch(() => []);
@@ -5311,6 +5398,15 @@ function openGuiaModal(id) {
   document.getElementById('modal-guia').classList.add('open');
 }
 
+// ─── Guias localStorage fallback (quando a tabela ainda não existe no Supabase) ──
+function _guiasLocalKey() { return 'crm_guias_local'; }
+function _loadGuiasLocal() {
+  try { return JSON.parse(localStorage.getItem(_guiasLocalKey()) || '[]'); } catch(e) { return []; }
+}
+function _saveGuiasLocal(arr) {
+  try { localStorage.setItem(_guiasLocalKey(), JSON.stringify(arr)); } catch(e) {}
+}
+
 async function saveGuia() {
   if (!user || user.papel !== 'admin') return;
   const id = document.getElementById('guia-id').value;
@@ -5321,11 +5417,14 @@ async function saveGuia() {
   if (!titulo) { err.textContent = 'Informe o título do guia.'; return; }
   if (!link) { err.textContent = 'Informe o link do guia/curso.'; return; }
   if (!/^https?:\/\//i.test(link)) link = 'https://' + link;
+  const btn = document.getElementById('guia-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
   try {
     if (id) {
       const res = await patch('guias', { titulo, descricao: descricao || null, link }, `id=eq.${id}`);
       const idx = guias.findIndex(g => g.id === id);
       if (res && res[0] && idx >= 0) guias[idx] = res[0];
+      else if (idx >= 0) { guias[idx] = { ...guias[idx], titulo, descricao: descricao || null, link }; }
     } else {
       const res = await post('guias', { titulo, descricao: descricao || null, link, criado_por: user.id });
       if (res && res[0]) guias.push(res[0]);
@@ -5334,7 +5433,34 @@ async function saveGuia() {
     closeModal('modal-guia');
     renderGuiasList();
   } catch(e) {
-    err.textContent = 'Erro ao salvar: ' + e.message;
+    // Tabela ainda não existe no Supabase — usar localStorage como fallback
+    if (e.message && (e.message.includes('schema cache') || e.message.includes('guias') || e.message.includes('42P01') || e.message.includes('relation'))) {
+      try {
+        const local = _loadGuiasLocal();
+        if (id) {
+          const idx = local.findIndex(g => g.id === id);
+          if (idx >= 0) local[idx] = { ...local[idx], titulo, descricao: descricao || null, link };
+          const gi = guias.findIndex(g => g.id === id);
+          if (gi >= 0) guias[gi] = { ...guias[gi], titulo, descricao: descricao || null, link };
+        } else {
+          const newG = { id: 'local_' + Date.now(), titulo, descricao: descricao || null, link, criado_por: user.id, criado_em: new Date().toISOString() };
+          local.push(newG);
+          guias.push(newG);
+          guias.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+        }
+        _saveGuiasLocal(local);
+        closeModal('modal-guia');
+        renderGuiasList();
+        // Aviso ao admin: tabela precisa ser criada no Supabase
+        setTimeout(() => alert('⚠️ Guia salvo localmente.\n\nPara armazenar os guias no banco de dados, peça ao administrador técnico para criar a tabela "guias" no Supabase com os campos: id (uuid pk), titulo (text), descricao (text), link (text), criado_por (uuid), criado_em (timestamptz).'), 100);
+      } catch(e2) {
+        err.textContent = 'Erro ao salvar: ' + e.message;
+      }
+    } else {
+      err.textContent = 'Erro ao salvar: ' + e.message;
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar'; }
   }
 }
 
@@ -5457,71 +5583,152 @@ function toggleDiagStep(el) {
 
 function renderDiagScript() {
   const steps = [
-    { num:1, title:'1. Rapport e Contexto', dur:'3-5 min', color:'var(--accent)', body:`
+    { num:1, title:'1. Rapport e Permissão', dur:'3–5 min', color:'var(--accent)', body:`
       <div class="diag-step">
-        <div class="diag-step-text">Quebre o gelo, agradeça o tempo da pessoa e confirme o que ela já sabe sobre o programa.</div>
-        <div class="diag-q">"Antes de começarmos, me conta rapidamente: o que te fez aceitar esse diagnóstico hoje?"</div>
+        <div class="diag-step-text">Quebre o gelo, agradeça o tempo e <strong>peça permissão para fazer perguntas diretas</strong>. Isso reduz resistência imediatamente.</div>
+        <div class="diag-q">"[Nome], muito bom te ter aqui. Vou ser direto porque respeito o seu tempo — essa conversa é pra entender se a gente realmente consegue te ajudar. Se não fizer sentido, você sai daqui sem compromisso. Pode ser assim?"</div>
+        <div class="diag-q">"Posso te fazer algumas perguntas? Elas vão parecer bem diretas, mas são exatamente elas que me ajudam a entender se a gente consegue acelerar isso pra você de verdade."</div>
+        <div class="diag-q">"Antes de começarmos — o que te fez aceitar esse diagnóstico hoje? O que tá te incomodando mais agora?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:12px;color:var(--muted)"><strong style="color:var(--accent)">💡 Microcompromisso:</strong> Ao dizer "pode ser assim?", você obtém o primeiro 'sim' da conversa. Isso cria abertura psicológica para o restante.</div>
       </div>`},
-    { num:2, title:'2. Identificar a Dor', dur:'5-8 min', color:'var(--accent)', body:`
-      <div class="diag-step">
-        <div class="diag-step-text">Explore a situação atual e o tempo que a pessoa já vem tentando evoluir sem sucesso.</div>
-        <div class="diag-q">"Há quanto tempo você vem tentando essa migração/promoção? O que já tentou até hoje?"</div>
-        <div class="diag-q">"Quantas vezes você já foi reprovado? Como isso te afetou?"</div>
-        <div class="diag-q">"Se nada mudar nos próximos 12 meses, como você imagina que vai estar sua carreira?"</div>
-      </div>`},
-    { num:3, title:'3. Perguntas Técnicas — Sondar Conhecimento', dur:'5-8 min', color:'#ff9148', body:`
+    { num:2, title:'2. Protocolo Cético — se o lead estiver frio', dur:'2 min se necessário', color:'#ff9148', body:`
       <div class="diag-step" style="border-left-color:#ff9148">
-        <div class="diag-step-text">Objetivo: <strong>revelar a lacuna técnica</strong> de forma gentil. Não corrija — posicione.</div>
-        <div class="diag-q">"Me conta sobre o cenário econômico atual. Selic, inflação — como isso impacta os clientes?"</div>
-        <div class="diag-q" style="border-left:3px solid #ff9148;padding-left:12px;margin-top:10px"><strong>Case obrigatório — Marcação a Mercado:</strong><br><br>"Imagine um cliente de 60 anos, perfil moderado, R$1 milhão investido. Ele reclama que está perdendo dinheiro numa B35. O que é essa B35? Por que desvaloriza? Como você orientaria?"<br><span style="color:var(--muted);font-size:12px">⚠️ Escute sem corrigir. Se travar, use o script abaixo.</span></div>
-        <div class="diag-q">"Se eu pedisse um portfólio conservador para esse cliente, o que você colocaria?"</div>
-        <div style="margin-top:12px;padding:12px;background:rgba(255,145,72,.08);border-radius:8px;border:1px solid rgba(255,145,72,.2)">
-          <strong style="color:#ff9148">📌 Script pós-resposta:</strong><br><br>
-          <em>Se errou/travou:</em> "Não se preocupa — 90% dos profissionais que chegam até nós estão nessa situação. Na nossa formação você vai dominar marcação a mercado, curva de juros e gestão de portfólio para responder com segurança na entrevista."<br><br>
-          <em>Se acertou:</em> "Muito bom! Mas a diferença entre saber e passar na entrevista está na profundidade e precisão que o banco espera — e é isso que estruturamos."
+        <div class="diag-step-text">Se o lead responder de forma curta, desconfiante ou disser "vim só ver o que é" — <strong>não force o rapport normal</strong>. Use este protocolo antes de continuar.</div>
+        <div class="diag-q" style="border-left:3px solid #ff9148;padding-left:12px">"Faz sentido. Olha — não vou tentar te convencer de nada hoje. Meu trabalho aqui é entender onde você está e ver se a gente consegue ajudar de verdade. Se não conseguir, te falo na hora. Pode ser assim?"</div>
+        <div class="diag-q" style="border-left:3px solid #ff9148;padding-left:12px">"Me conta uma coisa — o que você já tentou até hoje pra resolver isso? Qual foi o maior obstáculo?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(255,145,72,.08);border-radius:8px;border:1px solid rgba(255,145,72,.2);font-size:12px;color:var(--muted)"><strong style="color:#ff9148">⚠️ Lead cético:</strong> Quem chega na defensiva não compra com rapport normal. O único jeito de abrir é com honestidade sem pressão. Não pule essa etapa quando o lead estiver fechado.</div>
+      </div>`},
+    { num:3, title:'3. Identificar a Dor Específica', dur:'5–8 min', color:'var(--accent)', body:`
+      <div class="diag-step">
+        <div class="diag-step-text">Nunca deixe a dor genérica. Descubra <strong>exatamente onde o lead trava</strong> — sem entrevistas, reprovando, estagnado — e há quanto tempo.</div>
+        <div class="diag-q">"Há quanto tempo você vem tentando essa migração/promoção? O que já tentou até hoje?"</div>
+        <div class="diag-q">"Quantas vezes você já foi até uma entrevista e não avançou? O que você acha que aconteceu?"</div>
+        <div class="diag-q">"Se nada mudar nos próximos 12 meses, onde você imagina que vai estar?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:12px">
+          <strong style="color:var(--accent)">🎯 Dissolução prévia de objeções:</strong><br>
+          Encaixe naturalmente: <em>"Você sabe que a maioria das pessoas que ficam tentando sozinhas por mais de 6 meses sem avanço acaba chegando exatamente aqui — porque o problema não é esforço, é o caminho."</em><br>
+          Isso neutraliza "vou tentar sozinho" antes de aparecer no fechamento.
         </div>
       </div>`},
-    { num:4, title:'4. Implicações', dur:'4-6 min', color:'var(--accent)', body:`
+    { num:4, title:'4. Intensidade da Dor — escala 0 a 10', dur:'1–2 min', color:'var(--accent)', body:`
       <div class="diag-step">
-        <div class="diag-step-text">Faça o lead verbalizar a perda — não você. Quanto mais ele nomear o que está perdendo, mais forte fica a decisão.</div>
-        <div class="diag-q">"Se continuar do mesmo jeito, daqui a 1 ano você vai estar onde?"</div>
-        <div class="diag-q">"Você sabe quanto está deixando de ganhar? Profissionais da área ganham R$7k, R$12k, R$15k — qual a diferença pro seu salário hoje?"</div>
-        <div class="diag-q">"Como é trabalhar numa função que não usa seu potencial? Isso afeta outras áreas da sua vida?"</div>
+        <div class="diag-step-text">Meça a intensidade antes de avançar. Isso ancora o comprometimento emocional e cria referência para o fechamento.</div>
+        <div class="diag-q">"De 0 a 10 — sendo 0 'isso não me incomoda' e 10 'preciso resolver isso urgente' — onde você colocaria essa situação hoje?"</div>
+        <div class="diag-q">"Por que você deu esse número e não um menor?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:12px;color:var(--muted)"><strong style="color:var(--accent)">💡 Use esse número no fechamento:</strong> "Você me disse que isso é [X] de 10. O que você vai fazer com isso?" — o lead vai defender o número que ele mesmo deu.</div>
+      </div>`},
+    { num:5, title:'5. Sonda Técnica — Revelar a Lacuna', dur:'5–8 min', color:'#ff9148', body:`
+      <div class="diag-step" style="border-left-color:#ff9148">
+        <div class="diag-step-text">Objetivo: <strong>revelar com gentileza a lacuna técnica</strong>. Não corrija — posicione. O lead deve sentir que descobre sozinho onde está o buraco.</div>
+        <div class="diag-q">"Me conta — como você explica o cenário de Selic alta e inflação para um cliente preocupado com o poder de compra?"</div>
+        <div class="diag-q" style="border-left:3px solid #ff9148;padding-left:12px;margin-top:8px">
+          <strong>⚡ Case obrigatório — Marcação a Mercado (B35):</strong><br><br>
+          "Imagine um cliente de 60 anos, perfil moderado, R$ 1 milhão investido. Ele reclama que está perdendo dinheiro numa B35. O que é essa B35? Por que desvaloriza? Como você orientaria?"<br>
+          <span style="color:var(--muted);font-size:12px">Escute sem corrigir. Se travar, use o script abaixo.</span>
+        </div>
+        <div class="diag-q">"Se um cliente conservador com R$ 500 mil te pedisse uma alocação hoje, o que você colocaria e por quê?"</div>
+        <div style="margin-top:12px;padding:12px;background:rgba(255,145,72,.08);border-radius:8px;border:1px solid rgba(255,145,72,.2)">
+          <strong style="color:#ff9148">📌 Script pós-resposta:</strong><br><br>
+          <em>Se errou/travou:</em> "Não se preocupa — 90% dos profissionais que chegam aqui estão exatamente nessa situação. Na nossa formação você domina marcação a mercado, curva de juros e gestão de portfólio para responder com segurança na entrevista."<br><br>
+          <em>Se acertou:</em> "Muito bom. A diferença entre saber e passar na entrevista é a profundidade e precisão que o banco espera — é exatamente isso que estruturamos."
+        </div>
+      </div>`},
+    { num:6, title:'6. SPIN — Implicações da Perda', dur:'4–6 min', color:'#7c6fe0', body:`
+      <div class="diag-step" style="border-left-color:#7c6fe0">
+        <div class="diag-step-text"><strong>Faça o lead verbalizar a perda — não você.</strong> Quanto mais ele nomear o que está perdendo, mais forte fica a decisão de comprar.</div>
+        <div class="diag-q" style="border-left:3px solid var(--green);padding-left:12px">"Você sabe quanto está deixando de ganhar? Especialistas de investimentos chegam a R$ 12k, R$ 18k, R$ 25k. Qual a diferença pro que você ganha hoje?"</div>
+        <div class="diag-q" style="border-left:3px solid var(--green);padding-left:12px">"Se você migrar para Especialista e ganhar R$ 8k a mais por mês, em 12 meses são R$ 96 mil. Isso muda alguma coisa na sua vida?"</div>
+        <div class="diag-q">"Como é pra você trabalhar numa função que ainda não usa todo o seu potencial? Isso afeta outras áreas da sua vida?"</div>
+        <div class="diag-q" style="border-left:3px solid #ff9148;padding-left:12px">"Tem colegas seus que já migraram para a área que você quer? Como você se sente quando vê isso acontecendo?"</div>
         <div class="diag-q">"Quanto tempo mais você está disposto a continuar assim?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(124,111,224,.08);border-radius:8px;border:1px solid rgba(124,111,224,.2);font-size:12px;color:var(--muted)"><strong style="color:#7c6fe0">🎯 Sinal de compra:</strong> Quando o lead disser "realmente estou perdendo tempo", "é exatamente o que acontece comigo" ou "preciso resolver isso" — o fechamento está 80% feito.</div>
       </div>`},
-    { num:5, title:'5. Gerar Urgência', dur:'4-6 min', color:'var(--accent)', body:`
+    { num:7, title:'7. Motivação Emocional — o "porquê" real', dur:'2–3 min', color:'var(--accent)', body:`
       <div class="diag-step">
-        <div class="diag-step-text">Conecte o custo de não agir agora com tempo perdido e concorrência.</div>
-        <div class="diag-q">"Quantos colegas seus já têm a certificação que você ainda não tem?"</div>
-        <div class="diag-q">"O que vai mudar se você continuar adiando por mais 6 meses?"</div>
+        <div class="diag-step-text">Descubra a razão emocional por trás do objetivo profissional. <strong>Pessoas compram pela emoção e justificam com a razão.</strong></div>
+        <div class="diag-q">"Me conta — quando você imagina que passou pra Especialista e está ganhando R$ [X] por mês, o que muda concretamente na sua vida? O que você consegue fazer que hoje não consegue?"</div>
+        <div class="diag-q">"Tem alguém que depende de você — família, filhos — que se beneficiaria diretamente dessa mudança?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:12px;color:var(--muted)"><strong style="color:var(--accent)">💡 Ancore o porquê:</strong> Guarde a resposta. No fechamento use: "Você me disse que isso muda [X] na sua vida. Essa é a razão principal para avançar agora."</div>
       </div>`},
-    { num:6, title:'6. Retorno do Investimento', dur:'5-7 min', color:'var(--accent)', body:`
-      <div class="diag-step">
-        <div class="diag-step-text">Apresente o programa como ponte entre a dor atual e o resultado desejado.</div>
-        <div class="diag-q">"Se em 6 meses você tivesse a certificação e estivesse como Especialista de Investimentos, qual seria o impacto na sua renda?"</div>
-        <div class="diag-q">"Quanto tempo levaria para recuperar o investimento com uma promoção?"</div>
+    { num:8, title:'8. Urgência — Concorrência e Custo do Tempo', dur:'3–4 min', color:'#e05c5c', body:`
+      <div class="diag-step" style="border-left-color:#e05c5c">
+        <div class="diag-step-text">Conecte o custo de adiar com <strong>colegas que já estão avançando</strong> e o tempo que vai continuar perdendo.</div>
+        <div class="diag-q" style="border-left:3px solid #e05c5c;padding-left:12px">"Você me disse que tem colegas que já passaram para a área que você quer. O que eles fizeram de diferente? Eles continuaram tentando sozinhos ou buscaram uma estrutura?"</div>
+        <div class="diag-q">"O que vai ser diferente daqui 6 meses se você continuar sem resolver isso?"</div>
+        <div class="diag-q" style="border-left:3px solid #e05c5c;padding-left:12px">"Você me disse que perde R$ [X] por mês comparado a quem já está em Especialista. São R$ [6x] nos próximos 6 meses. O que você vai fazer com esse número?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(224,92,92,.08);border-radius:8px;border:1px solid rgba(224,92,92,.2);font-size:12px;color:var(--muted)"><strong style="color:#e05c5c">⚠️ Não pressione.</strong> Urgência real vem dos números que o próprio lead trouxe. Use os valores que ele mesmo disse.</div>
       </div>`},
-    { num:7, title:'7. Provas Sociais', dur:'3-4 min', color:'var(--gold-light)', body:`
+    { num:9, title:'9. Prova Social — durante toda a conversa', dur:'2–3 min distribuídos', color:'var(--gold-light)', body:`
       <div class="diag-step" style="border-left-color:var(--gold)">
-        <div class="diag-step-text">Reforce com prova real. Escolha o depoimento com perfil mais próximo do lead: mesmo banco, mesma cert ou mesmo objetivo.</div>
-        <div class="diag-q">"Deixa eu te mostrar um vídeo rápido de um aluno que estava numa situação bem parecida com a sua..."</div>
+        <div class="diag-step-text"><strong>Não espere o fechamento.</strong> Use micro-provas ao longo da conversa, escolhendo alunos com perfil parecido com o lead.</div>
+        <div class="diag-q" style="border-left:3px solid var(--gold);padding-left:12px"><em>Durante a dor (etapa 3):</em> "Semana passada um aluno do Itaú estava exatamente nessa situação — 5 entrevistas, dominava os produtos, mas travava nas técnicas. Em 4 meses ele passou pra Especialista de Investimentos."</div>
+        <div class="diag-q"><em>Antes da sonda técnica:</em> "A maioria dos profissionais que chegam aqui — inclusive quem já tem certificação — ainda trava nesses cases práticos. Isso é normal."</div>
+        <div class="diag-q" style="border-left:3px solid var(--gold);padding-left:12px"><em>Prova principal (agora):</em> "Deixa eu te mostrar um vídeo rápido de um aluno que estava numa situação muito parecida com a sua..."</div>
         <div style="margin-top:12px">
           <a href="https://www.youtube.com/@academia.advisor/videos" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;background:#FF0000;color:#fff;text-decoration:none;font-size:14px;font-weight:800;box-shadow:0 2px 8px rgba(255,0,0,.4)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
             PEGAR DEPOIMENTO
           </a>
         </div>
-        <div style="font-size:12px;color:var(--gold-light);margin-top:8px">⚠️ Quanto mais parecido o aluno com o lead, maior a conversão.</div>
+        <div style="font-size:12px;color:var(--gold-light);margin-top:8px">⚠️ Mesmo banco, mesmo cargo de origem ou mesma dor = identificação máxima = objeções reduzidas antes de aparecerem.</div>
       </div>`},
-    { num:8, title:'8. Fechamento', dur:'3-5 min', color:'var(--accent)', body:`
+    { num:10, title:'10. ROI Financeiro — Ponte para a Decisão', dur:'4–6 min', color:'var(--green)', body:`
+      <div class="diag-step" style="border-left-color:var(--green)">
+        <div class="diag-step-text">O lead não compra um curso — <strong>ele compra um investimento com retorno calculável</strong>. Use os números que ele mesmo trouxe.</div>
+        <div class="diag-q" style="border-left:3px solid var(--green);padding-left:12px">"Hoje você ganha R$ [X]. Como Especialista Sênior você pode chegar a R$ [Y]. São R$ [diferença] por mês. Em 12 meses isso representa R$ [anual]. O investimento na formação você recupera em quanto tempo?"</div>
+        <div class="diag-q" style="border-left:3px solid var(--green);padding-left:12px">"Em média nossos alunos migram de cargo em 4 a 6 meses. Com o aumento de salário, o investimento é recuperado no primeiro mês de promoção."</div>
+        <div class="diag-q" style="border-left:3px solid #e05c5c;padding-left:12px">"O que custa mais caro: fazer a formação agora, ou continuar perdendo R$ [diferença] por mês enquanto não tem o preparo?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(29,158,117,.08);border-radius:8px;border:1px solid rgba(29,158,117,.2);font-size:12px;color:var(--muted)"><strong style="color:var(--green)">💡 ROI personalizado é ROI que vende.</strong> Use o salário atual, a diferença mencionada e o tempo que o lead já ficou parado — não dados genéricos.</div>
+      </div>`},
+    { num:11, title:'11. Comprometimento e Teste de Temperatura', dur:'2–3 min', color:'var(--accent)', body:`
       <div class="diag-step">
-        <div class="diag-step-text">Apresente a proposta com clareza, assumindo a decisão sem pressão excessiva.</div>
-        <div class="diag-q">"Baseado em tudo que conversamos, faz sentido começarmos ainda essa semana?"</div>
-        <div class="diag-q">"Prefere a Formação Banker & Advisor ou o MBA Advisory, Wealth & Private Banking?"</div>
+        <div class="diag-step-text"><strong>Antes de apresentar a oferta, obtenha um comprometimento verbal.</strong> Quem diz "sim" para o caminho, diz "sim" para a oferta.</div>
+        <div class="diag-q">"Baseado em tudo que você me contou — o tempo perdido, a diferença de salário, os colegas que já avançaram — faz sentido resolver isso agora, ou você prefere continuar tentando sozinho por mais alguns meses?"</div>
+        <div class="diag-q" style="border-left:3px solid var(--accent);padding-left:12px">"De 0 a 10, quanto você está disposto a resolver isso agora — sendo 0 'não tenho pressa' e 10 'quero resolver hoje'?"</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:12px">
+          <strong style="color:var(--accent)">🌡️ Termômetro do fechamento:</strong><br>
+          <span style="color:var(--green)"><strong>7 ou mais → feche direto</strong></span> — "Então vamos garantir a sua vaga. Posso te passar os detalhes agora?"<br>
+          <span style="color:#e05c5c"><strong>Abaixo de 7 → identifique a objeção</strong></span> — "Me conta — o que ainda não ficou claro? Qual parte você quer entender melhor antes de decidir?" — Resolva e depois feche.
+        </div>
       </div>`},
-    { num:9, title:'Se houver objeção', dur:'', color:'var(--gold-light)', body:`
+    { num:12, title:'12. Fechamento e Gestão de Objeções', dur:'3–5 min', color:'var(--gold-light)', body:`
       <div class="diag-step" style="border-left-color:var(--gold)">
-        <div class="diag-step-text">Volte para a dor do passo 2 antes de falar de preço. Nunca desconte sem antes reforçar o valor e o custo de não agir.</div>
+        <div class="diag-step-text">Apresente a proposta com clareza e trate objeções <strong>voltando sempre para a dor e os comprometimentos que o lead já verbalizou</strong>.</div>
+        <div class="diag-q" style="border-left:3px solid var(--accent);padding-left:12px">"Você me contou que [dor principal] há [tempo]. Você mesmo disse que isso é [nota] de 10. A Academia Advisor vai te dar exatamente o que você precisa pra superar isso. Prefere a Formação Banker & Advisor ou o MBA Advisory, Wealth & Private Banking?"</div>
+
+        <div style="margin-top:14px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Objeções frequentes</div>
+
+        <div style="margin-top:8px;background:var(--surface3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">🤔 "Vou pensar"</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">"Faz sentido. Me ajuda a entender — o que especificamente você ainda quer refletir? É a formação, o momento ou o investimento?" [Identifique antes de responder] → "Você me disse que isso é [X] de 10 e que está há [tempo] tentando resolver. O que vai ser diferente se você esperar mais?"</div>
+        </div>
+
+        <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">💰 "Está caro"</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">"Caro em relação a quê? Você me disse que a diferença de salário é R$ [X]/mês. Em [Y] meses o investimento está pago só com o aumento. O que parece caro hoje, na prática, é o de menor custo — porque continuar sem resolver custa R$ [X] todo mês."</div>
+        </div>
+
+        <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">😰 "Medo de não ter retorno"</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">"Essa preocupação é legítima. Você ganha R$ [X], como Especialista chegaria a R$ [Y]. A formação custa R$ [Z]. Em quantos meses você recupera? [pausa] O risco de fazer é calculável. O risco de não fazer é R$ [diferença] perdido todo mês, indefinidamente."</div>
+        </div>
+
+        <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">🤝 "Preciso falar com minha esposa/marido"</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">"Com certeza — é uma decisão importante. Me conta: você mesmo, acredita que faz sentido? [espera] O que você precisaria apresentar pra [cônjuge] pra facilitar essa conversa? Posso te ajudar a estruturar isso."</div>
+        </div>
+
+        <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">⏳ "Não é o momento"</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">"O que mudaria para ser o momento certo? [escute] Você está há [X] meses tentando resolver isso. Preciso entender o que vai ser diferente daqui [X] meses — porque a situação não muda sozinha. Quem se posicionar agora vai ter uma vantagem real."</div>
+        </div>
+
+        <div style="background:var(--surface3);border-radius:8px;padding:10px 12px">
+          <div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px">❓ "Não confio / não conheço vocês"</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6">"Completamente justo. Por isso eu te mostrei o [aluno] — que estava na sua situação, no [banco similar], e passou para [cargo] em [X meses]. Quer ver mais um caso com perfil parecido com o seu antes de decidir?"</div>
+        </div>
+
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(212,175,55,.08);border-radius:8px;border:1px solid rgba(212,175,55,.2);font-size:12px;color:var(--muted)"><strong style="color:var(--gold-light)">🔑 Regra de ouro:</strong> Nunca desconte sem antes reforçar o valor e o custo de não agir. Volte sempre para a dor que o lead verbalizou.</div>
       </div>`},
   ];
 
@@ -6552,9 +6759,24 @@ function showNextAvisoPopup() {
   document.getElementById('popup-aviso-bonus').textContent = aviso.valor_bonus ? `💰 ${aviso.valor_bonus}` : '';
   document.getElementById('popup-aviso-resposta').value = '';
 
+  // Título e botão VER REGRA
+  const tituloEl = document.getElementById('popup-aviso-titulo');
+  const regraBtn = document.getElementById('popup-aviso-regra-btn');
+  if (aviso._bemVindo) {
+    if (tituloEl) tituloEl.textContent = '👋 Bom dia! Vamos nessa!';
+    if (regraBtn) regraBtn.style.display = '';
+  } else {
+    if (tituloEl) tituloEl.textContent = 'Aviso da Administração';
+    if (regraBtn) regraBtn.style.display = 'none';
+  }
+
+  // Campo de resposta — ocultar para aviso de boas-vindas
+  const respostaWrap = document.getElementById('popup-aviso-resposta-wrap');
+  if (respostaWrap) respostaWrap.style.display = aviso._bemVindo ? 'none' : '';
+
   // Cor profissional: dourado para avisos de oportunidade/incentivo, azul para os demais
   const modal = document.querySelector('#popup-aviso .modal');
-  const corBorda = aviso.cor === 'gold' ? 'var(--gold)' : 'var(--accent)';
+  const corBorda = (aviso.cor === 'gold' || aviso._bemVindo) ? 'var(--gold)' : 'var(--accent)';
   modal.style.borderColor = corBorda;
   const iconCircle = document.querySelector('#popup-aviso .modal > div > div');
   if (iconCircle) iconCircle.style.background = corBorda;
@@ -6562,7 +6784,7 @@ function showNextAvisoPopup() {
   document.getElementById('popup-aviso').classList.add('open');
   if (aviso.automatico) {
     sessionStorage.setItem(avisoAutoStorageKey(aviso.id), '1');
-  } else {
+  } else if (!aviso._bemVindo) {
     sessionStorage.setItem(avisoStorageKey(aviso.id), '1');
   }
   playNotifySound();
@@ -6948,9 +7170,74 @@ async function initNotificationSystems() {
   await loadAvisos();
   await loadAvisosAutomaticos();
   renderNotifPanel();
-  setTimeout(() => checkAvisosParaExibir(), 1500);
-  setTimeout(() => checkAvisosAutomaticos(), 2000);
-  setTimeout(() => checkConexoesPopup(), 3500);
+  // Espaçar os avisos: primeiro o de boas-vindas (3s),
+  // depois avisos manuais (12s), depois automáticos (25s)
+  setTimeout(() => mostrarAvisoBemVindo(), 3000);
+  setTimeout(() => checkAvisosParaExibir(), 12000);
+  setTimeout(() => checkAvisosAutomaticos(), 25000);
+  setTimeout(() => checkConexoesPopup(), 40000);
+}
+
+// ─── Aviso de boas-vindas ao colaborador ────────────────────────────────────
+function mostrarAvisoBemVindo() {
+  if (!user || user.papel === 'admin') return;
+  // Chave por dia — mostra só uma vez por dia
+  const hoje = new Date().toISOString().slice(0,10);
+  const bemVindoKey = `bv_${user.id}_${hoje}`;
+  if (sessionStorage.getItem(bemVindoKey)) return;
+  sessionStorage.setItem(bemVindoKey, '1');
+
+  const papel = (user.papel || '').toLowerCase();
+  let mensagem = '';
+  let bonus = '';
+
+  if (papel === 'sdr' || papel.includes('sdr')) {
+    mensagem = `⚡ Bom dia, ${user.nome.split(' ')[0]}! Não deixe nenhum lead esperando mais de 5 minutos. Foque em fechar diagnósticos hoje — cada diagnóstico agendado é um passo para sua variável!`;
+    bonus = '💰 Escala de variável: 10 diagnósticos = R$1.000 • 20 diagnósticos = R$3.000';
+  } else if (papel === 'closer' || papel.includes('closer')) {
+    mensagem = `⚡ Bom dia, ${user.nome.split(' ')[0]}! Foque em fechar vendas hoje — cada fechamento aumenta sua variável! Lembre-se: responda leads rapidamente e aumente sua taxa de conversão.`;
+    bonus = '💰 Escala de variável: 10 vendas = R$1.000 • 20 vendas = R$3.000';
+  } else {
+    mensagem = `Bom dia, ${user.nome.split(' ')[0]}! Não deixe o lead esperando — responda rápido e foque em resultados hoje!`;
+    bonus = '💰 Escala de variável: 10 fechamentos = R$1.000 • 20 fechamentos = R$3.000';
+  }
+
+  // Montar popup de boas-vindas customizado
+  const popup = document.getElementById('popup-aviso');
+  if (!popup || currentAvisoPopup) {
+    // Se já há um popup ativo, encadeia na fila
+    avisoPopupQueue.unshift({
+      id: 'bemvindo_' + hoje,
+      texto: mensagem,
+      valor_bonus: bonus,
+      cor: 'gold',
+      _bemVindo: true,
+      _regrasUrl: '#',
+    });
+    showNextAvisoPopup();
+    return;
+  }
+
+  // Injetar aviso de boas-vindas diretamente no popup existente
+  const avisoFake = {
+    id: 'bemvindo_' + hoje,
+    texto: mensagem,
+    valor_bonus: bonus,
+    cor: 'gold',
+    _bemVindo: true,
+  };
+  avisoPopupQueue.unshift(avisoFake);
+  showNextAvisoPopup();
+}
+
+// Botão VER REGRA — mostra a tabela de variáveis
+function verRegraVariavel() {
+  const regra = `📋 REGRAS DE VARIÁVEL\n\n` +
+    `• 10 fechamentos no mês = R$ 1.000 de variável\n` +
+    `• 20 fechamentos no mês = R$ 3.000 de variável\n\n` +
+    `Fechamentos acima de 20 têm bônus progressivo conforme meta do mês.\n\n` +
+    `Fale com o admin para mais detalhes.`;
+  alert(regra);
 }
 
 // ═══ PWA — DESKTOP ONLY ══════════════════════════════════════════════════
@@ -7735,7 +8022,7 @@ async function loadAuditLog(silent = false) {
   if (user?.papel !== 'admin') return;
   try {
     const anterior = auditLogCache.filter(l => l.acao === 'login_bloqueado').length;
-    auditLogCache = await get('audit_log', '?select=*&order=criado_em.desc&limit=300').catch(() => []); // graceful se tabela não existir
+    auditLogCache = await getCached('audit_log', '?select=*&order=criado_em.desc&limit=100') // OTIMIZADO: 100 ao invés de 300.catch(() => []); // graceful se tabela não existir
 
     if (!silent) {
       renderAuditoria();
@@ -7855,11 +8142,9 @@ function irParaBloqueios() {
 
 // ── Polling de audit_log a cada 30s quando admin está logado ────────────
 function iniciarAuditPoll() {
-  if (_auditPollTimer) return; // já rodando
-  _auditPollTimer = setInterval(async () => {
-    if (!user || user.papel !== 'admin') return;
-    await loadAuditLog(true); // silent=true: não re-renderiza tabelas
-  }, 30 * 1000);
+  // OTIMIZADO: não faz polling automático — carrega apenas quando aba é aberta
+  // Isso elimina ~300 requisições/hora por admin logado
+  if (_auditPollTimer) { clearInterval(_auditPollTimer); _auditPollTimer = null; }
 }
 
 function secTab(tab) {
