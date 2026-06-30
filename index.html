@@ -1021,25 +1021,37 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
 
     <div class="panel">
       <div class="panel-title" style="font-size:18px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Vídeos de Treinamento</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch">
+        <div style="display:flex;flex-direction:column">
           <div style="font-size:19px;font-weight:700;margin-bottom:8px;color:var(--text)"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Como Utilizar o CRM Comercial</span></div>
           <p style="font-size:16px;color:var(--muted);margin-bottom:12px">Aprenda a usar o sistema para maximizar sua produtividade comercial.</p>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
-            <div style="font-size:40px;margin-bottom:12px">▶️</div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center">
+            <div style="font-size:40px;line-height:1;margin-bottom:12px">▶️</div>
             <p style="color:var(--muted);margin-bottom:14px;font-size:17px">Vídeo de treinamento do sistema</p>
             <a href="https://www.youtube.com/@AcademiaAdvisor" target="_blank" class="btn btn-primary" style="text-decoration:none;font-size:16px">Assistir Treinamento</a>
           </div>
         </div>
-        <div>
+        <div style="display:flex;flex-direction:column">
           <div style="font-size:19px;font-weight:700;margin-bottom:8px;color:var(--text)"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Treinamento Comercial</span></div>
           <p style="font-size:16px;color:var(--muted);margin-bottom:12px">Scripts, diagnóstico, objeções e como acelerar promoções no mercado financeiro.</p>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
-            <div style="margin-bottom:12px;display:flex;justify-content:center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;flex-shrink:0;color:var(--accent)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center">
+            <div style="margin-bottom:12px;line-height:1"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;color:var(--accent)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
             <p style="color:var(--muted);margin-bottom:14px;font-size:17px">Treinamento comercial da equipe</p>
             <a href="https://www.youtube.com/@AcademiaAdvisor" target="_blank" class="btn btn-primary" style="text-decoration:none;font-size:16px">Assistir Treinamento</a>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- GUIA DO MENTOR — visível apenas para admin dentro de Treinamento.
+         Para o papel 'mentor', o próprio menu já leva direto a esse sistema. -->
+    <div class="panel" id="panel-guia-mentor-treinamento" style="display:none">
+      <div class="panel-title" style="font-size:18px">📘 Guia do Mentor</div>
+      <p style="font-size:16px;color:var(--muted);margin-bottom:16px">Sistema de acompanhamento e orientação dos mentorados do programa.</p>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center;max-width:420px">
+        <div style="font-size:40px;line-height:1;margin-bottom:12px">📘</div>
+        <p style="color:var(--muted);margin-bottom:14px;font-size:17px">Sistema de Mentoria</p>
+        <button class="btn btn-primary" style="font-size:16px" onclick="navigateTo('guia-mentor')">Abrir Guia do Mentor</button>
       </div>
     </div>
 
@@ -1076,6 +1088,13 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
   </div>
 
 
+
+  <!-- GUIA DO MENTOR (embutido via iframe — mesma origem, permite chamar
+       receberAlunoDoCRM() diretamente quando o frame já está montado) -->
+  <div class="page" id="page-guia-mentor" style="padding:0;height:calc(100vh - 60px)">
+    <iframe id="guia-mentor-frame" src="Guia_do_Mentor_Academia_Advisor.html" title="Guia do Mentor"
+      style="width:100%;height:100%;border:0;display:block;background:#faf8f3"></iframe>
+  </div>
 
   <!-- BI DASHBOARD -->
   <!-- ADMIN -->
@@ -1116,6 +1135,27 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
       </div>
     </div>
     <!-- /CONTROLE DE VERSAO -->
+
+    <!-- ════ CONFIGURAÇÕES > INTEGRAÇÕES (somente Admin) ════ -->
+    <div class="panel" style="border:1.5px solid rgba(93,202,165,.3);margin-bottom:18px">
+      <div class="panel-title" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between" onclick="toggleAdminSection('integracao-section','integracao-arrow')">
+        <span style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Configurações &gt; Integrações</span>
+        <span id="integracao-arrow" style="font-size:12px;color:var(--muted);transition:transform .2s">▼</span>
+      </div>
+      <div id="integracao-section" style="display:none;margin-top:14px">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">
+          Quando um negócio é marcado como <strong>Fechado</strong>, o CRM envia automaticamente os dados do aluno
+          (nome, cargo-alvo, instituição-alvo, contato) para o Guia do Mentor, por evento interno
+          (sem webhook externo). A deduplicação é feita pelo ID do negócio — um mesmo fechamento nunca gera
+          dois cadastros, mesmo que o evento seja disparado mais de uma vez.
+        </p>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span class="badge badge-green">Integração ativa</span>
+          <button class="btn btn-ghost btn-sm" onclick="renderIntegracaoLog()">Atualizar log</button>
+        </div>
+        <div id="integracao-log-list"><p class="empty">Carregando...</p></div>
+      </div>
+    </div>
 
     <!-- ════ BI — TENDÊNCIAS HISTÓRICAS ════ -->
     <div class="panel" style="border:1.5px solid rgba(79,138,255,.25);margin-bottom:18px">
@@ -1744,7 +1784,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
     <div class="form-row">
       <div class="field"><label>Papel *</label>
         <select id="c-papel" onchange="onPapelChange()">
-          <option value="sdr">SDR</option><option value="closer">Closer</option><option value="admin">Admin</option>
+          <option value="sdr">SDR</option><option value="closer">Closer</option><option value="admin">Admin</option><option value="mentor">Mentor (Guia do Mentor)</option>
         </select>
       </div>
     </div>
@@ -2053,6 +2093,23 @@ async function getAll(table, query = '') {
     offset += pageSize;
   }
   return all;
+}
+
+// ── getAll com cache persistente (IDB) ────────────────────
+// Usado para cargas grandes feitas a cada início de sessão (ex.: todos os
+// leads em loadData()). Como a sessão é restaurada a cada reload de página,
+// sem isso o sistema baixava a tabela inteira de leads do zero toda vez.
+// A chave usa o mesmo prefixo "table::" já reconhecido por _cache.invalidate,
+// então um POST/PATCH/DELETE em leads já invalida esse cache automaticamente.
+async function getAllCached(table, query = '', ttlMs = 60000) {
+  const idbKey = `${table}::all::${query}`;
+  try {
+    const rec = await idbGet(idbKey);
+    if (rec && (Date.now() - rec.ts) < rec.ttl) return rec.value;
+  } catch (e) {}
+  const data = await getAll(table, query);
+  idbSet(idbKey, data, ttlMs).catch(() => {});
+  return data;
 }
 
 // ============================================================
@@ -2404,6 +2461,12 @@ async function startApp() {
   document.getElementById('app').style.display = 'block';
   renderTopUser();
   buildNav();
+  // Mentor: acesso exclusivo ao Guia do Mentor — não carrega dados comerciais do CRM
+  if (user.papel === 'mentor') {
+    navigateTo('treinamento'); // botão único do menu; internamente abre o Guia do Mentor
+    startActivityTracking();
+    return;
+  }
   await loadData();
   // SDR → vai direto para Leads no Kanban (fila de trabalho)
   // Admin/Closer → Dashboard (visão gerencial)
@@ -2768,6 +2831,14 @@ function debounce(fn, wait) {
 
 function buildNav() {
   const nav = document.getElementById('topbar-nav');
+  // Mentor: acesso exclusivo ao Guia do Mentor, sem visibilidade de nenhuma
+  // tela comercial do CRM (pipeline, leads, scripts, etc.). A aba aparece
+  // como "Treinamento" (mesmo rótulo de todo mundo), mas ao clicar leva
+  // direto para o sistema de mentoria — é o único conteúdo que esse papel acessa.
+  if (user.papel === 'mentor') {
+    nav.innerHTML = `<button class="nav-btn" id="nav-treinamento" onclick="navigateTo('treinamento')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Treinamento</button>`;
+    return;
+  }
   const pages = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'leads', label: 'Leads' },
@@ -2775,21 +2846,31 @@ function buildNav() {
     { id: 'scripts', label: 'Scripts' },
     { id: 'treinamento', label: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Treinamento' },
   ];
-  if (user.papel === 'admin') pages.push({ id: 'admin', label: 'Admin' });
+  // Guia do Mentor não tem mais aba própria no menu — fica disponível
+  // dentro da página de Treinamento (card visível só para admin).
+  if (user.papel === 'admin') {
+    pages.push({ id: 'admin', label: 'Admin' });
+  }
   nav.innerHTML = pages.map(p =>
     `<button class="nav-btn" id="nav-${p.id}" onclick="navigateTo('${p.id}')">${p.label}</button>`
   ).join('');
 }
 
 function navigateTo(pageId) {
+  // Botão do menu a destacar (pode diferir da página real exibida): o Guia
+  // do Mentor agora vive dentro de Treinamento, então destaca essa aba.
+  const navId = (pageId === 'guia-mentor') ? 'treinamento' : pageId;
+  // Mentor: o único botão do menu ("Treinamento") abre direto o Guia do Mentor,
+  // já que esse papel não tem acesso a mais nada no sistema.
+  const targetPageId = (pageId === 'treinamento' && user && user.papel === 'mentor') ? 'guia-mentor' : pageId;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const pg = document.getElementById(`page-${pageId}`);
-  const nb = document.getElementById(`nav-${pageId}`);
+  const pg = document.getElementById(`page-${targetPageId}`);
+  const nb = document.getElementById(`nav-${navId}`);
   if (pg) pg.classList.add('active');
   if (nb) nb.classList.add('active');
-  if (pageId === 'dashboard') { renderDashboard(); checkRecomendacaoPopup(); }
-  if (pageId === 'leads') {
+  if (targetPageId === 'dashboard') { renderDashboard(); checkRecomendacaoPopup(); }
+  if (targetPageId === 'leads') {
     // SDR → Kanban (foco em velocidade e volume de contato)
     // Closer e Admin → Lista (visão gerencial + Agenda do dia no topo)
     const defaultView = (user && user.papel === 'sdr') ? 'kanban' : 'list';
@@ -2799,10 +2880,17 @@ function navigateTo(pageId) {
     renderFollowupPanel();
     if (typeof renderCloserAgenda === 'function') renderCloserAgenda();
   }
-  if (pageId === 'daily') { renderDaily(); renderAvisosColabList(); }
-  if (pageId === 'scripts') { renderDiagScript(); renderGuiasList(); }
+  if (targetPageId === 'daily') { renderDaily(); renderAvisosColabList(); }
+  if (targetPageId === 'scripts') { renderDiagScript(); renderGuiasList(); }
+  if (targetPageId === 'guia-mentor') { /* iframe já carrega seu próprio conteúdo via src */ }
+  if (targetPageId === 'treinamento') {
+    // Card "Guia do Mentor" dentro de Treinamento só aparece para admin
+    // (o mentor já é redirecionado direto para o guia, acima).
+    const cardMentor = document.getElementById('panel-guia-mentor-treinamento');
+    if (cardMentor) cardMentor.style.display = (user && user.papel === 'admin') ? '' : 'none';
+  }
   // ── Paginação de leads ────────────────────────────────
-  if (pageId === 'leads') {
+  if (targetPageId === 'leads') {
     ensureLeadsPaginationBar();
     if (typeof _leadsPage !== 'undefined' && _leadsPage === 0 && leads.length === 0) {
       initLeadsPagination();
@@ -2810,7 +2898,7 @@ function navigateTo(pageId) {
       updateLeadsPaginationUI();
     }
   }
-  if (pageId === 'admin') { renderAdmin(); setTimeout(vpInit, 300); if (typeof renderProgramasList === 'function') renderProgramasList(); renderAvisosAdminList(); renderAvisosTemplates(); renderAvisosAutoList(); renderDistribuicaoFila(); renderWhatsappInteracoes(); renderPerformanceComercial(); loadRespostasAvisoAuto().then(renderRespostasAvisoAuto); loadAuditLog(); iniciarAuditPoll(); }
+  if (targetPageId === 'admin') { renderAdmin(); setTimeout(vpInit, 300); if (typeof renderProgramasList === 'function') renderProgramasList(); renderAvisosAdminList(); renderAvisosTemplates(); renderAvisosAutoList(); renderDistribuicaoFila(); renderWhatsappInteracoes(); renderPerformanceComercial(); loadRespostasAvisoAuto().then(renderRespostasAvisoAuto); loadAuditLog(); iniciarAuditPoll(); renderIntegracaoLog(); }
 }
 
 
@@ -3253,9 +3341,15 @@ function renderCycleTime() {
 
 async function loadData() {
   try {
+    // ── Leads: carga completa, mas em cache curto (IDB) ───────────────
+    // loadData() roda toda vez que a sessão é restaurada (ex.: a cada
+    // reload de página), então sem cache a tabela inteira de leads era
+    // baixada do zero repetidas vezes ao longo do dia. O TTL é o mesmo já
+    // definido em _cache.ttl.leads (30s) — curto o bastante para não afetar
+    // a visão de pipeline em tempo real, mas evita refetch redundante.
     [colaboradores, leads, dailyReports, tarefas, metas, historicoStatus, guias] = await Promise.all([
       getCached('colaboradores', '?select=*&order=nome'),
-      getAll('leads', '?select=*&order=criado_em.desc'),
+      getAllCached('leads', '?select=*&order=criado_em.desc', _cache.ttl.leads),
       get('daily_reports', '?select=*&order=data.desc'),
       get('tarefas', '?select=*&order=data.asc').catch(() => []),
       get('metas', '?select=*').catch(() => []),
@@ -4313,7 +4407,7 @@ function renderCloserAgenda() {
 
   panel.style.display = 'block';
 
-  // Montar lista unificada
+  // Montar lista unificada (cada item é um evento — diagnóstico OU call)
   const agendaItems = [
     ...diagHoje.map(l => ({
       hora: null, nome: l.nome, tipo: '🩺 Diagnóstico', label: 'badge-purple',
@@ -4323,25 +4417,45 @@ function renderCloserAgenda() {
       const lead = leads.find(l => l.id === t.lead_id);
       return {
         hora: t.hora, nome: t.lead_nome, tipo: '📞 Call Fechamento', label: 'badge-gold',
-        linkMeet: t.link_meet, tarefaId: t.id, empresa: lead?.empresa || ''
+        linkMeet: t.link_meet, tarefaId: t.id, leadId: t.lead_id || lead?.id || null, empresa: lead?.empresa || ''
       };
     })
-  ].sort((a, b) => (a.hora || '00:00').localeCompare(b.hora || '00:00'));
+  ];
 
-  list.innerHTML = agendaItems.map((item, i) => `
-    <div style="display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:${i > 0 ? '1px solid var(--border)' : 'none'}">
-      <div style="text-align:center">
-        ${item.hora ? `<div style="font-size:15px;font-weight:800;color:var(--text)">${item.hora.slice(0,5)}</div>` : `<div style="font-size:11px;color:var(--muted)">Sem hora</div>`}
-      </div>
-      <div>
-        <div style="font-size:13px;font-weight:700">${item.nome} ${item.empresa ? `<span style="font-weight:400;color:var(--muted)">— ${item.empresa}</span>` : ''}</div>
-        <span class="badge ${item.label}" style="margin-top:3px">${item.tipo}</span>
-      </div>
-      <div style="display:flex;gap:6px">
-        ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
-        ${item.leadId ? `<button class="btn btn-ghost btn-sm" onclick="editLead('${item.leadId}')">Ver Lead</button>` : ''}
-        ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
-      </div>
+  // ── Agrupar por pessoa ─────────────────────────────────────────────
+  // A mesma pessoa pode ter um diagnóstico (cadastro do lead) E uma call
+  // de fechamento (tarefa) marcados pra hoje. Em vez de mostrar 2 cards
+  // iguais com o mesmo nome, agrupamos pelo lead_id (ou nome+empresa,
+  // quando a tarefa não tem o vínculo) e listamos os eventos dela juntos.
+  const grupos = new Map();
+  for (const item of agendaItems) {
+    const chave = item.leadId || `${(item.nome||'').toLowerCase().trim()}|${(item.empresa||'').toLowerCase().trim()}`;
+    if (!grupos.has(chave)) grupos.set(chave, { nome: item.nome, empresa: item.empresa, eventos: [] });
+    grupos.get(chave).eventos.push(item);
+  }
+  const pessoas = [...grupos.values()].map(g => ({
+    ...g,
+    eventos: g.eventos.sort((a, b) => (a.hora || '99:99').localeCompare(b.hora || '99:99'))
+  })).sort((a, b) => (a.eventos[0].hora || '99:99').localeCompare(b.eventos[0].hora || '99:99'));
+
+  list.innerHTML = pessoas.map((p, i) => `
+    <div style="padding:10px 0;border-top:${i > 0 ? '1px solid var(--border)' : 'none'}">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px">${p.nome} ${p.empresa ? `<span style="font-weight:400;color:var(--muted)">— ${p.empresa}</span>` : ''}</div>
+      ${p.eventos.map(item => `
+        <div style="display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:4px 0">
+          <div style="text-align:center">
+            ${item.hora ? `<div style="font-size:14px;font-weight:800;color:var(--text)">${item.hora.slice(0,5)}</div>` : `<div style="font-size:11px;color:var(--muted)">Sem hora</div>`}
+          </div>
+          <div>
+            <span class="badge ${item.label}">${item.tipo}</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
+            ${item.leadId ? `<button class="btn btn-ghost btn-sm" onclick="editLead('${item.leadId}')">Ver Lead</button>` : ''}
+            ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
+          </div>
+        </div>
+      `).join('')}
     </div>
   `).join('');
 }
@@ -5033,12 +5147,21 @@ async function saveLead() {
           tipo: 'status_change',
           descricao: `Status alterado de "${leadAnterior.status}" para "${status}".`,
         }).catch(() => {});
+        // ── Integração com o Guia do Mentor (evento interno, sem webhook) ──
+        // Disparado pela própria ação de fechamento do Closer, sem nenhuma
+        // tela ou passo adicional perceptível no fluxo dele.
+        if (status === 'Fechado') {
+          dispararIntegracaoGuiaMentor(leads.find(l => l.id === id) || payload);
+        }
       }
     } else {
       payload.sdr_nome = user.nome;
       payload.sdr_id = user.id;
       const res = await post('leads', payload);
       if (res && res[0]) leads.unshift(res[0]);
+      if (status === 'Fechado' && res && res[0]) {
+        dispararIntegracaoGuiaMentor(res[0]);
+      }
     }
     closeModal('modal-lead');
     renderLeadsTable();
@@ -5057,6 +5180,71 @@ async function deleteLead(id) {
     leads = leads.filter(l => l.id !== id);
     renderLeadsTable();
   } catch(e) { alert('Erro: ' + e.message); }
+}
+
+// ============================================================
+// INTEGRAÇÃO COM O GUIA DO MENTOR (evento interno — sem webhook,
+// sem chamada de rede externa). O Guia é embutido no CRM via iframe
+// de mesma origem (#guia-mentor-frame), o que permite chamar a função
+// receberAlunoDoCRM() diretamente quando o frame já estiver montado.
+// Como o Mentor pode não estar com a tela aberta no instante exato do
+// fechamento, o evento TAMBÉM é gravado numa fila compartilhada
+// (window.storage), que o Guia drena sozinho ao carregar — a
+// deduplicação por negocio_id (feita dentro de receberAlunoDoCRM)
+// garante que o mesmo negócio nunca gere dois cadastros, mesmo que o
+// evento seja entregue pelos dois caminhos.
+// ============================================================
+async function dispararIntegracaoGuiaMentor(lead) {
+  try {
+    if (!lead) return;
+    const payloadIntegracao = {
+      aluno: {
+        nome: lead.nome || '',
+        cargo_alvo: lead.cargo || '',
+        instituicao_alvo: lead.instituicao_desejada || '',
+        contato: lead.telefone || lead.email || ''
+      },
+      negocio_id: lead.id,
+      fechado_em: new Date().toISOString()
+    };
+
+    // 1) Entrega imediata, se o Guia já estiver montado no iframe (mesma origem)
+    const frame = document.getElementById('guia-mentor-frame');
+    if (frame && frame.contentWindow && typeof frame.contentWindow.receberAlunoDoCRM === 'function') {
+      try { await frame.contentWindow.receberAlunoDoCRM(payloadIntegracao); } catch (eDirect) { /* segue para a fila */ }
+    }
+
+    // 2) Sempre registra na fila compartilhada, para garantir a entrega mesmo
+    //    que o Guia não esteja aberto agora (ele drena a fila ao iniciar).
+    let fila = [];
+    try {
+      const r = await window.storage.get('integracao:fila_alunos_crm');
+      fila = r ? JSON.parse(r.value) : [];
+    } catch (eGet) { fila = []; }
+    if (!fila.some(p => p.negocio_id === payloadIntegracao.negocio_id)) {
+      fila.push(payloadIntegracao);
+      await window.storage.set('integracao:fila_alunos_crm', JSON.stringify(fila));
+    }
+  } catch (e) {
+    console.warn('Integração CRM → Guia do Mentor falhou:', e);
+  }
+}
+
+// Log mínimo de sincronização, visível apenas em Admin > Configurações > Integrações
+async function renderIntegracaoLog() {
+  const el = document.getElementById('integracao-log-list');
+  if (!el) return;
+  el.innerHTML = '<p class="empty">Carregando...</p>';
+  try {
+    const r = await window.storage.get('integracao:sync_log');
+    const log = r ? JSON.parse(r.value) : [];
+    if (!log.length) { el.innerHTML = '<p class="empty">Nenhuma sincronização registrada ainda.</p>'; return; }
+    el.innerHTML = `<table><thead><tr><th>Data</th><th>Aluno</th><th>Negócio (ID)</th></tr></thead><tbody>${
+      log.map(l => `<tr><td>${new Date(l.data).toLocaleString('pt-BR')}</td><td>${l.nome || ''}</td><td>${l.negocio_id}</td></tr>`).join('')
+    }</tbody></table>`;
+  } catch (e) {
+    el.innerHTML = '<p class="empty">Erro ao carregar o log de sincronização.</p>';
+  }
 }
 
 // ============================================================
@@ -6110,7 +6298,7 @@ async function quickEditLink(colabId, field) {
 }
 
 function statusBadge2(p) {
-  const map = { sdr: 'badge-blue', closer: 'badge-purple', admin: 'badge-green' };
+  const map = { sdr: 'badge-blue', closer: 'badge-purple', admin: 'badge-green', mentor: 'badge-gold' };
   return `<span class="badge ${map[p] || 'badge-gray'}">${p.toUpperCase()}</span>`;
 }
 
@@ -6118,7 +6306,7 @@ function onPapelChange() {
   const papel = document.getElementById('c-papel').value;
   document.getElementById('c-meta-diag-wrap').style.display = papel === 'sdr' ? 'block' : 'none';
   document.getElementById('c-meta-vendas-wrap').style.display = papel === 'closer' ? 'block' : 'none';
-  document.getElementById('c-meta-row').style.display = papel === 'admin' ? 'none' : 'grid';
+  document.getElementById('c-meta-row').style.display = (papel === 'admin' || papel === 'mentor') ? 'none' : 'grid';
 
   const cotaWrap = document.getElementById('c-cota-wrap');
   if (cotaWrap) cotaWrap.style.display = document.getElementById('c-papel')?.value === 'sdr' ? 'block' : 'none';
