@@ -1089,11 +1089,1537 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
 
 
 
-  <!-- GUIA DO MENTOR (embutido via iframe — mesma origem, permite chamar
-       receberAlunoDoCRM() diretamente quando o frame já está montado) -->
+  <!-- GUIA DO MENTOR — agora embutido por completo aqui dentro (srcdoc),
+       num arquivo único, em vez de depender de um segundo arquivo .html
+       publicado à parte (era essa a causa do erro 404). O iframe continua
+       de mesma origem, então receberAlunoDoCRM() do CRM continua funcionando
+       normalmente via frame.contentWindow. -->
   <div class="page" id="page-guia-mentor" style="padding:0;height:calc(100vh - 60px)">
-    <iframe id="guia-mentor-frame" src="Guia_do_Mentor_Academia_Advisor.html" title="Guia do Mentor"
-      style="width:100%;height:100%;border:0;display:block;background:#faf8f3"></iframe>
+    <iframe id="guia-mentor-frame" title="Guia do Mentor"
+      style="width:100%;height:100%;border:0;display:block;background:#faf8f3"
+      srcdoc="<!DOCTYPE html>
+<html lang=&quot;pt-BR&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>Guia do Mentor — Academia Advisor | Formação em Banker &amp;amp; Advisor</title>
+<style>
+:root{
+  --navy-950:#0a1628;
+  --navy-900:#0f1f38;
+  --navy-800:#152a4a;
+  --navy-700:#1c3760;
+  --navy-600:#264a82;
+  --gold-500:#c9a227;
+  --gold-400:#dab94a;
+  --gold-100:#f5ebcc;
+  --paper:#faf8f3;
+  --ink-900:#1a1d23;
+  --ink-700:#3c4250;
+  --ink-500:#6b7280;
+  --line:#e3dfd4;
+  --green-bg:#e8f3ea;
+  --green-line:#5f9c6f;
+  --red-bg:#faeae8;
+  --red-line:#c2645a;
+  --blue-bg:#e9eef7;
+  --blue-line:#4c6da8;
+  --purple-bg:#f0eafa;
+  --purple-line:#7c5cbf;
+  --sans:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --serif:'Source Serif Pro',Georgia,'Times New Roman',serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:var(--sans);color:var(--ink-900);background:var(--paper);font-size:17.5px;line-height:1.65;}
+
+/* ===== LAYOUT ===== */
+.shell{display:grid;grid-template-columns:300px 1fr;min-height:100vh;}
+
+/* ===== SIDEBAR ===== */
+.sidebar{background:linear-gradient(180deg,var(--navy-950) 0%,var(--navy-900) 100%);color:#dfe6f2;position:sticky;top:0;height:100vh;overflow-y:auto;padding:0 0 40px;border-right:1px solid var(--gold-500);}
+.sidebar::-webkit-scrollbar{width:5px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--navy-600);border-radius:3px;}
+.brand{padding:24px 22px 18px;border-bottom:1px solid rgba(201,162,39,0.25);}
+.brand-logo{width:50px;height:50px;border:1.5px solid var(--gold-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:18px;color:var(--gold-400);margin-bottom:12px;}
+.brand-name{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;line-height:1.2;margin:0 0 3px;}
+.brand-tag{font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-400);font-weight:600;}
+.brand-doc{margin-top:10px;font-size:12.5px;color:#8fa3c4;font-style:italic;}
+.nav{padding:14px 10px 10px;}
+.nav-section{font-size:13px;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold-500);padding:14px 12px 5px;font-weight:700;}
+.nav-section.toggle{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
+.nav-section.toggle:hover{color:var(--gold-400);}
+.nav-section .chevron{font-size:10px;transition:transform .2s;}
+.nav-section.collapsed .chevron{transform:rotate(-90deg);}
+.nav-group{overflow:hidden;max-height:1000px;transition:max-height .25s ease;}
+.nav-group.collapsed{max-height:0;}
+.nav a{display:block;padding:8px 12px;margin:1px 0;color:#c4cfe0;text-decoration:none;font-size:15.5px;border-radius:6px;transition:background .15s,color .15s;border-left:2px solid transparent;}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav a.sub{padding-left:24px;font-size:15px;color:#9fb0cc;}
+.nav a.active{background:rgba(201,162,39,.14);color:#fff;border-left:2px solid var(--gold-500);font-weight:600;}
+
+/* ===== TABS SISTEMA ===== */
+.sys-tabs{display:flex;gap:10px;margin-bottom:22px;}
+.sys-tab{padding:11px 22px;background:#fff;border:1.5px solid var(--navy-700);border-radius:8px;cursor:pointer;font-family:var(--sans);font-size:15.5px;font-weight:700;color:var(--navy-900);transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.sys-tab.active{background:var(--navy-900);color:var(--gold-400);border-color:var(--navy-900);}
+.sys-tab:hover{background:var(--blue-bg);}
+.sys-tab.active:hover{background:var(--navy-700);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ===== MAIN CONTENT ===== */
+.content{padding:48px 60px 120px;max-width:940px;}
+.doc-header{margin-bottom:40px;padding-bottom:28px;border-bottom:3px solid var(--navy-900);}
+.doc-header .kicker{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-500);font-weight:700;margin-bottom:8px;}
+.doc-header h1{font-family:var(--serif);font-size:38px;line-height:1.15;color:var(--navy-950);margin:0 0 12px;font-weight:700;}
+.doc-header .sub{font-size:17.5px;color:var(--ink-700);max-width:680px;}
+section.block{margin-bottom:56px;padding-top:6px;}
+section.block>h1.part-title{font-family:var(--serif);font-size:29px;color:var(--navy-950);border-bottom:2px solid var(--gold-500);padding-bottom:12px;margin:0 0 24px;}
+h2{font-family:var(--serif);font-size:23px;color:var(--navy-900);margin:36px 0 14px;font-weight:700;}
+h3{font-family:var(--sans);font-size:18.5px;color:var(--navy-800);margin:24px 0 10px;font-weight:700;}
+h4{font-family:var(--sans);font-size:16px;color:var(--navy-700);margin:18px 0 8px;font-weight:700;}
+p{margin:0 0 13px;color:var(--ink-700);}
+strong{color:var(--ink-900);}
+ul,ol{margin:0 0 14px;padding-left:22px;color:var(--ink-700);}
+li{margin-bottom:6px;}
+
+/* ===== CALLOUTS ===== */
+.callout{border-radius:7px;padding:14px 18px;margin:16px 0 22px;font-size:15.5px;}
+.callout-title{font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.callout.good{background:var(--green-bg);border-left:3px solid var(--green-line);}
+.callout.good .callout-title{color:#3c6b48;}
+.callout.bad{background:var(--red-bg);border-left:3px solid var(--red-line);}
+.callout.bad .callout-title{color:#9c3f34;}
+.callout.note{background:var(--blue-bg);border-left:3px solid var(--blue-line);}
+.callout.note .callout-title{color:#33508c;}
+.callout.gold{background:var(--gold-100);border-left:3px solid var(--gold-500);}
+.callout.gold .callout-title{color:#8a6c12;}
+.callout.purple{background:var(--purple-bg);border-left:3px solid var(--purple-line);}
+.callout.purple .callout-title{color:#5c3d9c;}
+
+blockquote.script{background:var(--navy-950);color:#e6ecf6;border-left:3px solid var(--gold-500);border-radius:5px;padding:16px 20px;margin:16px 0 20px;font-family:var(--serif);font-size:16.5px;font-style:italic;line-height:1.7;}
+
+/* ===== TABELAS ===== */
+table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:15px;background:#fff;border-radius:7px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+th{background:var(--navy-900);color:#fff;text-align:left;padding:10px 14px;font-weight:600;font-size:13.5px;}
+td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink-700);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even) td{background:#fbf9f4;}
+
+/* ===== CODE BLOCK ===== */
+.codeblock{background:var(--navy-950);color:#cfe3ff;padding:16px 18px;border-radius:7px;font-family:var(--mono);font-size:14px;line-height:1.7;overflow-x:auto;white-space:pre;margin:12px 0 20px;}
+
+/* ===== QUESTION CARDS ===== */
+.qcard{background:#fff;border:1px solid var(--line);border-left:3px solid var(--navy-700);border-radius:7px;padding:12px 16px;margin:8px 0;font-size:15.5px;color:var(--ink-900);}
+.qcard b.qid{color:#a8801f;font-family:var(--mono);margin-right:7px;font-size:13px;}
+
+/* ===== DIVIDER ===== */
+.divider-gold{height:1px;background:linear-gradient(90deg,var(--gold-500),transparent);margin:40px 0;}
+
+/* ===== CHECKLIST INTERATIVO ===== */
+.ichecklist{list-style:none;padding-left:0;}
+.ichecklist li{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px;cursor:pointer;padding:7px 10px;border-radius:6px;transition:background .12s;}
+.ichecklist li:hover{background:rgba(201,162,39,.08);}
+.ichecklist li input[type=checkbox]{width:17px;height:17px;accent-color:var(--navy-700);cursor:pointer;flex-shrink:0;margin-top:1px;}
+.ichecklist li label{cursor:pointer;font-size:15.5px;color:var(--ink-700);line-height:1.5;}
+.ichecklist li.checked label{color:var(--ink-500);text-decoration:line-through;}
+
+/* ===== ESPAÇOS DE OBSERVAÇÃO ===== */
+.obs-box{margin:14px 0 22px;}
+.obs-box label{display:block;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold-500);margin-bottom:6px;}
+.obs-box textarea{width:100%;border:1.5px solid var(--line);border-radius:6px;padding:10px 13px;font-family:var(--sans);font-size:15.5px;color:var(--ink-900);background:#fff;resize:vertical;min-height:80px;transition:border-color .15s;}
+.obs-box textarea:focus{outline:none;border-color:var(--gold-500);background:#fffdf5;}
+.obs-box textarea::placeholder{color:#bbb;}
+.save-obs{margin-top:6px;padding:7px 16px;background:var(--navy-900);color:var(--gold-400);border:none;border-radius:5px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}
+.save-obs:hover{background:var(--navy-700);}
+.saved-msg{display:none;margin-left:10px;font-size:13px;color:var(--green-line);font-weight:600;}
+
+/* ===== FICHA DE FEEDBACK ===== */
+.ficha-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 26px;margin:16px 0 28px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.ficha-card h3{margin-top:0;color:var(--navy-950);}
+.ficha-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.ficha-field label{display:block;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-500);margin-bottom:5px;}
+.ficha-field input,.ficha-field select,.ficha-field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:15px;color:var(--ink-900);background:#fff;transition:border-color .15s;}
+.ficha-field input:focus,.ficha-field select:focus,.ficha-field textarea:focus{outline:none;border-color:var(--gold-500);}
+.ficha-field.full{grid-column:1/-1;}
+.pilar-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 18px;}
+.pilar-item label{font-size:13.5px;font-weight:600;color:var(--navy-800);display:block;margin-bottom:5px;}
+.pilar-item select{width:100%;padding:7px 10px;border:1.5px solid var(--line);border-radius:5px;font-size:14px;background:#fff;cursor:pointer;}
+.ficha-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
+.btn-primary{padding:10px 22px;background:var(--navy-900);color:var(--gold-400);border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;}
+.btn-primary:hover{background:var(--navy-700);}
+.btn-secondary{padding:10px 22px;background:#fff;color:var(--navy-900);border:1.5px solid var(--navy-700);border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-secondary:hover{background:var(--blue-bg);}
+.btn-danger{padding:10px 22px;background:#fff;color:var(--red-line);border:1.5px solid var(--red-line);border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;}
+.status-msg{font-size:14px;padding:8px 14px;border-radius:5px;display:none;}
+.status-msg.ok{background:var(--green-bg);color:#3c6b48;}
+.status-msg.error{background:var(--red-bg);color:#9c3f34;}
+
+/* ===== SISTEMA DE AGENDAMENTO ===== */
+.agenda-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin:14px 0;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.agenda-card h4{margin:0 0 16px;color:var(--navy-950);}
+.agenda-slot{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:7px;margin-bottom:8px;border:1px solid var(--line);}
+.agenda-slot .slot-badge{width:44px;height:44px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;text-transform:uppercase;flex-shrink:0;}
+.badge-m1{background:var(--blue-bg);color:var(--blue-line);}
+.badge-m2{background:var(--purple-bg);color:var(--purple-line);}
+.badge-next{background:var(--gold-100);color:var(--gold-600,#a8801f);}
+.slot-info{flex:1;}
+.slot-info .slot-name{font-weight:700;font-size:15.5px;color:var(--ink-900);}
+.slot-info .slot-time{font-size:13.5px;color:var(--ink-500);}
+.slot-status{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:12px;}
+.status-proximo{background:#fff3c4;color:#a8801f;}
+.status-hoje{background:var(--green-bg);color:#3c6b48;}
+.status-futuro{background:var(--blue-bg);color:var(--blue-line);}
+.status-concluido{background:#f0f0f0;color:#888;}
+.next-alert{background:linear-gradient(135deg,var(--navy-950),var(--navy-800));color:#fff;border-radius:10px;padding:18px 22px;margin-bottom:20px;display:none;}
+.next-alert h4{margin:0 0 6px;color:var(--gold-400);font-size:16.5px;}
+.next-alert .next-name{font-size:22px;font-weight:700;margin:0 0 4px;}
+.next-alert .next-detail{font-size:14px;color:#b0c0d8;}
+
+/* ===== HISTÓRICO DE ATENDIMENTO ===== */
+.atend-item{background:#fff;border-left:3px solid var(--navy-700);border-radius:0 7px 7px 0;padding:14px 18px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.atend-item .atend-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.atend-item .atend-aluno{font-weight:700;font-size:16px;color:var(--navy-900);}
+.atend-item .atend-meta{font-size:13px;color:var(--ink-500);}
+.prontidao-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;white-space:nowrap;}
+.pront-pronto{background:var(--green-bg);color:#3c6b48;}
+.pront-quase{background:#fff3c4;color:#a8801f;}
+.pront-ciclo{background:var(--red-bg);color:#9c3f34;}
+.atend-pilares{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.pilar-chip{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--blue-bg);color:var(--blue-line);}
+.pilar-chip.fragil{background:var(--red-bg);color:var(--red-line);}
+.pilar-chip.forte{background:var(--green-bg);color:var(--green-line);}
+
+/* ===== PILLS ===== */
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px;}
+.pill{background:var(--navy-900);color:var(--gold-400);font-size:11.5px;font-weight:700;letter-spacing:.3px;padding:5px 12px;border-radius:18px;}
+
+/* ===== BACK TO TOP ===== */
+.back-to-top{position:fixed;bottom:26px;right:32px;background:var(--navy-950);color:var(--gold-400);border:1px solid var(--gold-500);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px;box-shadow:0 3px 12px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none;}
+.back-to-top.show{opacity:1;pointer-events:auto;}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:28px 32px;max-width:520px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal h3{margin:0 0 18px;font-family:var(--serif);color:var(--navy-950);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){.shell{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.content{padding:28px 18px 100px}}
+</style>
+</head>
+<body>
+<div class=&quot;shell&quot;>
+
+<!-- ====== SIDEBAR ====== -->
+<nav class=&quot;sidebar&quot; id=&quot;sidebar&quot;>
+  <div class=&quot;brand&quot;>
+    <div class=&quot;brand-logo&quot;>AA</div>
+    <p class=&quot;brand-name&quot;>Academia Advisor</p>
+    <p class=&quot;brand-tag&quot;>Formação em Banker &amp;amp; Advisor</p>
+    <p class=&quot;brand-doc&quot;>Guia do Mentor - uso interno</p>
+  </div>
+  <div class=&quot;nav&quot;>
+    <div class=&quot;nav-section&quot;>Sistema</div>
+    <a href=&quot;#sistema-agenda&quot;>📅 Agenda de Mentorias</a>
+    <a href=&quot;#sistema-registro&quot;>📝 Registrar Atendimento</a>
+    <a href=&quot;#sistema-historico&quot;>📊 Histórico e Fichas</a>
+
+    <div class=&quot;nav-section&quot;>Fundamentos</div>
+    <a href=&quot;#fundamentos&quot;>00 - Filosofia da Mentoria</a>
+
+    <div class=&quot;nav-section toggle collapsed&quot; onclick=&quot;toggleNavGroup(this)&quot;>Mentoria 1 - Diagnóstico <span class=&quot;chevron&quot;>▾</span></div>
+    <div class=&quot;nav-group collapsed&quot;>
+      <a href=&quot;#m1&quot;>01 - Objetivo e estrutura</a>
+      <a class=&quot;sub&quot; href=&quot;#m1-perguntas&quot;>Perguntas estratégicas</a>
+      <a class=&quot;sub&quot; href=&quot;#m1-pitch&quot;>Avaliação do pitch pessoal</a>
+      <a class=&quot;sub&quot; href=&quot;#m1-leitura&quot;>Plano de ação e leitura</a>
+    </div>
+
+    <div class=&quot;nav-section toggle collapsed&quot; onclick=&quot;toggleNavGroup(this)&quot;>Mentoria 2 - Simulação <span class=&quot;chevron&quot;>▾</span></div>
+    <div class=&quot;nav-group collapsed&quot;>
+      <a href=&quot;#m2&quot;>02 - Objetivo e estrutura</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-pilar-a&quot;>Pilar A - Comportamental</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-pilar-b&quot;>Pilar B - Conhecimento da instituição</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-pilar-c&quot;>Pilar C - Macroeconomia</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-pilar-d&quot;>Pilar D - Suitability e perfil</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-pilar-e&quot;>Pilar E - Produto e portfólio</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-pilar-f&quot;>Pilar F - Comercial e captação</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-respostas&quot;>Banco de respostas-modelo</a>
+      <a class=&quot;sub&quot; href=&quot;#m2-feedback&quot;>Feedback estruturado</a>
+    </div>
+
+    <div class=&quot;nav-section&quot;>Referência</div>
+    <a href=&quot;#erros&quot;>03 - Erros comuns dos mentorados</a>
+    <a href=&quot;#biblioteca&quot;>04 - Biblioteca do Mentor</a>
+    <a href=&quot;#anexos&quot;>05 - Checklists e Fichas</a>
+    <a href=&quot;#integracao-crm&quot;>06 - Integração com CRM</a>
+  </div>
+</nav>
+
+<!-- ====== MAIN ====== -->
+<main class=&quot;content&quot;>
+  <div class=&quot;doc-header&quot;>
+    <p class=&quot;kicker&quot;>Material interno - Academia Advisor</p>
+    <h1>Guia do Mentor</h1>
+    <p class=&quot;sub&quot;>Formação em Banker &amp;amp; Advisor - roteiro completo das duas mentorias individuais de 1h, sistema de agendamento, fichas de acompanhamento e simulação de entrevista com líderes.</p>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- SISTEMA: AGENDA                                           -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;sistema-agenda&quot;>
+    <h1 class=&quot;part-title&quot;>📅 Sistema de Agenda de Mentorias</h1>
+    <p>Gerencie aqui todas as sessões agendadas. O sistema avisa automaticamente qual aluno será o próximo, com dia e horário destacados.</p>
+
+    <!-- PRÓXIMA MENTORIA ALERT -->
+    <div class=&quot;next-alert&quot; id=&quot;nextAlert&quot;>
+      <h4>⏰ PRÓXIMA MENTORIA</h4>
+      <div class=&quot;next-name&quot; id=&quot;nextName&quot;>-</div>
+      <div class=&quot;next-detail&quot; id=&quot;nextDetail&quot;>-</div>
+    </div>
+
+    <div class=&quot;sys-tabs&quot;>
+      <button class=&quot;sys-tab active&quot; onclick=&quot;showTab('tab-agenda-nova', this)&quot;>+ Nova sessão</button>
+      <button class=&quot;sys-tab&quot; onclick=&quot;showTab('tab-agenda-lista', this)&quot;>Ver agenda</button>
+    </div>
+
+    <!-- NOVA SESSÃO -->
+    <div class=&quot;tab-panel active&quot; id=&quot;tab-agenda-nova&quot;>
+      <div class=&quot;ficha-card&quot;>
+        <h3>Agendar nova sessão</h3>
+        <div class=&quot;ficha-row&quot;>
+          <div class=&quot;ficha-field&quot;>
+            <label>Nome do aluno (CRM - Fechado)</label>
+            <input type=&quot;text&quot; id=&quot;ag-aluno&quot; placeholder=&quot;Nome do aluno&quot; list=&quot;alunos-crm&quot;>
+            <datalist id=&quot;alunos-crm&quot;></datalist>
+          </div>
+          <div class=&quot;ficha-field&quot;>
+            <label>Tipo de mentoria</label>
+            <select id=&quot;ag-tipo&quot;>
+              <option value=&quot;M1&quot;>Mentoria 1 - Diagnóstico de Carreira</option>
+              <option value=&quot;M2&quot;>Mentoria 2 - Simulação de Entrevista</option>
+            </select>
+          </div>
+        </div>
+        <div class=&quot;ficha-row&quot;>
+          <div class=&quot;ficha-field&quot;>
+            <label>Data</label>
+            <input type=&quot;date&quot; id=&quot;ag-data&quot;>
+          </div>
+          <div class=&quot;ficha-field&quot;>
+            <label>Horário</label>
+            <input type=&quot;time&quot; id=&quot;ag-hora&quot; value=&quot;09:00&quot;>
+          </div>
+        </div>
+        <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:14px;&quot;>
+          <label>Observações iniciais</label>
+          <textarea id=&quot;ag-obs&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Aluno em processo seletivo para o Itaú Personnalité, entrevista marcada para próxima semana...&quot;></textarea>
+        </div>
+        <div class=&quot;ficha-actions&quot;>
+          <button class=&quot;btn-primary&quot; onclick=&quot;agendarSessao()&quot;>Agendar sessão</button>
+          <span class=&quot;status-msg&quot; id=&quot;ag-status&quot;></span>
+        </div>
+      </div>
+
+      <!-- ADICIONAR ALUNO DO CRM -->
+      <div class=&quot;ficha-card&quot; style=&quot;margin-top:14px;&quot;>
+        <h3>Cadastrar aluno (CRM Fechado)</h3>
+        <div class=&quot;callout note&quot; style=&quot;margin:0 0 14px;&quot;>
+          <div class=&quot;callout-title&quot;>⚙️ Integração com o CRM (em breve)</div>
+          Este cadastro será feito automaticamente assim que o GUIA estiver integrado ao CRM: todo aluno marcado como &quot;fechado&quot; entrará direto nesta lista, sem necessidade de digitação manual. Especificação técnica em <a href=&quot;#integracao-crm&quot; style=&quot;color:#33508c;font-weight:600;&quot;>Integração com CRM</a>. Até lá, use o formulário abaixo para cadastrar manualmente.
+        </div>
+        <div class=&quot;ficha-row&quot;>
+          <div class=&quot;ficha-field&quot;>
+            <label>Nome completo</label>
+            <input type=&quot;text&quot; id=&quot;crm-nome&quot; placeholder=&quot;Nome do aluno&quot;>
+          </div>
+          <div class=&quot;ficha-field&quot;>
+            <label>Cargo-alvo</label>
+            <input type=&quot;text&quot; id=&quot;crm-cargo&quot; placeholder=&quot;Ex: Especialista de Investimentos - Bradesco Principal&quot;>
+          </div>
+        </div>
+        <div class=&quot;ficha-row&quot;>
+          <div class=&quot;ficha-field&quot;>
+            <label>Instituição-alvo</label>
+            <input type=&quot;text&quot; id=&quot;crm-inst&quot; placeholder=&quot;Ex: Itaú Personnalité, XP, Sicredi...&quot;>
+          </div>
+          <div class=&quot;ficha-field&quot;>
+            <label>Contato (WhatsApp / e-mail)</label>
+            <input type=&quot;text&quot; id=&quot;crm-contato&quot; placeholder=&quot;Ex: (11) 99999-0000&quot;>
+          </div>
+        </div>
+        <div class=&quot;ficha-actions&quot;>
+          <button class=&quot;btn-primary&quot; onclick=&quot;cadastrarAluno()&quot;>Cadastrar aluno (manual)</button>
+          <span class=&quot;status-msg&quot; id=&quot;crm-status&quot;></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTA DE AGENDA -->
+    <div class=&quot;tab-panel&quot; id=&quot;tab-agenda-lista&quot;>
+      <div id=&quot;agenda-lista-container&quot;>
+        <p style=&quot;color:var(--ink-500);font-size:14px;&quot;>Nenhuma sessão agendada ainda.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- SISTEMA: REGISTRAR ATENDIMENTO                            -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;sistema-registro&quot;>
+    <h1 class=&quot;part-title&quot;>📝 Registrar Atendimento</h1>
+    <p>Use este formulário imediatamente após cada sessão de mentoria. O registro alimenta o histórico do aluno e a análise de evolução ao longo da Formação.</p>
+
+    <div class=&quot;ficha-card&quot;>
+      <h3>Novo registro de atendimento</h3>
+      <div class=&quot;ficha-row&quot;>
+        <div class=&quot;ficha-field&quot;>
+          <label>Aluno (CRM - Fechado)</label>
+          <input type=&quot;text&quot; id=&quot;reg-aluno&quot; placeholder=&quot;Nome do aluno&quot; list=&quot;alunos-crm-reg&quot;>
+          <datalist id=&quot;alunos-crm-reg&quot;></datalist>
+        </div>
+        <div class=&quot;ficha-field&quot;>
+          <label>Tipo de mentoria realizada</label>
+          <select id=&quot;reg-tipo&quot;>
+            <option value=&quot;M1&quot;>Mentoria 1 - Diagnóstico</option>
+            <option value=&quot;M2&quot;>Mentoria 2 - Simulação</option>
+          </select>
+        </div>
+      </div>
+      <div class=&quot;ficha-row&quot;>
+        <div class=&quot;ficha-field&quot;>
+          <label>Data da sessão</label>
+          <input type=&quot;date&quot; id=&quot;reg-data&quot;>
+        </div>
+        <div class=&quot;ficha-field&quot;>
+          <label>Duração real (minutos)</label>
+          <input type=&quot;number&quot; id=&quot;reg-duracao&quot; value=&quot;60&quot; min=&quot;20&quot; max=&quot;120&quot;>
+        </div>
+      </div>
+
+      <!-- PILARES - só aparece para M2 -->
+      <div id=&quot;reg-pilares-block&quot;>
+        <h4 style=&quot;color:var(--navy-900);margin-bottom:12px;&quot;>Avaliação por Pilar (Mentoria 2)</h4>
+        <div class=&quot;pilar-grid&quot;>
+          <div class=&quot;pilar-item&quot;><label>A - Comportamental e Fit</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;A&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+          <div class=&quot;pilar-item&quot;><label>B - Conhecimento da instituição</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;B&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+          <div class=&quot;pilar-item&quot;><label>C - Macroeconomia</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;C&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+          <div class=&quot;pilar-item&quot;><label>D - Suitability e Perfil</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;D&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+          <div class=&quot;pilar-item&quot;><label>E - Produto e Portfólio</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;E&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+          <div class=&quot;pilar-item&quot;><label>F - Comercial e Captação</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;F&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+        </div>
+      </div>
+
+      <div class=&quot;ficha-row&quot; style=&quot;margin-top:8px;&quot;>
+        <div class=&quot;ficha-field&quot;>
+          <label>Prontidão geral</label>
+          <select id=&quot;reg-prontidao&quot;>
+            <option value=&quot;&quot;>- selecionar -</option>
+            <option value=&quot;pronto&quot;>Pronto para entrevista</option>
+            <option value=&quot;quase&quot;>Quase pronto - ajuste pontual</option>
+            <option value=&quot;ciclo&quot;>Precisa de novo ciclo de preparo</option>
+          </select>
+        </div>
+        <div class=&quot;ficha-field&quot;>
+          <label>Leitura indicada</label>
+          <select id=&quot;reg-leitura&quot;>
+            <option value=&quot;&quot;>- nenhuma / já indicada -</option>
+            <option value=&quot;SPIN Selling&quot;>SPIN Selling - Neil Rackham</option>
+            <option value=&quot;Prospecção Fanática&quot;>Prospecção Fanática - Jeb Blount</option>
+            <option value=&quot;Como Fazer Amigos&quot;>Como Fazer Amigos e Influenciar Pessoas</option>
+            <option value=&quot;90 Segundos&quot;>Como Convencer Alguém em 90 Segundos</option>
+            <option value=&quot;12 Regras&quot;>As 12 Regras Para a Vida</option>
+            <option value=&quot;Picos e Vales&quot;>Picos e Vales</option>
+            <option value=&quot;A Lei da Conexão&quot;>A Lei da Conexão</option>
+          </select>
+        </div>
+      </div>
+
+      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:12px;margin-top:4px;&quot;>
+        <label>Pontos fortes observados</label>
+        <textarea id=&quot;reg-fortes&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Excelente fluência ao explicar marcação a mercado, boa conexão entre macro e carteira do cliente...&quot;></textarea>
+      </div>
+      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:12px;&quot;>
+        <label>Pontos de atenção / a desenvolver</label>
+        <textarea id=&quot;reg-atencao&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Resposta de pontos fracos ainda decorada ('sou perfeccionista'), travamento nas perguntas de macro sobre China...&quot;></textarea>
+      </div>
+      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:12px;&quot;>
+        <label>Observações gerais do Mentor</label>
+        <textarea id=&quot;reg-obs&quot; rows=&quot;3&quot; placeholder=&quot;Registre aqui percepções que não se encaixam nas categorias acima: estado emocional do aluno, contexto de vida, histórico relevante, intuições sobre o desenvolvimento...&quot;></textarea>
+      </div>
+      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:16px;&quot;>
+        <label>Próximo passo recomendado</label>
+        <textarea id=&quot;reg-prox&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Reassistir Morning Call do Itaú por 5 dias seguidos e enviar resumo escrito. Agendar M2 daqui 15 dias.&quot;></textarea>
+      </div>
+      <div class=&quot;ficha-actions&quot;>
+        <button class=&quot;btn-primary&quot; onclick=&quot;salvarRegistro()&quot;>Salvar registro</button>
+        <button class=&quot;btn-secondary&quot; onclick=&quot;limparRegistro()&quot;>Limpar</button>
+        <span class=&quot;status-msg&quot; id=&quot;reg-status&quot;></span>
+      </div>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- SISTEMA: HISTÓRICO                                        -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;sistema-historico&quot;>
+    <h1 class=&quot;part-title&quot;>📊 Histórico e Fichas dos Alunos</h1>
+    <p>Todos os registros salvos aparecem aqui, organizados por aluno. Use o filtro para localizar rapidamente um mentorado específico.</p>
+
+    <div style=&quot;display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;&quot;>
+      <div style=&quot;flex:1;min-width:200px;&quot;>
+        <input type=&quot;text&quot; id=&quot;hist-filtro&quot; placeholder=&quot;Filtrar por nome do aluno...&quot; oninput=&quot;filtrarHistorico()&quot; style=&quot;width:100%;padding:9px 13px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:14px;&quot;>
+      </div>
+      <select id=&quot;hist-tipo&quot; onchange=&quot;filtrarHistorico()&quot; style=&quot;padding:9px 13px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:14px;background:#fff;&quot;>
+        <option value=&quot;&quot;>Todos os tipos</option>
+        <option value=&quot;M1&quot;>Mentoria 1</option>
+        <option value=&quot;M2&quot;>Mentoria 2</option>
+      </select>
+      <button class=&quot;btn-secondary&quot; onclick=&quot;exportarHistorico()&quot; style=&quot;white-space:nowrap;&quot;>Exportar CSV</button>
+    </div>
+
+    <div id=&quot;historico-container&quot;>
+      <p style=&quot;color:var(--ink-500);font-size:14px;padding:20px 0;&quot;>Nenhum registro ainda. Registre o primeiro atendimento acima.</p>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- PARTE 0 - FUNDAMENTOS                                     -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;fundamentos&quot;>
+    <h1 class=&quot;part-title&quot;>Parte 0 - Fundamentos da Mentoria</h1>
+
+    <h2>O que esta mentoria é - e o que não é</h2>
+    <p>O aluno já passou pelo conteúdo da Formação: produtos, macroeconomia, metodologia comercial, cases. Se a mentoria repetir esse conteúdo em formato de aula, ela falha. O papel do Mentor aqui é outro: <strong>diagnosticar, confrontar com a realidade da entrevista e calibrar.</strong></p>
+    <p>As duas sessões têm funções distintas:</p>
+    <ul>
+      <li><strong>Mentoria 1 = Espelho.</strong> O aluno precisa se ver como o entrevistador vai vê-lo - carreira, discurso, postura, motivação. Aqui o Mentor escuta mais do que fala.</li>
+      <li><strong>Mentoria 2 = Pressão controlada.</strong> Simulação real de entrevista no ritmo de um líder de banco. Aqui o Mentor cobra, interrompe e repete a pergunta de formas diferentes - exatamente como vai acontecer de verdade.</li>
+    </ul>
+    <div class=&quot;callout note&quot;>
+      <div class=&quot;callout-title&quot;>Armadilha comum do mentor novato</div>
+      Querer &quot;ensinar&quot; no lugar de &quot;testar&quot;. Se o aluno não sabe algo, isso já é um dado riquíssimo - guarde para o feedback final, não interrompa a simulação para dar aula.
+    </div>
+
+    <h2>Princípios que guiam toda mentoria</h2>
+    <ol>
+      <li><strong>Primeiro ouvir, depois perguntar, só então orientar.</strong> Nessa ordem. Quem fala demais cedo, ensina menos.</li>
+      <li><strong>Pergunta antes de afirmação.</strong> Em vez de &quot;você devia falar isso&quot;, pergunte &quot;o que você acha que o entrevistador quer ouvir aqui?&quot;</li>
+      <li><strong>Toda correção vem com um porquê.</strong> Não basta dizer &quot;está fraco&quot;. Diga por que está fraco e o que uma resposta forte teria de diferente.</li>
+      <li><strong>O aluno sai de cada sessão com uma tarefa concreta</strong> - não com uma sensação vaga de &quot;preciso estudar mais&quot;.</li>
+      <li><strong>Honestidade pesa mais que acolhimento fácil.</strong> Suavizar demais é um desserviço.</li>
+      <li><strong>O Mentor nunca entrega resposta pronta para o aluno decorar.</strong> O objetivo é desenvolver raciocínio.</li>
+    </ol>
+
+    <h2>Antes da primeira sessão</h2>
+    <p>Peça ao aluno, com pelo menos 2 dias de antecedência:</p>
+    <ul>
+      <li>Currículo atualizado (mesmo que informal)</li>
+      <li>Um parágrafo respondendo: <em>&quot;Por que você quer trabalhar como Banker/Advisor?&quot;</em></li>
+      <li>Se já estiver em processo seletivo: nome da instituição, cargo e etapa atual</li>
+    </ul>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Fundamentos</label>
+      <textarea placeholder=&quot;Registre aqui percepções sobre a filosofia de mentoria, ajustes que funcionaram bem na sua prática, adaptações para o seu estilo...&quot; id=&quot;obs-fundamentos&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-fundamentos','fundamentos')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-fundamentos&quot;>Salvo!</span>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- PARTE 1 - MENTORIA 1                                      -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;m1&quot;>
+    <h1 class=&quot;part-title&quot;>Parte 1 - Mentoria 1: Diagnóstico de Carreira e Postura</h1>
+    <div class=&quot;pill-row&quot;><span class=&quot;pill&quot;>60 minutos</span><span class=&quot;pill&quot;>Individual</span><span class=&quot;pill&quot;>Sem simulação</span></div>
+
+    <h2>Objetivo da sessão</h2>
+    <p>Ao final da Mentoria 1, o aluno deve saber:</p>
+    <ul>
+      <li>Como contar sua própria história profissional de forma estratégica - não cronológica</li>
+      <li>Qual é a lacuna real entre onde está e onde quer chegar</li>
+      <li>O que precisa estudar e praticar antes da Mentoria 2</li>
+      <li>Que está sendo acompanhado por alguém que vai cobrar resultado, não só dar acolhimento</li>
+    </ul>
+
+    <h2>Estrutura de tempo</h2>
+    <table>
+      <tr><th>Bloco</th><th>Tempo</th><th>O que acontece</th></tr>
+      <tr><td>Abertura e contexto</td><td>5 min</td><td>Quebrar o gelo, alinhar expectativas</td></tr>
+      <tr><td>Escuta livre</td><td>15 min</td><td>Aluno fala sobre momento atual, sem interrupção</td></tr>
+      <tr><td>Perguntas estratégicas</td><td>20 min</td><td>Mentor conduz com perguntas-guia</td></tr>
+      <tr><td>Avaliação do &quot;fale sobre você&quot;</td><td>10 min</td><td>Aluno apresenta pitch pessoal, Mentor avalia</td></tr>
+      <tr><td>Plano de ação e leitura</td><td>8 min</td><td>1-2 leituras e 1 exercício concreto</td></tr>
+      <tr><td>Encerramento</td><td>2 min</td><td>Recapitular combinados, marcar M2</td></tr>
+    </table>
+
+    <h2>Abertura - script sugerido</h2>
+    <blockquote class=&quot;script&quot;>Oi [nome]. Essa primeira conversa é mais sua do que minha - eu vou fazer perguntas, mas quero que você fale bastante. Meu objetivo hoje não é te dar aula de produto ou macro, isso a Formação já trouxe. Meu objetivo é entender sua carreira até aqui, pra onde você quer ir, e descobrir junto com você os pontos que vão pesar contra você numa entrevista se a gente não trabalhar agora. Pode ser direto comigo, e eu vou ser direto com você. Combinado?</blockquote>
+
+    <h2 id=&quot;m1-perguntas&quot;>Banco de perguntas estratégicas de carreira</h2>
+    <div class=&quot;callout gold&quot;><div class=&quot;callout-title&quot;>Regra de ouro</div>Deixe o aluno falar por pelo menos 3-4 minutos sem interromper após a pergunta de abertura. Observe: palavras que ele repete, se fala de forma cronológica ou estratégica, sinais de insegurança disfarçada, discurso genérico ou decorado.</div>
+
+    <h4>Bloco A - Clareza de momento e motivação</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A1</b> Numa escala, o que pesa mais na sua decisão de migrar ou crescer na carreira: dinheiro, status, aprendizado técnico ou estilo de vida?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A2</b> Se você não conseguisse essa vaga em 1 ano, o que você teria feito diferente nesse meio tempo?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A3</b> O que te incomoda de verdade no seu trabalho atual - não a versão &quot;profissional&quot; da resposta, a versão real?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A4</b> Quando você imagina ter sucesso nessa área em 5 anos, o que está fazendo no dia a dia? Descreva uma terça-feira comum.</div>
+
+    <h4>Bloco B - Histórico e trajetória</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B1</b> Da sua experiência até hoje, qual foi a situação em que você teve que vender algo, convencer alguém ou negociar - mesmo que não fosse formalmente &quot;vendas&quot;?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B2</b> Teve algum momento em que você foi malsucedido em alguma meta ou processo seletivo? O que aprendeu?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B3</b> Por que você está saindo, ou quer sair, do seu emprego/área atual?</div>
+
+    <h4>Bloco C - Visão de carreira e instituição</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C1</b> Você já decidiu em que tipo de instituição quer atuar - banco tradicional, corretora independente ou cooperativa? O que te atrai em cada uma?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C2</b> Onde você se vê em 3 anos? E em 5?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C3</b> O que você faria diferente se hoje fosse seu primeiro dia assumindo uma carteira de clientes?</div>
+
+    <h4>Bloco D - Autoconsciência</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D1</b> Me dê dois pontos fortes seus - não genéricos, com um exemplo real de cada.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D2</b> Me dê dois pontos a desenvolver - de verdade, não a versão disfarçada tipo &quot;sou muito perfeccionista&quot;.</div>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Perguntas estratégicas</label>
+      <textarea placeholder=&quot;Anote quais perguntas geraram mais reações reveladoras nos alunos, adaptações que funcionaram para perfis específicos, novas perguntas que surgiram na prática...&quot; id=&quot;obs-m1-perguntas&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m1-perguntas','m1-perguntas')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-m1-perguntas&quot;>Salvo!</span>
+    </div>
+
+    <h2 id=&quot;m1-pitch&quot;>Avaliação do &quot;Fale sobre você&quot;</h2>
+    <p>Depois das perguntas estratégicas, peça:</p>
+    <blockquote class=&quot;script&quot;>Agora finge que eu sou o entrevistador. Me fale sobre você, como se fosse a abertura de uma entrevista de verdade. Você tem até 2 minutos.</blockquote>
+    <p><strong>Cronometre.</strong> Pitch de mais de 2-3 minutos já é um sinal de problema.</p>
+    <table>
+      <tr><th>Critério</th><th>O que observar</th></tr>
+      <tr><td>Estrutura</td><td>História cronológica ou narrativa estratégica (momento atual - trajetória relevante - objetivo claro)?</td></tr>
+      <tr><td>Relevância</td><td>Filtrou o que importa pra vaga, ou narrou a biografia inteira?</td></tr>
+      <tr><td>Prova concreta</td><td>Citou números e situações reais, ou só adjetivos (&quot;sou dedicado, comunicativo&quot;)?</td></tr>
+      <tr><td>Conexão com o cargo</td><td>A fala termina conectando com a vaga, ou simplesmente &quot;acaba&quot;?</td></tr>
+      <tr><td>Tom e ritmo</td><td>Nervosismo excessivo e fala monótona, ou energia e clareza?</td></tr>
+      <tr><td>Tempo</td><td>Respeitou os 2 minutos?</td></tr>
+    </table>
+    <div class=&quot;codeblock&quot;>[Momento atual]      &quot;Hoje atuo como ___, há ___ tempo, em ___&quot;
+[Trajetória]         &quot;Cheguei até aqui depois de ___ - destaco
+                      a experiência em ___ porque me ensinou ___&quot;
+[Habilidades-chave]  &quot;Ao longo desse caminho desenvolvi ___ e ___,
+                      que aplico através de ___ (exemplo concreto)&quot;
+[Ponte para a vaga]  &quot;É por isso que estou buscando essa posição:
+                      quero unir ___ com ___, e acredito que aqui
+                      encontro o ambiente certo pra isso&quot;</div>
+
+    <h2 id=&quot;m1-leitura&quot;>Plano de ação e indicação de leitura</h2>
+    <p>Escolha <strong>no máximo 2 leituras e 1 exercício prático</strong>. Excesso de tarefa gera abandono.</p>
+    <table>
+      <tr><th>Se o aluno demonstrou...</th><th>Indique...</th></tr>
+      <tr><td>Discurso de venda fraco, dificuldade de estruturar abordagem consultiva</td><td>SPIN Selling (Neil Rackham)</td></tr>
+      <tr><td>Insegurança ao se posicionar, LinkedIn fraco ou inexistente</td><td>Personal Branding prático + revisão de LinkedIn</td></tr>
+      <tr><td>Medo de prospectar, dificuldade de abordar clientes novos</td><td>Prospecção Fanática (Jeb Blount)</td></tr>
+      <tr><td>Discurso ainda transacional, sem visão de relacionamento longo prazo</td><td>Como Fazer Amigos e Influenciar Pessoas (Carnegie)</td></tr>
+      <tr><td>Ansiedade alta, medo de julgamento na abertura da conversa</td><td>Como Convencer Alguém em 90 Segundos (Boothman)</td></tr>
+      <tr><td>Boa base comportamental, trajetória com altos e baixos não processados</td><td>Picos e Vales</td></tr>
+      <tr><td>Desorganização pessoal mais ampla afetando consistência profissional</td><td>As 12 Regras Para a Vida (Jordan Peterson) - com moderação</td></tr>
+    </table>
+
+    <h2>Encerramento da Mentoria 1</h2>
+    <blockquote class=&quot;script&quot;>Então ficou assim: você vai trabalhar em [leitura escolhida] e [tarefa prática], e vamos nos ver de novo em [data] para simular a entrevista de verdade - com perguntas técnicas de macro, produto, portfólio e comportamental, no ritmo que vai acontecer na sala. Pode ser que eu seja mais duro nessa próxima conversa, de propósito - quero que a entrevista real seja mais fácil do que o nosso treino.</blockquote>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Mentoria 1</label>
+      <textarea placeholder=&quot;Anotações gerais sobre a condução da Mentoria 1, padrões que observou em vários alunos, ajustes de timing ou estrutura que testou...&quot; id=&quot;obs-m1&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m1','m1')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-m1&quot;>Salvo!</span>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- PARTE 2 - MENTORIA 2                                      -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;m2&quot;>
+    <h1 class=&quot;part-title&quot;>Parte 2 - Mentoria 2: Simulação de Entrevista</h1>
+    <div class=&quot;pill-row&quot;><span class=&quot;pill&quot;>60 minutos</span><span class=&quot;pill&quot;>Individual</span><span class=&quot;pill&quot;>Pressão real</span></div>
+
+    <h2>Regras de condução para o Mentor</h2>
+    <ol>
+      <li><strong>Entre no papel.</strong> Nos primeiros 45-50 minutos você é o líder de investimentos avaliando um candidato - não o mentor simpático da semana passada.</li>
+      <li><strong>Não avise qual pergunta vem a seguir.</strong> Surpresa é parte do treino.</li>
+      <li><strong>Use follow-ups de verdade.</strong> Se a resposta for rasa, pressione: &quot;Pode detalhar?&quot;, &quot;Por quê?&quot;, &quot;E se o cliente discordar disso?&quot;</li>
+      <li><strong>Misture os pilares.</strong> Alterne comportamental com técnico, como numa entrevista real.</li>
+      <li><strong>Reserve os últimos 10-12 minutos</strong> para sair do papel e dar feedback estruturado.</li>
+    </ol>
+
+    <h2>Estrutura de tempo</h2>
+    <table>
+      <tr><th>Bloco</th><th>Tempo</th><th>Conteúdo</th></tr>
+      <tr><td>Abertura formal (entrar no papel)</td><td>2 min</td><td>Recepção profissional</td></tr>
+      <tr><td>Bloco Comportamental</td><td>12 min</td><td>Pilar A</td></tr>
+      <tr><td>Bloco Técnico - Macro</td><td>12 min</td><td>Pilar C</td></tr>
+      <tr><td>Bloco Técnico - Produtos e Portfólio</td><td>15 min</td><td>Pilares D e E</td></tr>
+      <tr><td>Bloco Comercial</td><td>10 min</td><td>Pilar F</td></tr>
+      <tr><td>Saída do papel + Feedback</td><td>9 min</td><td>Rubrica completa</td></tr>
+    </table>
+
+    <h2>Abertura formal</h2>
+    <blockquote class=&quot;script&quot;>Boa tarde. Sou [seu nome], e hoje vou conduzir essa conversa simulando exatamente o que vai acontecer numa entrevista real para a área de investimentos. Vamos tratar essa próxima hora como se fosse o processo de verdade - então responda como você responderia lá, sem perguntar &quot;isso é treino, né?&quot; no meio. No final, paro o personagem e te dou o feedback completo. Pode começar: me fale sobre você.</blockquote>
+
+    <div class=&quot;divider-gold&quot;></div>
+
+    <h2 id=&quot;m2-pilar-a&quot;>Pilar A - Comportamental e Fit</h2>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A1</b> Me fale sobre você.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A2</b> Por que você quer trabalhar com investimentos / nesta instituição especificamente?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A3</b> Por que você está saindo (ou quer sair) do seu emprego atual?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A4</b> Me dê dois pontos fortes seus, com exemplo.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A5</b> Me dê dois pontos a desenvolver, com exemplo.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A6</b> Onde você se vê em 3 anos? E em 5?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A7</b> Conte sobre uma situação em que você teve que lidar com um cliente ou colega muito difícil.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A8</b> O que você faz quando recebe um &quot;não&quot; - de um cliente, de um gestor, de um processo seletivo?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A9</b> Fale sobre uma vez em que você cometeu um erro sério no trabalho. O que aconteceu e o que fez depois?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A10</b> Como você reage à pressão por meta no fim do mês?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A11</b> O que te faz acordar motivado para trabalhar nesta área?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A12</b> Se eu ligasse para seu último gestor agora, o que ele diria sobre você - bom e ruim?</div>
+
+    <table style=&quot;margin-top:14px;&quot;>
+      <tr><th>Sinal de resposta fraca</th><th>Sinal de resposta forte</th></tr>
+      <tr><td>Genérica, serviria para qualquer vaga</td><td>Específica para a área e para a instituição</td></tr>
+      <tr><td>Crítica ao empregador anterior, vitimismo</td><td>Aprendizado extraído sem atacar ninguém</td></tr>
+      <tr><td>Ponto fraco &quot;fake&quot; (ex: &quot;sou perfeccionista&quot;)</td><td>Ponto fraco real, com plano de melhoria</td></tr>
+      <tr><td>Sem exemplo, só adjetivo</td><td>Exemplo real, com contexto, ação e resultado</td></tr>
+    </table>
+
+    <h2 id=&quot;m2-pilar-b&quot;>Pilar B - Conhecimento de mercado e da instituição</h2>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B1</b> O que você sabe sobre [nome do banco]? Por que apostaram nesse segmento?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B2</b> Qual a diferença entre o segmento pleiteado e o varejo tradicional?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B3</b> Você sabe os critérios de elegibilidade para um cliente entrar nesse segmento?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B4</b> Qual a diferença entre o modelo de remuneração daqui e de uma corretora independente?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B5</b> Como você se atualiza sobre o mercado financeiro no seu dia a dia? Cite fontes reais.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B6</b> Qual foi a última notícia relevante que você leu sobre esta instituição?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B7</b> O que diferencia um bom gerente/especialista de um mediano nesse segmento?</div>
+
+    <h2 id=&quot;m2-pilar-c&quot;>Pilar C - Conhecimento técnico: cenário macroeconômico</h2>
+    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Atenção</div>O cenário muda constantemente. Antes de cada Mentoria 2, atualize-se via Banco Central, Relatório Focus, Morning Call do Itaú ou XP. O que importa avaliar não é &quot;acertar o número&quot;, mas a capacidade de conectar macro à carteira do cliente.</div>
+    <p><strong>Padrão de resposta forte:</strong></p>
+    <div class=&quot;codeblock&quot;>[Dado atual]  →  [Mecanismo de transmissão]  →  [Efeito prático na carteira do cliente]</div>
+
+    <h4>Sobre o Brasil</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C1</b> Qual a taxa Selic atual e a expectativa para as próximas reuniões do Copom?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C2</b> Como está a inflação em relação à meta? O que está pressionando ela pra cima ou pra baixo?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C3</b> Como os gastos do governo (fiscal) impactam juros e inflação no Brasil hoje?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C4</b> O que explica a variação recente do dólar frente ao real?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C5</b> Se a Selic cair 1 ponto percentual nos próximos 12 meses, o que isso significa para quem está 100% em pós-fixado?</div>
+
+    <h4>Sobre os EUA</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C6</b> Qual a taxa de juros americana hoje e o que o mercado espera do Fed nas próximas reuniões?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C7</b> O que é o Payroll e por que ele move tanto o mercado, inclusive aqui no Brasil?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C8</b> Se o Fed adotar postura dovish, cortando juros, quais os efeitos práticos na economia brasileira?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C9</b> Como as tarifas comerciais americanas afetam exportadores brasileiros?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C9b</b> O que é o ISM Manufacturing, o PCE e o CPI americano, e como cada um sinaliza para as decisões do Fed?</div>
+
+    <h4>Sobre conflitos geopolíticos e impacto nos mercados</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C10</b> Como a guerra entre Rússia e Ucrânia afeta os preços de commodities como petróleo, gás e trigo, e o que isso significa para a inflação global e para carteiras de diferentes perfis de investidor?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C11</b> Como tensões no Oriente Médio (como EUA/Israel vs. Irã) impactam o preço do petróleo e, consequentemente, a inflação e os mercados emergentes?</div>
+
+    <h4>Sobre a China</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C12</b> Por que a China é tão relevante para o Brasil? Qual o papel da Vale (VALE3) nessa relação?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C13</b> Se a China desacelera, o que acontece com o preço do minério de ferro e como isso impacta a Vale, a bolsa brasileira e a arrecadação do governo?</div>
+
+    <h4>Sobre a Europa</h4>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C14</b> Como a política de juros europeia influencia o fluxo de capital para mercados emergentes como o Brasil?</div>
+
+    <div class=&quot;callout gold&quot;><div class=&quot;callout-title&quot;>Respostas-modelo Pilar C (uso exclusivo do Mentor)</div>
+      <p><strong>C8 - Fed dovish:</strong> Quando o Fed sinaliza corte de juros, capital estrangeiro tende a buscar mercados emergentes em busca de retorno melhor, valorizando o real e abrindo espaço para o Banco Central do Brasil cortar a Selic com mais tranquilidade.</p>
+      <p><strong>C10 - Guerra Rússia-Ucrânia:</strong> O conflito restringiu a oferta de petróleo, gás e grãos no mercado global, pressionando inflação mundial. Para investidores conservadores isso implica maior risco em prefixados; para arrojados, pode ser oportunidade em fundos de commodities. A elevação de juros nos EUA e Europa para combater essa inflação impactou negativamente ativos de risco no período.</p>
+      <p><strong>C13 - China/Vale:</strong> A Vale é a maior exportadora de minério de ferro do mundo e a China é sua principal compradora. Quando a China cresce, a demanda por minério sobe, os preços sobem, os resultados da Vale melhoram, a ação VALE3 sobe e o Ibovespa tende a subir junto (dado o peso da Vale no índice). O movimento inverso acontece na desaceleração chinesa.</p>
+    </div>
+
+    <h2 id=&quot;m2-pilar-d&quot;>Pilar D - Perfil de investidor, suitability e objetivos</h2>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D1</b> Quais são os perfis de investidor que você conhece, e o que diferencia cada um na prática - não na teoria da apostila?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D2</b> Um cliente conservador te pergunta se deve investir em ações. O que você responde?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D3</b> Como você identifica se o perfil declarado no formulário é compatível com o comportamento real do cliente?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D4</b> O que você faz se o cliente insiste em um investimento incompatível com o perfil dele?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D5</b> Como os objetivos de um cliente mudam a forma como você monta a carteira dele?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D6</b> Um cliente moderado quer entender por que investir em fundos multimercado em vez de só renda fixa. Como explicaria?</div>
+
+    <h2 id=&quot;m2-pilar-e&quot;>Pilar E - Produtos, montagem e defesa de portfólio</h2>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E1</b> Como você explica a diferença entre marcação a mercado e marcação na curva para um cliente leigo?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E2</b> Qual a diferença entre investir direto em um título público e investir em um fundo com benchmark equivalente?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E3</b> Como você explicaria a diferença entre LCI/LCA e CDB para um cliente?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E3b</b> O que é uma LIG (Letra Imobiliária Garantida) e quando ela faz sentido na carteira de um cliente?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E4</b> Qual tem mais risco: prefixado de vencimento curto ou longo? Por quê?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E5</b> Um cliente quer resgatar patrimônio para investir num CDB de outra instituição pagando taxa muito acima da média. Como você conduz?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E6</b> Qual a diferença entre trading e carregamento dentro de um fundo multimercado?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E7</b> Como você diferencia um fundo long &amp;amp; short neutro de um long &amp;amp; short direcional?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E8</b> O que diferencia fundos Long Only, Long &amp;amp; Short e Long Biased?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E9</b> Qual a diferença entre COE de capital protegido e capital em risco?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E10</b> Quando recomendar PGBL em vez de VGBL - e vice-versa?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E11</b> Por que um cliente com patrimônio relevante usaria crédito?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E12</b> Qual o papel do seguro na estratégia financeira de um cliente de alta renda?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E13</b> <strong>Case:</strong> cliente moderado, 45 anos, aposentadoria em 15 anos, R$2 milhões. Como você estruturaria o portfólio?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E14</b> Defenda essa alocação: por que X% em renda fixa e não Y%? Por que incluiu multimercado?</div>
+
+    <h2 id=&quot;m2-pilar-f&quot;>Pilar F - Habilidades comerciais e captação</h2>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F1</b> Cite 3 estratégias que você usaria desde o primeiro dia para atingir sua meta de captação.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F2</b> No seu D+0 assumindo carteira nova, o que você faz? Por onde começa?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F3</b> Como você identifica oportunidades de captação em clientes que já estão na sua carteira mas têm dinheiro em outro lugar?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F4</b> Um cliente diz que está satisfeito no banco atual. Como você contorna sem ser invasivo?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F5</b> Como você reconquistaria um cliente que saiu insatisfeito da instituição no passado?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F6</b> Me conte um case real em que você convenceu alguém a fazer algo que resistia.</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F7</b> Temos clientes com cadastro ativo mas sem movimentação. Qual sua estratégia para reativá-los?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F8</b> Um cliente quer resgatar para CDB de outra casa pagando muito acima do mercado. Como você age?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F9</b> Como você lida com um cliente que &quot;acha que sabe tudo&quot; de investimentos?</div>
+    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F10</b> Quais as estratégias para mapear e portabilizar previdências de outras instituições?</div>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Pilar F</label>
+      <textarea placeholder=&quot;Notas sobre dinâmicas comerciais que funcionaram na simulação, objeções incomuns que apareceram, adaptações para diferentes perfis de aluno...&quot; id=&quot;obs-m2-f&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m2-f','m2-f')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-m2-f&quot;>Salvo!</span>
+    </div>
+
+    <h2 id=&quot;m2-respostas&quot;>Banco de respostas-modelo (uso exclusivo do Mentor)</h2>
+    <div class=&quot;callout purple&quot;><div class=&quot;callout-title&quot;>Como usar</div>Estas respostas calibram o que é &quot;forte&quot; antes da sessão. Use mentalmente para comparar com o que o aluno responde - nunca leia em voz alta para o aluno copiar.</div>
+
+    <h4>Marcação a mercado vs. curva (E1)</h4>
+    <p>A marcação na curva projeta o valor do título com base na rentabilidade contratada na compra, como uma trajetória linear até o vencimento - é uma fotografia teórica, não o preço real. A marcação a mercado mostra o que o título valeria se vendido hoje, e oscila com expectativas de juros, inflação e risco de crédito. Para o cliente: marcação a mercado é o que ele veria ao querer vender antes do vencimento; marcação na curva é a rentabilidade garantida apenas se ele mantiver o título até o fim.</p>
+
+    <h4>Fed dovish (C8)</h4>
+    <p>Juros mais baixos nos EUA tornam mercados emergentes mais atrativos para capital estrangeiro, valorizando o real, aquecendo demanda por commodities e dando ao Banco Central do Brasil espaço para cortar a Selic com mais tranquilidade.</p>
+
+    <h4>Trading vs. carregamento (E6)</h4>
+    <p>Trading busca lucro no curto prazo com operações frequentes, tentando captar movimentos de preço. Carregamento (carry) é de longo prazo: o gestor capta a um custo baixo e aplica onde o retorno é maior, lucrando com o diferencial de taxas sem precisar acertar a direção do mercado.</p>
+
+    <h4>PGBL vs. VGBL (E10)</h4>
+    <p>PGBL para quem faz declaração completa e quer abater até 12% da renda bruta tributável - imposto no resgate incide sobre o total. VGBL para quem faz declaração simplificada ou já esgotou o limite - imposto incide só sobre o rendimento. Em alta renda, previdência vai além da dedução: não entra em inventário, tem liquidez rápida para herdeiros e o titular define os beneficiários.</p>
+
+    <h4>China/Vale (C13)</h4>
+    <p>A Vale é a maior exportadora global de minério de ferro e tem a China como seu principal comprador. Quando a economia chinesa acelera, a demanda por minério sobe, os resultados da Vale melhoram, a ação VALE3 sobe - e, dado o peso da empresa no Ibovespa, a bolsa brasileira tende a acompanhar. Na desaceleração, o movimento se inverte, afetando receitas de exportação, arrecadação fiscal e confiança dos investidores.</p>
+
+    <h2 id=&quot;m2-feedback&quot;>Saída do papel e feedback estruturado</h2>
+    <blockquote class=&quot;script&quot;>Tudo bem, vou parar aqui o papel de entrevistador. Agora sou seu mentor de novo, e quero te dar o feedback completo de tudo que vimos.</blockquote>
+    <ol>
+      <li><strong>Comece pelo que funcionou.</strong> 2-3 momentos específicos com motivo técnico - não elogio vago.</li>
+      <li><strong>Vá para os pontos de melhoria, pilar por pilar.</strong> O que faltou, por que pesa, como corrigir.</li>
+      <li><strong>Dê nota de prontidão:</strong> &quot;Pronto&quot;, &quot;Quase pronto&quot; ou &quot;Precisa de novo ciclo&quot;.</li>
+      <li><strong>Defina próximo passo concreto.</strong></li>
+    </ol>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Mentoria 2 geral</label>
+      <textarea placeholder=&quot;Padrões observados nas simulações, perguntas que consistentemente reprovam os alunos, técnicas de pressão que funcionaram bem para revelar lacunas...&quot; id=&quot;obs-m2&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m2','m2')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-m2&quot;>Salvo!</span>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- PARTE 3 - ERROS COMUNS                                    -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;erros&quot;>
+    <h1 class=&quot;part-title&quot;>Parte 3 - Erros Comuns dos Mentorados</h1>
+
+    <h3>O aluno que decora resposta</h3>
+    <p><strong>Sinal:</strong> fala &quot;redondo demais&quot;, sem capacidade de responder a um follow-up fora do script.</p>
+    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Faça uma pergunta de continuação inesperada. Se ele travar, diga: &quot;Percebo que quando eu mudo um pouco a pergunta, a resposta trava. Isso geralmente é sinal de que o conteúdo foi memorizado e não compreendido. Vamos reconstruir esse raciocínio do zero.&quot;</div>
+
+    <h3>O aluno que sabe mas trava na entrega</h3>
+    <p><strong>Sinal:</strong> sabe a resposta certa quando perguntado depois, mas na simulação gagueja ou esquece tudo.</p>
+    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>É ansiedade de performance, não falta de conhecimento. Caminho: repetição em ambiente de pressão controlada. Sugira gravar-se respondendo em voz alta, praticar com colegas, e uma técnica simples de respiração antes de entrar (3 respirações profundas, ombros relaxados).</div>
+
+    <h3>O aluno comercial sem profundidade técnica</h3>
+    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Elogie a fluência comercial (é rara) mas seja direto: &quot;Se o entrevistador perceber que não há profundidade por trás, vai questionar se você entende o produto que está vendendo.&quot; Direcione para Morning Calls diários e leitura do Guia do Advisor.</div>
+
+    <h3>O aluno técnico mas frio, sem conexão</h3>
+    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Indique Carnegie e Boothman, com foco em rapport - não para ser &quot;mais simpático&quot; de forma vaga, mas porque cliente de alta renda compra de quem confia.</div>
+
+    <h3>O aluno que fala mal do emprego atual</h3>
+    <div class=&quot;callout bad&quot;><div class=&quot;callout-title&quot;>Como agir</div>Corte rápido, ainda na simulação: &quot;Para. Isso que você acabou de fazer - criticar a empresa anterior - é um dos erros mais comuns e decisivos. O mercado financeiro é pequeno. Vamos reconstruir essa resposta extraindo só o aprendizado.&quot;</div>
+
+    <h3>O aluno que não pesquisou a instituição</h3>
+    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Tarefa de casa concreta: &quot;Antes da próxima conversa, me manda por escrito: nome do segmento de alta renda da instituição-alvo, critério de elegibilidade do cliente, e uma notícia recente sobre ela.&quot;</div>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Erros comuns</label>
+      <textarea placeholder=&quot;Outros padrões de erro que você observou que ainda não estão listados aqui, variações dos perfis acima, como erros se combinam em casos específicos...&quot; id=&quot;obs-erros&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-erros','erros')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-erros&quot;>Salvo!</span>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- PARTE 4 - BIBLIOTECA                                      -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;biblioteca&quot;>
+    <h1 class=&quot;part-title&quot;>Parte 4 - Biblioteca do Mentor</h1>
+
+    <h3>SPIN Selling - Neil Rackham</h3>
+    <p>Quando indicar: aluno com discurso baseado em &quot;falar sobre o produto&quot; em vez de diagnosticar a necessidade. O que cobrar: trazer exemplo de abordagem com as 4 categorias (Situação, Problema, Implicação, Necessidade de solução) aplicadas a um cliente fictício de investimentos.</p>
+
+    <h3>Prospecção Fanática - Jeb Blount</h3>
+    <p>Quando indicar: medo de prospectar, de &quot;incomodar&quot; o cliente, trabalha só a carteira que já tem. O que cobrar: &quot;regra dos 30 dias&quot; - meta diária mínima de contatos de prospecção por 30 dias consecutivos antes de avaliar resultado.</p>
+
+    <h3>Como Fazer Amigos e Influenciar Pessoas - Dale Carnegie</h3>
+    <p>Quando indicar: tecnicamente competente mas frio na entrega, trata relacionamento com cliente como transação. O que cobrar: 3 princípios aplicados deliberadamente por uma semana, relato do que mudou.</p>
+
+    <h3>Como Convencer Alguém em 90 Segundos - Nicholas Boothman</h3>
+    <p>Quando indicar: ansiedade nos primeiros segundos de qualquer interação. O que cobrar: praticar abertura de conversa com atenção deliberada a postura, tom de voz e espelhamento.</p>
+
+    <h3>As 12 Regras Para a Vida - Jordan Peterson</h3>
+    <p>Quando indicar: com moderação - desorganização pessoal ampla afetando consistência profissional. O que cobrar: 1-2 regras específicas, plano de aplicação de 2 semanas.</p>
+
+    <h3>Picos e Vales</h3>
+    <p>Quando indicar: aluno de frustração recente que precisa processar antes de seguir. O que cobrar: identificar por escrito em que &quot;vale&quot; está agora e o que historicamente o tirou de vales anteriores.</p>
+
+    <div class=&quot;callout gold&quot;><div class=&quot;callout-title&quot;>Regra geral</div>Nunca mais de 2 leituras simultâneas por aluno. Prefira: 1 leitura técnica/comercial + 1 leitura comportamental/relacional. Nunca as duas comportamentais ao mesmo tempo.</div>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações do Mentor - Biblioteca</label>
+      <textarea placeholder=&quot;Outros títulos que você descobriu e funcionaram bem na prática, notas sobre como cada livro foi recebido por diferentes perfis de aluno...&quot; id=&quot;obs-biblioteca&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-biblioteca','biblioteca')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-biblioteca&quot;>Salvo!</span>
+    </div>
+  </section>
+
+  <div class=&quot;divider-gold&quot;></div>
+
+  <!-- ======================================================== -->
+  <!-- PARTE 5 - CHECKLISTS E FICHAS                             -->
+  <!-- ======================================================== -->
+  <section class=&quot;block&quot; id=&quot;anexos&quot;>
+    <h1 class=&quot;part-title&quot;>Parte 5 - Checklists e Fichas Operacionais</h1>
+
+    <h2>5.1 - Checklist antes de qualquer sessão</h2>
+    <p>Marque os itens antes de iniciar cada mentoria:</p>
+    <ul class=&quot;ichecklist&quot; id=&quot;cl-pre&quot;>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-p1&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p1&quot;>Revisei o currículo/contexto que o aluno enviou antecipadamente</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-p2&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p2&quot;>Sei o cargo-alvo e a instituição-alvo do aluno (ou que ele ainda está decidindo)</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-p3&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p3&quot;>Atualizei os dados macro correntes (Selic, Fed, inflação) - se for Mentoria 2</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-p4&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p4&quot;>Defini quais perguntas dos pilares A-F vou usar nesta sessão (não use todas sempre)</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-p5&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p5&quot;>Tenho o formulário de registro de atendimento aberto para preencher ao final</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-p6&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p6&quot;>Consultei o histórico de sessões anteriores do aluno (se houver)</label></li>
+    </ul>
+
+    <h2>5.2 - Checklist de qualidade da própria mentoria (autoavaliação pós-sessão)</h2>
+    <ul class=&quot;ichecklist&quot; id=&quot;cl-pos&quot;>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-q1&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q1&quot;>Eu ouvi mais do que falei na Mentoria 1?</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-q2&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q2&quot;>Eu realmente &quot;entrei no papel&quot; de entrevistador na Mentoria 2, sem suavizar?</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-q3&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q3&quot;>Dei pelo menos um exemplo concreto de resposta forte e um de fraca?</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-q4&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q4&quot;>O aluno saiu com uma tarefa específica e um prazo - não só &quot;precisa estudar mais&quot;?</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-q5&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q5&quot;>Preenchi e salvei o registro de atendimento no sistema?</label></li>
+      <li><input type=&quot;checkbox&quot; id=&quot;cl-q6&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q6&quot;>Atualizei o agendamento da próxima sessão (se aplicável)?</label></li>
+    </ul>
+
+    <h2>5.3 - Frases que o Mentor deve evitar</h2>
+    <div class=&quot;callout bad&quot;><div class=&quot;callout-title&quot;>Evite</div>&quot;Não se preocupa, vai dar tudo certo&quot; - &quot;Decora essa resposta que está perfeita&quot; - &quot;Todo mundo passa por isso, relaxa&quot;</div>
+    <div class=&quot;callout good&quot;><div class=&quot;callout-title&quot;>Prefira</div>&quot;Essa resposta ficou forte porque você fez X. Agora replica esse raciocínio nas próximas.&quot; - &quot;Vou ser honesto: isso ainda não está no nível que a entrevista vai exigir. Vamos trabalhar.&quot; - &quot;Você não precisa ter a resposta perfeita - precisa ter o raciocínio certo, mesmo sob pressão.&quot;</div>
+
+    <h2>5.4 - Quando recomendar sessão adicional</h2>
+    <ul>
+      <li>Aluno com entrevista real marcada em menos de 5 dias e prontidão ainda &quot;Frágil&quot; em 2+ pilares</li>
+      <li>Aluno que já foi reprovado em processo seletivo recente e precisa reconstruir confiança antes de tentar de novo</li>
+      <li>Casos de ansiedade de performance muito acentuada, onde repetição (sem novo conteúdo) resolve mais que qualquer leitura</li>
+    </ul>
+    <p>Nesses casos, sinalizar à coordenação pedagógica - não decidir unilateralmente a extensão do programa.</p>
+
+    <div class=&quot;obs-box&quot;>
+      <label>✎ Observações gerais do Mentor</label>
+      <textarea placeholder=&quot;Espaço livre para qualquer observação sobre o programa de mentorias, sugestões de melhoria do Guia, padrões que observou ao longo do tempo...&quot; id=&quot;obs-geral&quot;></textarea>
+      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-geral','geral')&quot;>Salvar observação</button>
+      <span class=&quot;saved-msg&quot; id=&quot;saved-geral&quot;>Salvo!</span>
+    </div>
+
+    </section>
+
+    <div class=&quot;divider-gold&quot;></div>
+
+    <!-- ======================================================== -->
+    <!-- ANEXO - INTEGRAÇÃO COM CRM PRÓPRIO                        -->
+    <!-- ======================================================== -->
+    <section class=&quot;block&quot; id=&quot;integracao-crm&quot; style=&quot;margin-bottom:0;&quot;>
+      <h1 class=&quot;part-title&quot;>Anexo - Integração com o CRM Comercial</h1>
+      <p>Esta seção é a especificação técnica para conectar o CRM próprio da escola a este Guia, de forma que todo aluno marcado como <strong>&quot;Fechado&quot;</strong> no CRM entre automaticamente na lista de seleção da Mentoria, sem cadastro manual.</p>
+
+      <div class=&quot;callout note&quot;>
+        <div class=&quot;callout-title&quot;>Por que via CRM, e não via plataforma do aluno</div>
+        O CRM é a fonte do evento &quot;fechou a compra&quot; e já concentra os dados de qualificação comercial (cargo-alvo, instituição-alvo, contato) preenchidos pelo vendedor durante a negociação. A plataforma do aluno só sabe que existe acesso ao curso, não necessariamente que o fechamento acabou de acontecer nem os dados comerciais associados.
+      </div>
+
+      <h2>1. Arquitetura: evento interno, não webhook externo</h2>
+      <p>CRM e Guia do Mentor rodam como sistemas irmãos do mesmo projeto (mesma base, mesmo armazenamento de dados). Por isso, a integração <strong>não</strong> precisa de chamada HTTP externa (webhook + endpoint intermediário) - ela é feita por um evento interno disparado no próprio sistema no momento em que o Closer muda o status do negócio para &quot;Fechado/Ganho&quot;:</p>
+      <div class=&quot;codeblock&quot;>CRM (ação do Closer: status → &quot;Fechado/Ganho&quot;)
+        |
+        v
+  Evento interno &quot;negocio_fechado&quot; (mesma aplicação, sem rede externa)
+        |
+        v
+  Guia do Mentor: receberAlunoDoCRM() recebe o evento e cadastra o aluno</div>
+      <p>Essa abordagem é mais simples e mais segura: os dados do aluno nunca trafegam por uma URL pública, não há token de webhook para vazar, e não depende de um terceiro serviço (Make/Zapier/Lambda) ficar no ar.</p>
+
+      <h2>2. Visibilidade e nível de acesso (obrigatório)</h2>
+      <p>A integração deve respeitar a estrutura de permissões que já existe no CRM (Admin, SDR, Closer) - sem criar um sistema de acesso paralelo:</p>
+      <table>
+        <thead><tr><th>Perfil</th><th>O que vê/faz na integração</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Admin</strong></td><td>Acesso à tela de configuração da integração (ligar/desligar, ver log de sincronização) em &quot;Configurações &amp;gt; Integrações&quot; - área já restrita ao Admin.</td></tr>
+          <tr><td><strong>Closer</strong></td><td>Nenhuma tela nova. A ação de marcar o negócio como &quot;Fechado&quot;, que ele já faz hoje, passa a disparar o evento internamente, sem nenhuma mudança perceptível no fluxo dele.</td></tr>
+          <tr><td><strong>SDR</strong></td><td>Nenhum acesso a configurações de integração nem a dados do Guia do Mentor.</td></tr>
+          <tr><td><strong>Mentor</strong></td><td>Continua acessando só o Guia do Mentor; recebe os alunos automaticamente na lista, sem visibilidade de nenhuma tela do CRM.</td></tr>
+        </tbody>
+      </table>
+      <p>Não deve existir uma área de &quot;integração&quot; genérica visível a todos os colaboradores - ela fica embutida no fluxo já existente (gatilho automático) e a única tela de configuração visível fica sob o nível Admin.</p>
+
+      <h2>3. Payload do evento interno</h2>
+      <p>Quando o Closer move o negócio para &quot;Fechado/Ganho&quot;, o evento interno carrega:</p>
+      <div class=&quot;codeblock&quot;>{
+  &quot;evento&quot;: &quot;negocio_fechado&quot;,
+  &quot;aluno&quot;: {
+    &quot;nome&quot;: &quot;Maria Oliveira&quot;,
+    &quot;cargo_alvo&quot;: &quot;Especialista de Investimentos - Bradesco Principal&quot;,
+    &quot;instituicao_alvo&quot;: &quot;Bradesco&quot;,
+    &quot;contato&quot;: &quot;(11) 99999-0000&quot;
+  },
+  &quot;negocio_id&quot;: &quot;crm-12345&quot;,
+  &quot;fechado_em&quot;: &quot;2026-06-30T14:00:00-03:00&quot;
+}</div>
+      <table>
+        <thead><tr><th>Campo</th><th>Obrigatório</th><th>Observação</th></tr></thead>
+        <tbody>
+          <tr><td>aluno.nome</td><td>Sim</td><td>Nome completo do aluno</td></tr>
+          <tr><td>aluno.cargo_alvo</td><td>Não</td><td>Se o CRM já tiver essa qualificação</td></tr>
+          <tr><td>aluno.instituicao_alvo</td><td>Não</td><td>Banco/instituição que o aluno está mirando</td></tr>
+          <tr><td>aluno.contato</td><td>Não</td><td>WhatsApp ou e-mail</td></tr>
+          <tr><td>negocio_id</td><td>Sim</td><td>Evita duplicar cadastro se o evento disparar mais de uma vez</td></tr>
+        </tbody>
+      </table>
+
+      <h2>4. Como o Guia consome o evento</h2>
+      <p>O ponto de entrada no código é a função <code>receberAlunoDoCRM(payload)</code>, já implementada neste Guia. O CRM chama essa função diretamente (mesma aplicação) no momento do fechamento, passando o payload do evento. A lógica de deduplicação por <code>negocio_id</code> já está implementada - um negócio fechado nunca gera dois cadastros, mesmo que o evento dispare mais de uma vez.</p>
+
+      <h2>5. Segurança e auditoria</h2>
+      <ul>
+        <li>Como tudo roda dentro da mesma aplicação, não há token de rede para gerenciar - o controle de acesso passa a ser inteiramente pelos níveis de permissão (Admin/SDR/Closer) já existentes no CRM.</li>
+        <li>Manter um log mínimo de sincronização (data, nome do aluno, negócio_id), visível apenas para Admin, para auditoria caso algum cadastro precise ser conferido.</li>
+        <li>O formulário de cadastro manual do Guia continua existindo como fallback, caso algum aluno precise ser incluído fora do fluxo automático.</li>
+      </ul>
+
+      <div class=&quot;callout gold&quot;>
+        <div class=&quot;callout-title&quot;>Próximo passo prático</div>
+        Implementar o disparo do evento interno no momento em que o Closer marca o negócio como &quot;Fechado/Ganho&quot;, conectando-o à função <code>receberAlunoDoCRM()</code> deste Guia. Qualquer mudança no fluxo estratégico do CRM (pipeline, automações comerciais, campos obrigatórios de fechamento) deve ser validada antes de implementada.
+      </div>
+    </section>
+
+    <footer style=&quot;margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-500);font-size:12.5px;display:flex;justify-content:space-between;&quot;>
+      <span>Guia do Mentor - Academia Advisor</span>
+      <span>Formação em Banker &amp;amp; Advisor</span>
+    </footer>
+  </main>
+</div>
+
+<!-- ====== MODAL CONFIRMAÇÃO ====== -->
+<div class=&quot;modal-overlay&quot; id=&quot;modalConfirm&quot;>
+  <div class=&quot;modal&quot;>
+    <h3 id=&quot;modal-title&quot;>Confirmar ação</h3>
+    <p id=&quot;modal-body&quot;></p>
+    <div class=&quot;modal-actions&quot;>
+      <button class=&quot;btn-secondary&quot; onclick=&quot;fecharModal()&quot;>Cancelar</button>
+      <button class=&quot;btn-danger&quot; id=&quot;modal-confirm-btn&quot;>Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<a href=&quot;#&quot; class=&quot;back-to-top&quot; id=&quot;backToTop&quot;>↑</a>
+
+<script>
+// ============================================================
+// UTILITIES
+// ============================================================
+function toggleNavGroup(el){
+  el.classList.toggle('collapsed');
+  const group = el.nextElementSibling;
+  if(group &amp;&amp; group.classList.contains('nav-group')){
+    group.classList.toggle('collapsed');
+  }
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sys-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showStatus(id, msg, type='ok', dur=3000){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'status-msg ' + type;
+  el.style.display = 'inline-block';
+  setTimeout(()=>{ el.style.display='none'; }, dur);
+}
+
+// Back to top
+window.addEventListener('scroll',()=>{
+  document.getElementById('backToTop').classList.toggle('show', window.scrollY > 500);
+});
+document.getElementById('backToTop').addEventListener('click', e => {
+  e.preventDefault(); window.scrollTo({top:0, behavior:'smooth'});
+});
+
+// Nav active on scroll
+const secs = document.querySelectorAll('section.block');
+const navLinks = document.querySelectorAll('.nav a');
+window.addEventListener('scroll',()=>{
+  let cur = '';
+  secs.forEach(s => { if(s.getBoundingClientRect().top <= 140) cur = s.id; });
+  navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#'+cur); });
+});
+
+// ============================================================
+// STORAGE HELPERS — persistência real via Supabase (mesma base do CRM).
+// window.storage só existe dentro do ambiente de Artifacts do Claude.ai;
+// fora dali (ex.: publicado no Vercel) ele não existe e nada seria salvo.
+// Mantém a tabela &quot;mentor_storage&quot; como par chave/valor genérico, então o
+// resto do código do Guia (que já chama stGet/stSet) não precisa mudar.
+// ============================================================
+const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
+
+async function stGet(key){
+  try{
+    const r = await fetch(`${SUPA_URL}/rest/v1/mentor_storage?key=eq.${encodeURIComponent(key)}&amp;select=value`, {
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
+    });
+    if(!r.ok) return null;
+    const rows = await r.json();
+    return rows.length ? rows[0].value : null;
+  }catch(e){ return null; }
+}
+async function stSet(key, val){
+  try{
+    const r = await fetch(`${SUPA_URL}/rest/v1/mentor_storage?on_conflict=key`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ key, value: val, updated_at: new Date().toISOString() })
+    });
+    return r.ok;
+  }catch(e){ return false; }
+}
+
+// ============================================================
+// ALUNOS / CRM
+// ============================================================
+let alunos = [];
+
+// --- INTEGRAÇÃO COM CRM PRÓPRIO (ver seção &quot;Integração com CRM&quot; no Guia) ---
+// CRM e Guia rodam como sistemas irmãos do mesmo projeto: a integração é
+// feita por evento interno (não por webhook/fetch externo). O CRM deve
+// chamar receberAlunoDoCRM(payload) diretamente quando um negócio for
+// marcado como &quot;Fechado/Ganho&quot; pelo Closer. A dedupe por negocio_id evita
+// cadastro duplicado caso o evento dispare mais de uma vez.
+//
+// Formato esperado do payload (ver seção &quot;Integração com CRM&quot;):
+// { aluno: { nome, cargo_alvo, instituicao_alvo, contato }, negocio_id, fechado_em }
+async function receberAlunoDoCRM(payload){
+  if(!payload || !payload.aluno || !payload.aluno.nome) return false;
+  const negocioId = payload.negocio_id || null;
+  const jaExiste = negocioId &amp;&amp; alunos.some(a => a.negocio_id === negocioId);
+  if(jaExiste) return false; // evita duplicar se o evento disparar mais de uma vez
+  alunos.push({
+    id: Date.now() + Math.random(),
+    nome: payload.aluno.nome,
+    cargo: payload.aluno.cargo_alvo || '',
+    inst: payload.aluno.instituicao_alvo || '',
+    contato: payload.aluno.contato || '',
+    negocio_id: negocioId,
+    criadoEm: payload.fechado_em || new Date().toISOString(),
+    origem: 'crm'
+  });
+  const ok = await stSet('mentor:alunos', alunos);
+  if(ok) atualizarDatalistAlunos();
+  return ok;
+}
+
+// Mantido por compatibilidade: ponto de entrada chamado no carregamento.
+// Hoje não faz nada sozinho — fica pronto para, se um dia for necessário,
+// buscar um lote de pendências em vez de depender só do evento em tempo real.
+async function importarAlunosDoCRM(){
+  // Sem ação automática aqui: a integração é orientada a evento
+  // (ver receberAlunoDoCRM), disparado pelo próprio CRM no momento do fechamento.
+}
+
+async function carregarAlunos(){
+  alunos = await stGet('mentor:alunos') || [];
+  atualizarDatalistAlunos();
+}
+
+function atualizarDatalistAlunos(){
+  ['alunos-crm','alunos-crm-reg'].forEach(id => {
+    const dl = document.getElementById(id);
+    if(!dl) return;
+    dl.innerHTML = '';
+    alunos.forEach(a => {
+      const op = document.createElement('option');
+      op.value = a.nome;
+      op.setAttribute('data-id', a.id);
+      dl.appendChild(op);
+    });
+  });
+}
+
+async function cadastrarAluno(){
+  const nome = document.getElementById('crm-nome').value.trim();
+  const cargo = document.getElementById('crm-cargo').value.trim();
+  const inst = document.getElementById('crm-inst').value.trim();
+  const contato = document.getElementById('crm-contato').value.trim();
+  if(!nome){ showStatus('crm-status','Nome é obrigatório','error'); return; }
+  const a = { id: Date.now(), nome, cargo, inst, contato, criadoEm: new Date().toISOString() };
+  alunos.push(a);
+  const ok = await stSet('mentor:alunos', alunos);
+  if(ok){
+    atualizarDatalistAlunos();
+    document.getElementById('crm-nome').value='';
+    document.getElementById('crm-cargo').value='';
+    document.getElementById('crm-inst').value='';
+    document.getElementById('crm-contato').value='';
+    showStatus('crm-status','Aluno cadastrado com sucesso!','ok');
+  } else { showStatus('crm-status','Erro ao salvar. Tente novamente.','error'); }
+}
+
+// ============================================================
+// AGENDA
+// ============================================================
+let agenda = [];
+
+async function carregarAgenda(){
+  agenda = await stGet('mentor:agenda') || [];
+  renderizarAgenda();
+  atualizarProximaSessao();
+}
+
+async function agendarSessao(){
+  const aluno = document.getElementById('ag-aluno').value.trim();
+  const tipo = document.getElementById('ag-tipo').value;
+  const data = document.getElementById('ag-data').value;
+  const hora = document.getElementById('ag-hora').value;
+  const obs = document.getElementById('ag-obs').value.trim();
+  if(!aluno || !data || !hora){ showStatus('ag-status','Preencha todos os campos obrigatórios','error'); return; }
+  const sessao = {
+    id: Date.now(),
+    aluno, tipo, data, hora, obs,
+    status: 'agendado',
+    criadoEm: new Date().toISOString()
+  };
+  agenda.push(sessao);
+  agenda.sort((a,b) => (a.data+a.hora).localeCompare(b.data+b.hora));
+  const ok = await stSet('mentor:agenda', agenda);
+  if(ok){
+    document.getElementById('ag-aluno').value='';
+    document.getElementById('ag-obs').value='';
+    renderizarAgenda();
+    atualizarProximaSessao();
+    showStatus('ag-status','Sessão agendada com sucesso!','ok');
+  } else { showStatus('ag-status','Erro ao salvar. Tente novamente.','error'); }
+}
+
+function atualizarProximaSessao(){
+  const agora = new Date();
+  const agoraStr = agora.toISOString().slice(0,10) + 'T' + agora.toTimeString().slice(0,5);
+  const proximas = agenda.filter(s => s.status !== 'concluido' &amp;&amp; (s.data+'T'+s.hora) >= agoraStr.slice(0,16));
+  const alertEl = document.getElementById('nextAlert');
+  if(proximas.length > 0){
+    const p = proximas[0];
+    const dt = new Date(p.data + 'T' + p.hora);
+    const diff = Math.round((dt - agora) / 60000);
+    let diffStr;
+    if(diff < 60) diffStr = `em ${diff} minuto(s)`;
+    else if(diff < 1440) diffStr = `em ${Math.round(diff/60)}h`;
+    else diffStr = `em ${Math.round(diff/1440)} dia(s)`;
+    document.getElementById('nextName').textContent = p.aluno;
+    const tipoLabel = p.tipo === 'M1' ? 'Mentoria 1 - Diagnóstico' : 'Mentoria 2 - Simulação';
+    document.getElementById('nextDetail').textContent = `${tipoLabel} - ${formatarData(p.data)} às ${p.hora} (${diffStr})`;
+    alertEl.style.display = 'block';
+  } else { alertEl.style.display = 'none'; }
+}
+
+function formatarData(str){
+  if(!str) return '';
+  const [y,m,d] = str.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function renderizarAgenda(){
+  const c = document.getElementById('agenda-lista-container');
+  if(!c) return;
+  if(agenda.length === 0){ c.innerHTML='<p style=&quot;color:var(--ink-500);font-size:14px;padding:20px 0;&quot;>Nenhuma sessão agendada ainda.</p>'; return; }
+  const agora = new Date();
+  const agoraStr = agora.toISOString().slice(0,10)+'T'+agora.toTimeString().slice(0,5);
+  const card = document.createElement('div');
+  card.innerHTML = agenda.map((s,i) => {
+    const dt = s.data+'T'+s.hora;
+    const isPast = dt < agoraStr.slice(0,16);
+    const isToday = s.data === agora.toISOString().slice(0,10);
+    let statusClass = 'status-futuro', statusLabel = 'Futuro';
+    if(s.status==='concluido'){ statusClass='status-concluido'; statusLabel='Concluído'; }
+    else if(isPast){ statusClass='status-concluido'; statusLabel='Passou'; }
+    else if(isToday){ statusClass='status-hoje'; statusLabel='Hoje!'; }
+    else if(i===0 || (agenda.filter(x=>x.status!=='concluido' &amp;&amp; (x.data+'T'+x.hora)>=agoraStr.slice(0,16))[0]?.id===s.id)){ statusClass='status-proximo'; statusLabel='Próxima'; }
+    return `<div class=&quot;agenda-slot&quot;>
+      <div class=&quot;slot-badge ${s.tipo==='M1'?'badge-m1':'badge-m2'}&quot;>${s.tipo}</div>
+      <div class=&quot;slot-info&quot;>
+        <div class=&quot;slot-name&quot;>${s.aluno}</div>
+        <div class=&quot;slot-time&quot;>${formatarData(s.data)} às ${s.hora}${s.obs?` - ${s.obs.slice(0,60)}...`:''}</div>
+      </div>
+      <span class=&quot;slot-status ${statusClass}&quot;>${statusLabel}</span>
+      <button onclick=&quot;irParaRegistro(${i})&quot; title=&quot;Ir para o registro de atendimento já preenchido&quot; style=&quot;margin-left:8px;background:var(--navy-900);border:1px solid var(--navy-900);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--gold-400);font-weight:600;&quot;>📝 Registrar</button>
+      <button onclick=&quot;concluirSessao(${i})&quot; title=&quot;Marcar como concluído&quot; style=&quot;margin-left:4px;background:none;border:1px solid var(--line);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--ink-500);&quot;>✓ Concluir</button>
+      <button onclick=&quot;excluirSessao(${i})&quot; title=&quot;Excluir&quot; style=&quot;margin-left:4px;background:none;border:1px solid #f3c0bb;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--red-line);&quot;>✕</button>
+    </div>`;
+  }).join('');
+  c.innerHTML = '';
+  c.appendChild(card);
+}
+
+// Atalho: leva da Agenda direto pro formulário de Registrar Atendimento,
+// já com aluno e tipo de mentoria preenchidos — evita ter que digitar/
+// selecionar o mesmo aluno de novo numa aba separada.
+function irParaRegistro(i){
+  const s = agenda[i];
+  if(!s) return;
+  const alunoInput = document.getElementById('reg-aluno');
+  const tipoSel = document.getElementById('reg-tipo');
+  const dataInput = document.getElementById('reg-data');
+  if(alunoInput) alunoInput.value = s.aluno;
+  if(tipoSel){ tipoSel.value = s.tipo; tipoSel.dispatchEvent(new Event('change')); }
+  if(dataInput) dataInput.value = s.data;
+  const secao = document.getElementById('sistema-registro');
+  if(secao) secao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function concluirSessao(i){
+  agenda[i].status = 'concluido';
+  await stSet('mentor:agenda', agenda);
+  renderizarAgenda();
+  atualizarProximaSessao();
+}
+
+async function excluirSessao(i){
+  agenda.splice(i, 1);
+  await stSet('mentor:agenda', agenda);
+  renderizarAgenda();
+  atualizarProximaSessao();
+}
+
+// ============================================================
+// REGISTRAR ATENDIMENTO
+// ============================================================
+let registros = [];
+
+async function carregarRegistros(){
+  registros = await stGet('mentor:registros') || [];
+  renderizarHistorico();
+}
+
+// Mostrar/ocultar bloco de pilares conforme tipo
+document.addEventListener('DOMContentLoaded', () => {
+  const tipoSel = document.getElementById('reg-tipo');
+  if(tipoSel) tipoSel.addEventListener('change', () => {
+    document.getElementById('reg-pilares-block').style.display = tipoSel.value === 'M2' ? 'block' : 'none';
+  });
+  if(tipoSel) document.getElementById('reg-pilares-block').style.display = tipoSel.value === 'M2' ? 'block' : 'none';
+});
+
+async function salvarRegistro(){
+  const aluno = document.getElementById('reg-aluno').value.trim();
+  const tipo = document.getElementById('reg-tipo').value;
+  const data = document.getElementById('reg-data').value;
+  const duracao = document.getElementById('reg-duracao').value;
+  const prontidao = document.getElementById('reg-prontidao').value;
+  const leitura = document.getElementById('reg-leitura').value;
+  const fortes = document.getElementById('reg-fortes').value.trim();
+  const atencao = document.getElementById('reg-atencao').value.trim();
+  const obs = document.getElementById('reg-obs').value.trim();
+  const prox = document.getElementById('reg-prox').value.trim();
+
+  if(!aluno || !data){ showStatus('reg-status','Nome do aluno e data são obrigatórios','error'); return; }
+
+  const pilares = {};
+  document.querySelectorAll('.pilar-sel').forEach(sel => { pilares[sel.dataset.pilar] = sel.value; });
+
+  const reg = { id: Date.now(), aluno, tipo, data, duracao, prontidao, leitura, fortes, atencao, obs, prox, pilares, criadoEm: new Date().toISOString() };
+  registros.unshift(reg);
+  const ok = await stSet('mentor:registros', registros);
+  if(ok){
+    limparRegistro();
+    renderizarHistorico();
+    showStatus('reg-status','Registro salvo com sucesso!','ok');
+  } else { showStatus('reg-status','Erro ao salvar. Tente novamente.','error'); }
+}
+
+function limparRegistro(){
+  ['reg-aluno','reg-data','reg-fortes','reg-atencao','reg-obs','reg-prox'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('reg-duracao').value = '60';
+  document.getElementById('reg-prontidao').value = '';
+  document.getElementById('reg-leitura').value = '';
+  document.querySelectorAll('.pilar-sel').forEach(s => s.value = '');
+}
+
+// ============================================================
+// HISTÓRICO
+// ============================================================
+function renderizarHistorico(filtroNome='', filtroTipo=''){
+  const c = document.getElementById('historico-container');
+  if(!c) return;
+  let lista = registros;
+  if(filtroNome) lista = lista.filter(r => r.aluno.toLowerCase().includes(filtroNome.toLowerCase()));
+  if(filtroTipo) lista = lista.filter(r => r.tipo === filtroTipo);
+  if(lista.length === 0){ c.innerHTML='<p style=&quot;color:var(--ink-500);font-size:14px;padding:20px 0;&quot;>Nenhum registro encontrado.</p>'; return; }
+
+  c.innerHTML = lista.map(r => {
+    const pilaresHtml = r.tipo === 'M2' ? Object.entries(r.pilares||{}).filter(([,v])=>v).map(([k,v]) => `<span class=&quot;pilar-chip ${v==='forte'?'forte':v==='fragil'?'fragil':''}&quot;>${k}: ${v==='forte'?'Forte':v==='fragil'?'Frágil':'Em dev.'}</span>`).join('') : '';
+    const prontMap = {pronto:'pront-pronto',quase:'pront-quase',ciclo:'pront-ciclo'};
+    const prontLabel = {pronto:'Pronto',quase:'Quase pronto',ciclo:'Novo ciclo'};
+    return `<div class=&quot;atend-item&quot;>
+      <div class=&quot;atend-header&quot;>
+        <div>
+          <div class=&quot;atend-aluno&quot;>${r.aluno}</div>
+          <div class=&quot;atend-meta&quot;>${r.tipo==='M1'?'Mentoria 1':'Mentoria 2'} - ${formatarData(r.data)} - ${r.duracao} min</div>
+        </div>
+        ${r.prontidao ? `<span class=&quot;prontidao-badge ${prontMap[r.prontidao]||''}&quot;>${prontLabel[r.prontidao]||r.prontidao}</span>` : ''}
+      </div>
+      ${r.fortes ? `<p style=&quot;font-size:13px;margin:6px 0 4px;&quot;><strong style=&quot;color:var(--green-line);&quot;>Fortes:</strong> ${r.fortes}</p>` : ''}
+      ${r.atencao ? `<p style=&quot;font-size:13px;margin:4px 0;&quot;><strong style=&quot;color:var(--red-line);&quot;>Atenção:</strong> ${r.atencao}</p>` : ''}
+      ${r.obs ? `<p style=&quot;font-size:13px;margin:4px 0;color:var(--ink-500);&quot;>${r.obs}</p>` : ''}
+      ${r.prox ? `<p style=&quot;font-size:12.5px;margin:6px 0 0;background:var(--blue-bg);padding:6px 10px;border-radius:5px;&quot;><strong>Próx. passo:</strong> ${r.prox}</p>` : ''}
+      ${r.leitura ? `<p style=&quot;font-size:12px;margin:6px 0 0;color:var(--gold-600,#a8801f);&quot;>📚 Indicado: ${r.leitura}</p>` : ''}
+      ${pilaresHtml ? `<div class=&quot;atend-pilares&quot;>${pilaresHtml}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function filtrarHistorico(){
+  const nome = document.getElementById('hist-filtro').value;
+  const tipo = document.getElementById('hist-tipo').value;
+  renderizarHistorico(nome, tipo);
+}
+
+function exportarHistorico(){
+  if(registros.length === 0){ alert('Nenhum registro para exportar.'); return; }
+  const header = 'Aluno,Tipo,Data,Duração(min),Prontidão,Leitura Indicada,Fortes,Atenção,Próx.Passo,Pilar A,Pilar B,Pilar C,Pilar D,Pilar E,Pilar F';
+  const rows = registros.map(r => [
+    r.aluno, r.tipo, r.data, r.duracao, r.prontidao, r.leitura,
+    (r.fortes||'').replace(/,/g,';'), (r.atencao||'').replace(/,/g,';'), (r.prox||'').replace(/,/g,';'),
+    r.pilares?.A||'', r.pilares?.B||'', r.pilares?.C||'', r.pilares?.D||'', r.pilares?.E||'', r.pilares?.F||''
+  ].map(v=>`&quot;${v||''}&quot;`).join(','));
+  const csv = [header,...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'mentorias_academia_advisor.csv';
+  a.click();
+}
+
+// ============================================================
+// OBSERVAÇÕES DO MENTOR (persistentes)
+// ============================================================
+async function salvarObs(textareaId, chave){
+  const val = document.getElementById(textareaId)?.value || '';
+  const ok = await stSet('mentor:obs:'+chave, val);
+  const msg = document.getElementById('saved-'+chave);
+  if(msg){ msg.style.display='inline'; setTimeout(()=>{ msg.style.display='none'; },2500); }
+}
+
+async function carregarObs(){
+  const chaves = ['fundamentos','m1-perguntas','m1','m2-f','m2','erros','biblioteca','geral'];
+  for(const c of chaves){
+    const val = await stGet('mentor:obs:'+c);
+    if(val !== null){
+      const el = document.getElementById('obs-'+c);
+      if(el) el.value = val;
+    }
+  }
+}
+
+// ============================================================
+// CHECKLISTS PERSISTENTES
+// ============================================================
+async function salvarChecklist(listaId){
+  const items = {};
+  document.querySelectorAll(`#${listaId} input[type=checkbox]`).forEach(cb => {
+    items[cb.id] = cb.checked;
+    cb.closest('li').classList.toggle('checked', cb.checked);
+  });
+  await stSet('mentor:checklist:'+listaId, items);
+}
+
+async function carregarChecklists(){
+  const listas = ['cl-pre','cl-pos'];
+  for(const lid of listas){
+    const items = await stGet('mentor:checklist:'+lid);
+    if(items){
+      Object.entries(items).forEach(([id, checked]) => {
+        const cb = document.getElementById(id);
+        if(cb){ cb.checked = checked; cb.closest('li').classList.toggle('checked', checked); }
+      });
+    }
+  }
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+let modalCallback = null;
+function abrirModal(title, body, cb){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent = body;
+  modalCallback = cb;
+  document.getElementById('modalConfirm').classList.add('open');
+  document.getElementById('modal-confirm-btn').onclick = () => { fecharModal(); if(modalCallback) modalCallback(); };
+}
+function fecharModal(){ document.getElementById('modalConfirm').classList.remove('open'); }
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  await carregarAlunos();
+  await importarAlunosDoCRM();
+  await carregarAgenda();
+  await carregarRegistros();
+  await carregarObs();
+  await carregarChecklists();
+  // Definir data padrão de hoje para agendamento e registro
+  const hoje = new Date().toISOString().slice(0,10);
+  document.getElementById('ag-data').value = hoje;
+  document.getElementById('reg-data').value = hoje;
+  // Atualizar próxima sessão a cada 5 minutos
+  setInterval(atualizarProximaSessao, 300000);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+"></iframe>
   </div>
 
   <!-- BI DASHBOARD -->
@@ -1103,13 +2629,17 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
 
     <!-- CONTROLE DE VERSAO -->
     <div style="border:1.5px solid rgba(201,168,76,.35);border-radius:14px;padding:1.25rem;margin-bottom:18px;background:rgba(201,168,76,.04)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;cursor:pointer;user-select:none" onclick="toggleAdminSection('versao-section','versao-arrow')">
         <span style="font-size:15px;font-weight:700;color:#E8C97A">Controle de Versao</span>
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#7A9BBF">
-          Instalada: <span id="vp-local-version" style="background:rgba(74,158,232,.15);color:#4A9EE8;border:1px solid rgba(74,158,232,.3);border-radius:20px;padding:2px 10px;font-weight:700">...</span>
-          Servidor: <span id="vp-server-version" style="background:rgba(93,202,165,.15);color:#5DCAA5;border:1px solid rgba(93,202,165,.3);border-radius:20px;padding:2px 10px;font-weight:700">...</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#7A9BBF">
+            Instalada: <span id="vp-local-version" style="background:rgba(74,158,232,.15);color:#4A9EE8;border:1px solid rgba(74,158,232,.3);border-radius:20px;padding:2px 10px;font-weight:700">...</span>
+            Servidor: <span id="vp-server-version" style="background:rgba(93,202,165,.15);color:#5DCAA5;border:1px solid rgba(93,202,165,.3);border-radius:20px;padding:2px 10px;font-weight:700">...</span>
+          </div>
+          <span id="versao-arrow" style="font-size:12px;color:var(--muted);transition:transform .2s">▼</span>
         </div>
       </div>
+      <div id="versao-section" style="display:none;margin-top:1rem">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div style="background:rgba(0,0,0,.2);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:1rem">
           <p style="font-size:13px;font-weight:600;color:#E8C97A;margin-bottom:.75rem">Publicar nova versao para todos</p>
@@ -1132,6 +2662,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
             <button onclick="vpForcarTodos()" style="width:100%;padding:9px;background:rgba(240,149,149,.12);color:#F09595;border:1px solid rgba(240,149,149,.3);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Forcar reload para todos</button>
           </div>
         </div>
+      </div>
       </div>
     </div>
     <!-- /CONTROLE DE VERSAO -->
@@ -1683,7 +3214,7 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
     </div>
     <div class="form-row">
       <div class="field"><label>Data</label><input id="t-data" type="date"></div>
-      <div class="field"><label>Hora</label><input id="t-hora" type="time"></div>
+      <div class="field"><label>Hora<span id="t-hora-required" style="color:var(--red);display:none"> *</span></label><input id="t-hora" type="time"></div>
     </div>
     <div id="t-call-fields" style="display:none">
       <div class="modal-section" style="margin-top:14px"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Links da Reunião</span></div>
@@ -4376,6 +5907,17 @@ async function autoRegistrarDaily(campo) {
 }
 
 // ═══ AGENDA DO CLOSER ════════════════════════════════════════════════════
+// ── Visibilidade do painel "Minha Agenda de Hoje" ─────────────────────────
+// O painel só faz sentido junto da Lista (visão gerencial do Closer/Admin).
+// No Kanban (foco em arrastar cards pelo funil) ele fica oculto, mesmo que
+// haja agendamentos — evita mostrar a mesma agenda duplicada nas duas abas.
+function applyAgendaPanelVisibility() {
+  const panel = document.getElementById('closer-agenda-panel');
+  if (!panel) return;
+  const shouldShow = panel.dataset.shouldShow === '1';
+  panel.style.display = (shouldShow && currentView === 'list') ? 'block' : 'none';
+}
+
 function renderCloserAgenda() {
   const panel = document.getElementById('closer-agenda-panel');
   const list = document.getElementById('closer-agenda-list');
@@ -4383,7 +5925,7 @@ function renderCloserAgenda() {
   if (!panel || !list) return;
 
   // Só mostrar para Closer (e Admin que quer ver)
-  if (user.papel === 'sdr') { panel.style.display = 'none'; return; }
+  if (user.papel === 'sdr') { panel.dataset.shouldShow = '0'; applyAgendaPanelVisibility(); return; }
 
   const hoje = todayStr();
   if (dateEl) dateEl.textContent = formatDate(hoje);
@@ -4400,14 +5942,14 @@ function renderCloserAgenda() {
   );
 
   if (!tarefasHoje.length && !diagHoje.length) {
-    panel.style.display = 'block';
+    panel.dataset.shouldShow = '1';
+    applyAgendaPanelVisibility();
     list.innerHTML = '<p class="empty" style="padding:8px 0">Nenhum agendamento para hoje. 🎉</p>';
     return;
   }
 
-  panel.style.display = 'block';
-
-  // Montar lista unificada (cada item é um evento — diagnóstico OU call)
+  panel.dataset.shouldShow = '1';
+  applyAgendaPanelVisibility();
   const agendaItems = [
     ...diagHoje.map(l => ({
       hora: null, nome: l.nome, tipo: '🩺 Diagnóstico', label: 'badge-purple',
@@ -4593,6 +6135,7 @@ function setView(v) {
   document.getElementById('leads-kanban-view').style.display = v === 'kanban' ? 'block' : 'none';
   document.getElementById('vt-list').className = 'view-btn' + (v === 'list' ? ' active' : '');
   document.getElementById('vt-kanban').className = 'view-btn' + (v === 'kanban' ? ' active' : '');
+  applyAgendaPanelVisibility(); // painel de agenda só aparece junto da Lista
   if (v === 'kanban') { renderKanban(); renderNextActions(); renderFollowupPanel(); }
   if (v === 'list') { renderLeadsTable(); }
 }
@@ -5273,9 +6816,13 @@ async function saveTarefa() {
   const leadId = document.getElementById('t-lead-id').value;
   const titulo = document.getElementById('t-titulo').value.trim();
   const data = document.getElementById('t-data').value;
+  const hora = document.getElementById('t-hora').value;
   const tipo = document.getElementById('t-tipo').value;
   const isCall = tipo === 'call_fechamento';
   if (!titulo || !data) { document.getElementById('t-err').textContent = 'Preencha título e data.'; return; }
+  // Call de Fechamento sem horário é o que faz a Agenda de Hoje mostrar
+  // "Sem hora" — força preencher o horário real marcado no Calendly.
+  if (isCall && !hora) { document.getElementById('t-err').textContent = 'Informe o horário da call (confira o horário marcado no Calendly).'; return; }
   const linkMeet = isCall
     ? (document.getElementById('t-meet')?.value.trim() || null)
     : (document.getElementById('t-meet-simple-input')?.value.trim() || document.getElementById('t-meet')?.value.trim() || null);
@@ -5284,7 +6831,7 @@ async function saveTarefa() {
     lead_id: leadId,
     lead_nome: document.getElementById('t-lead-nome').value,
     tipo, titulo, data,
-    hora: document.getElementById('t-hora').value || null,
+    hora: hora || null,
     link_meet: linkMeet || null,
     link_calendly: isCall ? (document.getElementById('t-calendly')?.value.trim() || null) : null,
     status_reuniao: statusReuniao,
@@ -6625,8 +8172,10 @@ function onTipoTarefaChange() {
   const isCall = tipo === 'call_fechamento';
   const cf = document.getElementById('t-call-fields');
   const ms = document.getElementById('t-meet-simple');
+  const hr = document.getElementById('t-hora-required');
   if (cf) cf.style.display = isCall ? 'block' : 'none';
   if (ms) ms.style.display = isCall ? 'none' : 'block';
+  if (hr) hr.style.display = isCall ? 'inline' : 'none';
 }
 
 function onStatusReuniaoChange() {
