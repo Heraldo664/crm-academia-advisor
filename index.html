@@ -5029,13 +5029,13 @@ As oportunidades não somem no mercado financeiro; elas mudam de mãos. Elas vã
        normalmente via frame.contentWindow. -->
   <div class="page" id="page-guia-mentor" style="padding:0;height:calc(100vh - 60px)">
     <iframe id="guia-mentor-frame" title="Guia do Mentor"
-      style="width:100%;height:100%;border:0;display:block;background:#faf8f3"
-      srcdoc="<!DOCTYPE html>
-<html lang=&quot;pt-BR&quot;>
+      style="width:100%;height:100%;border:0;display:block;background:#faf8f3"></iframe>
+    <script type="text/html" id="guia-mentor-source"><!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset=&quot;UTF-8&quot;>
-<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
-<title>Guia do Mentor — Academia Advisor | Formação em Banker &amp;amp; Advisor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia do Mentor — Academia Advisor | Formação em Banker &amp; Advisor</title>
 <style>
 :root{
   --navy-950:#0a1628;
@@ -5244,292 +5244,292 @@ tr:nth-child(even) td{background:#fbf9f4;}
 </style>
 </head>
 <body>
-<div class=&quot;shell&quot;>
+<div class="shell">
 
 <!-- ====== SIDEBAR ====== -->
-<nav class=&quot;sidebar&quot; id=&quot;sidebar&quot;>
-  <div class=&quot;brand&quot;>
-    <div class=&quot;brand-logo&quot;>AA</div>
-    <p class=&quot;brand-name&quot;>Academia Advisor</p>
-    <p class=&quot;brand-tag&quot;>Formação em Banker &amp;amp; Advisor</p>
-    <p class=&quot;brand-doc&quot;>Guia do Mentor - uso interno</p>
+<nav class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-logo">AA</div>
+    <p class="brand-name">Academia Advisor</p>
+    <p class="brand-tag">Formação em Banker &amp; Advisor</p>
+    <p class="brand-doc">Guia do Mentor - uso interno</p>
   </div>
-  <div class=&quot;nav&quot;>
-    <div class=&quot;nav-section&quot;>Sistema</div>
-    <a href=&quot;#sistema-agenda&quot;>📅 Agenda de Mentorias</a>
-    <a href=&quot;#sistema-registro&quot;>📝 Registrar Atendimento</a>
-    <a href=&quot;#sistema-historico&quot;>📊 Histórico e Fichas</a>
+  <div class="nav">
+    <div class="nav-section">Sistema</div>
+    <a href="#sistema-agenda">📅 Agenda de Mentorias</a>
+    <a href="#sistema-registro">📝 Registrar Atendimento</a>
+    <a href="#sistema-historico">📊 Histórico e Fichas</a>
 
-    <div class=&quot;nav-section&quot;>Fundamentos</div>
-    <a href=&quot;#fundamentos&quot;>00 - Filosofia da Mentoria</a>
+    <div class="nav-section">Fundamentos</div>
+    <a href="#fundamentos">00 - Filosofia da Mentoria</a>
 
-    <div class=&quot;nav-section toggle collapsed&quot; onclick=&quot;toggleNavGroup(this)&quot;>Mentoria 1 - Diagnóstico <span class=&quot;chevron&quot;>▾</span></div>
-    <div class=&quot;nav-group collapsed&quot;>
-      <a href=&quot;#m1&quot;>01 - Objetivo e estrutura</a>
-      <a class=&quot;sub&quot; href=&quot;#m1-perguntas&quot;>Perguntas estratégicas</a>
-      <a class=&quot;sub&quot; href=&quot;#m1-pitch&quot;>Avaliação do pitch pessoal</a>
-      <a class=&quot;sub&quot; href=&quot;#m1-leitura&quot;>Plano de ação e leitura</a>
+    <div class="nav-section toggle collapsed" onclick="toggleNavGroup(this)">Mentoria 1 - Diagnóstico <span class="chevron">▾</span></div>
+    <div class="nav-group collapsed">
+      <a href="#m1">01 - Objetivo e estrutura</a>
+      <a class="sub" href="#m1-perguntas">Perguntas estratégicas</a>
+      <a class="sub" href="#m1-pitch">Avaliação do pitch pessoal</a>
+      <a class="sub" href="#m1-leitura">Plano de ação e leitura</a>
     </div>
 
-    <div class=&quot;nav-section toggle collapsed&quot; onclick=&quot;toggleNavGroup(this)&quot;>Mentoria 2 - Simulação <span class=&quot;chevron&quot;>▾</span></div>
-    <div class=&quot;nav-group collapsed&quot;>
-      <a href=&quot;#m2&quot;>02 - Objetivo e estrutura</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-pilar-a&quot;>Pilar A - Comportamental</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-pilar-b&quot;>Pilar B - Conhecimento da instituição</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-pilar-c&quot;>Pilar C - Macroeconomia</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-pilar-d&quot;>Pilar D - Suitability e perfil</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-pilar-e&quot;>Pilar E - Produto e portfólio</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-pilar-f&quot;>Pilar F - Comercial e captação</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-respostas&quot;>Banco de respostas-modelo</a>
-      <a class=&quot;sub&quot; href=&quot;#m2-feedback&quot;>Feedback estruturado</a>
+    <div class="nav-section toggle collapsed" onclick="toggleNavGroup(this)">Mentoria 2 - Simulação <span class="chevron">▾</span></div>
+    <div class="nav-group collapsed">
+      <a href="#m2">02 - Objetivo e estrutura</a>
+      <a class="sub" href="#m2-pilar-a">Pilar A - Comportamental</a>
+      <a class="sub" href="#m2-pilar-b">Pilar B - Conhecimento da instituição</a>
+      <a class="sub" href="#m2-pilar-c">Pilar C - Macroeconomia</a>
+      <a class="sub" href="#m2-pilar-d">Pilar D - Suitability e perfil</a>
+      <a class="sub" href="#m2-pilar-e">Pilar E - Produto e portfólio</a>
+      <a class="sub" href="#m2-pilar-f">Pilar F - Comercial e captação</a>
+      <a class="sub" href="#m2-respostas">Banco de respostas-modelo</a>
+      <a class="sub" href="#m2-feedback">Feedback estruturado</a>
     </div>
 
-    <div class=&quot;nav-section&quot;>Referência</div>
-    <a href=&quot;#erros&quot;>03 - Erros comuns dos mentorados</a>
-    <a href=&quot;#biblioteca&quot;>04 - Biblioteca do Mentor</a>
-    <a href=&quot;#anexos&quot;>05 - Checklists e Fichas</a>
-    <a href=&quot;#integracao-crm&quot;>06 - Integração com CRM</a>
+    <div class="nav-section">Referência</div>
+    <a href="#erros">03 - Erros comuns dos mentorados</a>
+    <a href="#biblioteca">04 - Biblioteca do Mentor</a>
+    <a href="#anexos">05 - Checklists e Fichas</a>
+    <a href="#integracao-crm">06 - Integração com CRM</a>
   </div>
 </nav>
 
 <!-- ====== MAIN ====== -->
-<main class=&quot;content&quot;>
-  <div class=&quot;doc-header&quot;>
-    <p class=&quot;kicker&quot;>Material interno - Academia Advisor</p>
+<main class="content">
+  <div class="doc-header">
+    <p class="kicker">Material interno - Academia Advisor</p>
     <h1>Guia do Mentor</h1>
-    <p class=&quot;sub&quot;>Formação em Banker &amp;amp; Advisor - roteiro completo das duas mentorias individuais de 1h, sistema de agendamento, fichas de acompanhamento e simulação de entrevista com líderes.</p>
+    <p class="sub">Formação em Banker &amp; Advisor - roteiro completo das duas mentorias individuais de 1h, sistema de agendamento, fichas de acompanhamento e simulação de entrevista com líderes.</p>
   </div>
 
   <!-- ======================================================== -->
   <!-- SISTEMA: AGENDA                                           -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;sistema-agenda&quot;>
-    <h1 class=&quot;part-title&quot;>📅 Sistema de Agenda de Mentorias</h1>
+  <section class="block" id="sistema-agenda">
+    <h1 class="part-title">📅 Sistema de Agenda de Mentorias</h1>
     <p>Gerencie aqui todas as sessões agendadas. O sistema avisa automaticamente qual aluno será o próximo, com dia e horário destacados.</p>
 
     <!-- PRÓXIMA MENTORIA ALERT -->
-    <div class=&quot;next-alert&quot; id=&quot;nextAlert&quot;>
+    <div class="next-alert" id="nextAlert">
       <h4>⏰ PRÓXIMA MENTORIA</h4>
-      <div class=&quot;next-name&quot; id=&quot;nextName&quot;>-</div>
-      <div class=&quot;next-detail&quot; id=&quot;nextDetail&quot;>-</div>
+      <div class="next-name" id="nextName">-</div>
+      <div class="next-detail" id="nextDetail">-</div>
     </div>
 
-    <div class=&quot;sys-tabs&quot;>
-      <button class=&quot;sys-tab active&quot; onclick=&quot;showTab('tab-agenda-nova', this)&quot;>+ Nova sessão</button>
-      <button class=&quot;sys-tab&quot; onclick=&quot;showTab('tab-agenda-lista', this)&quot;>Ver agenda</button>
+    <div class="sys-tabs">
+      <button class="sys-tab active" onclick="showTab('tab-agenda-nova', this)">+ Nova sessão</button>
+      <button class="sys-tab" onclick="showTab('tab-agenda-lista', this)">Ver agenda</button>
     </div>
 
     <!-- NOVA SESSÃO -->
-    <div class=&quot;tab-panel active&quot; id=&quot;tab-agenda-nova&quot;>
-      <div class=&quot;ficha-card&quot;>
+    <div class="tab-panel active" id="tab-agenda-nova">
+      <div class="ficha-card">
         <h3>Agendar nova sessão</h3>
-        <div class=&quot;ficha-row&quot;>
-          <div class=&quot;ficha-field&quot;>
+        <div class="ficha-row">
+          <div class="ficha-field">
             <label>Nome do aluno (CRM - Fechado)</label>
-            <input type=&quot;text&quot; id=&quot;ag-aluno&quot; placeholder=&quot;Nome do aluno&quot; list=&quot;alunos-crm&quot;>
-            <datalist id=&quot;alunos-crm&quot;></datalist>
+            <input type="text" id="ag-aluno" placeholder="Nome do aluno" list="alunos-crm">
+            <datalist id="alunos-crm"></datalist>
           </div>
-          <div class=&quot;ficha-field&quot;>
+          <div class="ficha-field">
             <label>Tipo de mentoria</label>
-            <select id=&quot;ag-tipo&quot;>
-              <option value=&quot;M1&quot;>Mentoria 1 - Diagnóstico de Carreira</option>
-              <option value=&quot;M2&quot;>Mentoria 2 - Simulação de Entrevista</option>
+            <select id="ag-tipo">
+              <option value="M1">Mentoria 1 - Diagnóstico de Carreira</option>
+              <option value="M2">Mentoria 2 - Simulação de Entrevista</option>
             </select>
           </div>
         </div>
-        <div class=&quot;ficha-row&quot;>
-          <div class=&quot;ficha-field&quot;>
+        <div class="ficha-row">
+          <div class="ficha-field">
             <label>Data</label>
-            <input type=&quot;date&quot; id=&quot;ag-data&quot;>
+            <input type="date" id="ag-data">
           </div>
-          <div class=&quot;ficha-field&quot;>
+          <div class="ficha-field">
             <label>Horário</label>
-            <input type=&quot;time&quot; id=&quot;ag-hora&quot; value=&quot;09:00&quot;>
+            <input type="time" id="ag-hora" value="09:00">
           </div>
         </div>
-        <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:14px;&quot;>
+        <div class="ficha-field full" style="margin-bottom:14px;">
           <label>Observações iniciais</label>
-          <textarea id=&quot;ag-obs&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Aluno em processo seletivo para o Itaú Personnalité, entrevista marcada para próxima semana...&quot;></textarea>
+          <textarea id="ag-obs" rows="2" placeholder="Ex: Aluno em processo seletivo para o Itaú Personnalité, entrevista marcada para próxima semana..."></textarea>
         </div>
-        <div class=&quot;ficha-actions&quot;>
-          <button class=&quot;btn-primary&quot; onclick=&quot;agendarSessao()&quot;>Agendar sessão</button>
-          <span class=&quot;status-msg&quot; id=&quot;ag-status&quot;></span>
+        <div class="ficha-actions">
+          <button class="btn-primary" onclick="agendarSessao()">Agendar sessão</button>
+          <span class="status-msg" id="ag-status"></span>
         </div>
       </div>
 
       <!-- ADICIONAR ALUNO DO CRM -->
-      <div class=&quot;ficha-card&quot; style=&quot;margin-top:14px;&quot;>
+      <div class="ficha-card" style="margin-top:14px;">
         <h3>Cadastrar aluno (CRM Fechado)</h3>
-        <div class=&quot;callout note&quot; style=&quot;margin:0 0 14px;&quot;>
-          <div class=&quot;callout-title&quot;>⚙️ Integração com o CRM (em breve)</div>
-          Este cadastro será feito automaticamente assim que o GUIA estiver integrado ao CRM: todo aluno marcado como &quot;fechado&quot; entrará direto nesta lista, sem necessidade de digitação manual. Especificação técnica em <a href=&quot;#integracao-crm&quot; style=&quot;color:#33508c;font-weight:600;&quot;>Integração com CRM</a>. Até lá, use o formulário abaixo para cadastrar manualmente.
+        <div class="callout note" style="margin:0 0 14px;">
+          <div class="callout-title">⚙️ Integração com o CRM (em breve)</div>
+          Este cadastro será feito automaticamente assim que o GUIA estiver integrado ao CRM: todo aluno marcado como "fechado" entrará direto nesta lista, sem necessidade de digitação manual. Especificação técnica em <a href="#integracao-crm" style="color:#33508c;font-weight:600;">Integração com CRM</a>. Até lá, use o formulário abaixo para cadastrar manualmente.
         </div>
-        <div class=&quot;ficha-row&quot;>
-          <div class=&quot;ficha-field&quot;>
+        <div class="ficha-row">
+          <div class="ficha-field">
             <label>Nome completo</label>
-            <input type=&quot;text&quot; id=&quot;crm-nome&quot; placeholder=&quot;Nome do aluno&quot;>
+            <input type="text" id="crm-nome" placeholder="Nome do aluno">
           </div>
-          <div class=&quot;ficha-field&quot;>
+          <div class="ficha-field">
             <label>Cargo-alvo</label>
-            <input type=&quot;text&quot; id=&quot;crm-cargo&quot; placeholder=&quot;Ex: Especialista de Investimentos - Bradesco Principal&quot;>
+            <input type="text" id="crm-cargo" placeholder="Ex: Especialista de Investimentos - Bradesco Principal">
           </div>
         </div>
-        <div class=&quot;ficha-row&quot;>
-          <div class=&quot;ficha-field&quot;>
+        <div class="ficha-row">
+          <div class="ficha-field">
             <label>Instituição-alvo</label>
-            <input type=&quot;text&quot; id=&quot;crm-inst&quot; placeholder=&quot;Ex: Itaú Personnalité, XP, Sicredi...&quot;>
+            <input type="text" id="crm-inst" placeholder="Ex: Itaú Personnalité, XP, Sicredi...">
           </div>
-          <div class=&quot;ficha-field&quot;>
+          <div class="ficha-field">
             <label>Contato (WhatsApp / e-mail)</label>
-            <input type=&quot;text&quot; id=&quot;crm-contato&quot; placeholder=&quot;Ex: (11) 99999-0000&quot;>
+            <input type="text" id="crm-contato" placeholder="Ex: (11) 99999-0000">
           </div>
         </div>
-        <div class=&quot;ficha-actions&quot;>
-          <button class=&quot;btn-primary&quot; onclick=&quot;cadastrarAluno()&quot;>Cadastrar aluno (manual)</button>
-          <span class=&quot;status-msg&quot; id=&quot;crm-status&quot;></span>
+        <div class="ficha-actions">
+          <button class="btn-primary" onclick="cadastrarAluno()">Cadastrar aluno (manual)</button>
+          <span class="status-msg" id="crm-status"></span>
         </div>
       </div>
     </div>
 
     <!-- LISTA DE AGENDA -->
-    <div class=&quot;tab-panel&quot; id=&quot;tab-agenda-lista&quot;>
-      <div id=&quot;agenda-lista-container&quot;>
-        <p style=&quot;color:var(--ink-500);font-size:14px;&quot;>Nenhuma sessão agendada ainda.</p>
+    <div class="tab-panel" id="tab-agenda-lista">
+      <div id="agenda-lista-container">
+        <p style="color:var(--ink-500);font-size:14px;">Nenhuma sessão agendada ainda.</p>
       </div>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- SISTEMA: REGISTRAR ATENDIMENTO                            -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;sistema-registro&quot;>
-    <h1 class=&quot;part-title&quot;>📝 Registrar Atendimento</h1>
+  <section class="block" id="sistema-registro">
+    <h1 class="part-title">📝 Registrar Atendimento</h1>
     <p>Use este formulário imediatamente após cada sessão de mentoria. O registro alimenta o histórico do aluno e a análise de evolução ao longo da Formação.</p>
 
-    <div class=&quot;ficha-card&quot;>
+    <div class="ficha-card">
       <h3>Novo registro de atendimento</h3>
-      <div class=&quot;ficha-row&quot;>
-        <div class=&quot;ficha-field&quot;>
+      <div class="ficha-row">
+        <div class="ficha-field">
           <label>Aluno (CRM - Fechado)</label>
-          <input type=&quot;text&quot; id=&quot;reg-aluno&quot; placeholder=&quot;Nome do aluno&quot; list=&quot;alunos-crm-reg&quot;>
-          <datalist id=&quot;alunos-crm-reg&quot;></datalist>
+          <input type="text" id="reg-aluno" placeholder="Nome do aluno" list="alunos-crm-reg">
+          <datalist id="alunos-crm-reg"></datalist>
         </div>
-        <div class=&quot;ficha-field&quot;>
+        <div class="ficha-field">
           <label>Tipo de mentoria realizada</label>
-          <select id=&quot;reg-tipo&quot;>
-            <option value=&quot;M1&quot;>Mentoria 1 - Diagnóstico</option>
-            <option value=&quot;M2&quot;>Mentoria 2 - Simulação</option>
+          <select id="reg-tipo">
+            <option value="M1">Mentoria 1 - Diagnóstico</option>
+            <option value="M2">Mentoria 2 - Simulação</option>
           </select>
         </div>
       </div>
-      <div class=&quot;ficha-row&quot;>
-        <div class=&quot;ficha-field&quot;>
+      <div class="ficha-row">
+        <div class="ficha-field">
           <label>Data da sessão</label>
-          <input type=&quot;date&quot; id=&quot;reg-data&quot;>
+          <input type="date" id="reg-data">
         </div>
-        <div class=&quot;ficha-field&quot;>
+        <div class="ficha-field">
           <label>Duração real (minutos)</label>
-          <input type=&quot;number&quot; id=&quot;reg-duracao&quot; value=&quot;60&quot; min=&quot;20&quot; max=&quot;120&quot;>
+          <input type="number" id="reg-duracao" value="60" min="20" max="120">
         </div>
       </div>
 
       <!-- PILARES - só aparece para M2 -->
-      <div id=&quot;reg-pilares-block&quot;>
-        <h4 style=&quot;color:var(--navy-900);margin-bottom:12px;&quot;>Avaliação por Pilar (Mentoria 2)</h4>
-        <div class=&quot;pilar-grid&quot;>
-          <div class=&quot;pilar-item&quot;><label>A - Comportamental e Fit</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;A&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
-          <div class=&quot;pilar-item&quot;><label>B - Conhecimento da instituição</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;B&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
-          <div class=&quot;pilar-item&quot;><label>C - Macroeconomia</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;C&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
-          <div class=&quot;pilar-item&quot;><label>D - Suitability e Perfil</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;D&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
-          <div class=&quot;pilar-item&quot;><label>E - Produto e Portfólio</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;E&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
-          <div class=&quot;pilar-item&quot;><label>F - Comercial e Captação</label><select class=&quot;pilar-sel&quot; data-pilar=&quot;F&quot;><option value=&quot;&quot;>- avaliar -</option><option value=&quot;forte&quot;>Forte</option><option value=&quot;desenvolvendo&quot;>Em desenvolvimento</option><option value=&quot;fragil&quot;>Frágil</option></select></div>
+      <div id="reg-pilares-block">
+        <h4 style="color:var(--navy-900);margin-bottom:12px;">Avaliação por Pilar (Mentoria 2)</h4>
+        <div class="pilar-grid">
+          <div class="pilar-item"><label>A - Comportamental e Fit</label><select class="pilar-sel" data-pilar="A"><option value="">- avaliar -</option><option value="forte">Forte</option><option value="desenvolvendo">Em desenvolvimento</option><option value="fragil">Frágil</option></select></div>
+          <div class="pilar-item"><label>B - Conhecimento da instituição</label><select class="pilar-sel" data-pilar="B"><option value="">- avaliar -</option><option value="forte">Forte</option><option value="desenvolvendo">Em desenvolvimento</option><option value="fragil">Frágil</option></select></div>
+          <div class="pilar-item"><label>C - Macroeconomia</label><select class="pilar-sel" data-pilar="C"><option value="">- avaliar -</option><option value="forte">Forte</option><option value="desenvolvendo">Em desenvolvimento</option><option value="fragil">Frágil</option></select></div>
+          <div class="pilar-item"><label>D - Suitability e Perfil</label><select class="pilar-sel" data-pilar="D"><option value="">- avaliar -</option><option value="forte">Forte</option><option value="desenvolvendo">Em desenvolvimento</option><option value="fragil">Frágil</option></select></div>
+          <div class="pilar-item"><label>E - Produto e Portfólio</label><select class="pilar-sel" data-pilar="E"><option value="">- avaliar -</option><option value="forte">Forte</option><option value="desenvolvendo">Em desenvolvimento</option><option value="fragil">Frágil</option></select></div>
+          <div class="pilar-item"><label>F - Comercial e Captação</label><select class="pilar-sel" data-pilar="F"><option value="">- avaliar -</option><option value="forte">Forte</option><option value="desenvolvendo">Em desenvolvimento</option><option value="fragil">Frágil</option></select></div>
         </div>
       </div>
 
-      <div class=&quot;ficha-row&quot; style=&quot;margin-top:8px;&quot;>
-        <div class=&quot;ficha-field&quot;>
+      <div class="ficha-row" style="margin-top:8px;">
+        <div class="ficha-field">
           <label>Prontidão geral</label>
-          <select id=&quot;reg-prontidao&quot;>
-            <option value=&quot;&quot;>- selecionar -</option>
-            <option value=&quot;pronto&quot;>Pronto para entrevista</option>
-            <option value=&quot;quase&quot;>Quase pronto - ajuste pontual</option>
-            <option value=&quot;ciclo&quot;>Precisa de novo ciclo de preparo</option>
+          <select id="reg-prontidao">
+            <option value="">- selecionar -</option>
+            <option value="pronto">Pronto para entrevista</option>
+            <option value="quase">Quase pronto - ajuste pontual</option>
+            <option value="ciclo">Precisa de novo ciclo de preparo</option>
           </select>
         </div>
-        <div class=&quot;ficha-field&quot;>
+        <div class="ficha-field">
           <label>Leitura indicada</label>
-          <select id=&quot;reg-leitura&quot;>
-            <option value=&quot;&quot;>- nenhuma / já indicada -</option>
-            <option value=&quot;SPIN Selling&quot;>SPIN Selling - Neil Rackham</option>
-            <option value=&quot;Prospecção Fanática&quot;>Prospecção Fanática - Jeb Blount</option>
-            <option value=&quot;Como Fazer Amigos&quot;>Como Fazer Amigos e Influenciar Pessoas</option>
-            <option value=&quot;90 Segundos&quot;>Como Convencer Alguém em 90 Segundos</option>
-            <option value=&quot;12 Regras&quot;>As 12 Regras Para a Vida</option>
-            <option value=&quot;Picos e Vales&quot;>Picos e Vales</option>
-            <option value=&quot;A Lei da Conexão&quot;>A Lei da Conexão</option>
+          <select id="reg-leitura">
+            <option value="">- nenhuma / já indicada -</option>
+            <option value="SPIN Selling">SPIN Selling - Neil Rackham</option>
+            <option value="Prospecção Fanática">Prospecção Fanática - Jeb Blount</option>
+            <option value="Como Fazer Amigos">Como Fazer Amigos e Influenciar Pessoas</option>
+            <option value="90 Segundos">Como Convencer Alguém em 90 Segundos</option>
+            <option value="12 Regras">As 12 Regras Para a Vida</option>
+            <option value="Picos e Vales">Picos e Vales</option>
+            <option value="A Lei da Conexão">A Lei da Conexão</option>
           </select>
         </div>
       </div>
 
-      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:12px;margin-top:4px;&quot;>
+      <div class="ficha-field full" style="margin-bottom:12px;margin-top:4px;">
         <label>Pontos fortes observados</label>
-        <textarea id=&quot;reg-fortes&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Excelente fluência ao explicar marcação a mercado, boa conexão entre macro e carteira do cliente...&quot;></textarea>
+        <textarea id="reg-fortes" rows="2" placeholder="Ex: Excelente fluência ao explicar marcação a mercado, boa conexão entre macro e carteira do cliente..."></textarea>
       </div>
-      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:12px;&quot;>
+      <div class="ficha-field full" style="margin-bottom:12px;">
         <label>Pontos de atenção / a desenvolver</label>
-        <textarea id=&quot;reg-atencao&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Resposta de pontos fracos ainda decorada ('sou perfeccionista'), travamento nas perguntas de macro sobre China...&quot;></textarea>
+        <textarea id="reg-atencao" rows="2" placeholder="Ex: Resposta de pontos fracos ainda decorada ('sou perfeccionista'), travamento nas perguntas de macro sobre China..."></textarea>
       </div>
-      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:12px;&quot;>
+      <div class="ficha-field full" style="margin-bottom:12px;">
         <label>Observações gerais do Mentor</label>
-        <textarea id=&quot;reg-obs&quot; rows=&quot;3&quot; placeholder=&quot;Registre aqui percepções que não se encaixam nas categorias acima: estado emocional do aluno, contexto de vida, histórico relevante, intuições sobre o desenvolvimento...&quot;></textarea>
+        <textarea id="reg-obs" rows="3" placeholder="Registre aqui percepções que não se encaixam nas categorias acima: estado emocional do aluno, contexto de vida, histórico relevante, intuições sobre o desenvolvimento..."></textarea>
       </div>
-      <div class=&quot;ficha-field full&quot; style=&quot;margin-bottom:16px;&quot;>
+      <div class="ficha-field full" style="margin-bottom:16px;">
         <label>Próximo passo recomendado</label>
-        <textarea id=&quot;reg-prox&quot; rows=&quot;2&quot; placeholder=&quot;Ex: Reassistir Morning Call do Itaú por 5 dias seguidos e enviar resumo escrito. Agendar M2 daqui 15 dias.&quot;></textarea>
+        <textarea id="reg-prox" rows="2" placeholder="Ex: Reassistir Morning Call do Itaú por 5 dias seguidos e enviar resumo escrito. Agendar M2 daqui 15 dias."></textarea>
       </div>
-      <div class=&quot;ficha-actions&quot;>
-        <button class=&quot;btn-primary&quot; onclick=&quot;salvarRegistro()&quot;>Salvar registro</button>
-        <button class=&quot;btn-secondary&quot; onclick=&quot;limparRegistro()&quot;>Limpar</button>
-        <span class=&quot;status-msg&quot; id=&quot;reg-status&quot;></span>
+      <div class="ficha-actions">
+        <button class="btn-primary" onclick="salvarRegistro()">Salvar registro</button>
+        <button class="btn-secondary" onclick="limparRegistro()">Limpar</button>
+        <span class="status-msg" id="reg-status"></span>
       </div>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- SISTEMA: HISTÓRICO                                        -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;sistema-historico&quot;>
-    <h1 class=&quot;part-title&quot;>📊 Histórico e Fichas dos Alunos</h1>
+  <section class="block" id="sistema-historico">
+    <h1 class="part-title">📊 Histórico e Fichas dos Alunos</h1>
     <p>Todos os registros salvos aparecem aqui, organizados por aluno. Use o filtro para localizar rapidamente um mentorado específico.</p>
 
-    <div style=&quot;display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;&quot;>
-      <div style=&quot;flex:1;min-width:200px;&quot;>
-        <input type=&quot;text&quot; id=&quot;hist-filtro&quot; placeholder=&quot;Filtrar por nome do aluno...&quot; oninput=&quot;filtrarHistorico()&quot; style=&quot;width:100%;padding:9px 13px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:14px;&quot;>
+    <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <input type="text" id="hist-filtro" placeholder="Filtrar por nome do aluno..." oninput="filtrarHistorico()" style="width:100%;padding:9px 13px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:14px;">
       </div>
-      <select id=&quot;hist-tipo&quot; onchange=&quot;filtrarHistorico()&quot; style=&quot;padding:9px 13px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:14px;background:#fff;&quot;>
-        <option value=&quot;&quot;>Todos os tipos</option>
-        <option value=&quot;M1&quot;>Mentoria 1</option>
-        <option value=&quot;M2&quot;>Mentoria 2</option>
+      <select id="hist-tipo" onchange="filtrarHistorico()" style="padding:9px 13px;border:1.5px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:14px;background:#fff;">
+        <option value="">Todos os tipos</option>
+        <option value="M1">Mentoria 1</option>
+        <option value="M2">Mentoria 2</option>
       </select>
-      <button class=&quot;btn-secondary&quot; onclick=&quot;exportarHistorico()&quot; style=&quot;white-space:nowrap;&quot;>Exportar CSV</button>
+      <button class="btn-secondary" onclick="exportarHistorico()" style="white-space:nowrap;">Exportar CSV</button>
     </div>
 
-    <div id=&quot;historico-container&quot;>
-      <p style=&quot;color:var(--ink-500);font-size:14px;padding:20px 0;&quot;>Nenhum registro ainda. Registre o primeiro atendimento acima.</p>
+    <div id="historico-container">
+      <p style="color:var(--ink-500);font-size:14px;padding:20px 0;">Nenhum registro ainda. Registre o primeiro atendimento acima.</p>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- PARTE 0 - FUNDAMENTOS                                     -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;fundamentos&quot;>
-    <h1 class=&quot;part-title&quot;>Parte 0 - Fundamentos da Mentoria</h1>
+  <section class="block" id="fundamentos">
+    <h1 class="part-title">Parte 0 - Fundamentos da Mentoria</h1>
 
     <h2>O que esta mentoria é - e o que não é</h2>
     <p>O aluno já passou pelo conteúdo da Formação: produtos, macroeconomia, metodologia comercial, cases. Se a mentoria repetir esse conteúdo em formato de aula, ela falha. O papel do Mentor aqui é outro: <strong>diagnosticar, confrontar com a realidade da entrevista e calibrar.</strong></p>
@@ -5538,17 +5538,17 @@ tr:nth-child(even) td{background:#fbf9f4;}
       <li><strong>Mentoria 1 = Espelho.</strong> O aluno precisa se ver como o entrevistador vai vê-lo - carreira, discurso, postura, motivação. Aqui o Mentor escuta mais do que fala.</li>
       <li><strong>Mentoria 2 = Pressão controlada.</strong> Simulação real de entrevista no ritmo de um líder de banco. Aqui o Mentor cobra, interrompe e repete a pergunta de formas diferentes - exatamente como vai acontecer de verdade.</li>
     </ul>
-    <div class=&quot;callout note&quot;>
-      <div class=&quot;callout-title&quot;>Armadilha comum do mentor novato</div>
-      Querer &quot;ensinar&quot; no lugar de &quot;testar&quot;. Se o aluno não sabe algo, isso já é um dado riquíssimo - guarde para o feedback final, não interrompa a simulação para dar aula.
+    <div class="callout note">
+      <div class="callout-title">Armadilha comum do mentor novato</div>
+      Querer "ensinar" no lugar de "testar". Se o aluno não sabe algo, isso já é um dado riquíssimo - guarde para o feedback final, não interrompa a simulação para dar aula.
     </div>
 
     <h2>Princípios que guiam toda mentoria</h2>
     <ol>
       <li><strong>Primeiro ouvir, depois perguntar, só então orientar.</strong> Nessa ordem. Quem fala demais cedo, ensina menos.</li>
-      <li><strong>Pergunta antes de afirmação.</strong> Em vez de &quot;você devia falar isso&quot;, pergunte &quot;o que você acha que o entrevistador quer ouvir aqui?&quot;</li>
-      <li><strong>Toda correção vem com um porquê.</strong> Não basta dizer &quot;está fraco&quot;. Diga por que está fraco e o que uma resposta forte teria de diferente.</li>
-      <li><strong>O aluno sai de cada sessão com uma tarefa concreta</strong> - não com uma sensação vaga de &quot;preciso estudar mais&quot;.</li>
+      <li><strong>Pergunta antes de afirmação.</strong> Em vez de "você devia falar isso", pergunte "o que você acha que o entrevistador quer ouvir aqui?"</li>
+      <li><strong>Toda correção vem com um porquê.</strong> Não basta dizer "está fraco". Diga por que está fraco e o que uma resposta forte teria de diferente.</li>
+      <li><strong>O aluno sai de cada sessão com uma tarefa concreta</strong> - não com uma sensação vaga de "preciso estudar mais".</li>
       <li><strong>Honestidade pesa mais que acolhimento fácil.</strong> Suavizar demais é um desserviço.</li>
       <li><strong>O Mentor nunca entrega resposta pronta para o aluno decorar.</strong> O objetivo é desenvolver raciocínio.</li>
     </ol>
@@ -5557,26 +5557,26 @@ tr:nth-child(even) td{background:#fbf9f4;}
     <p>Peça ao aluno, com pelo menos 2 dias de antecedência:</p>
     <ul>
       <li>Currículo atualizado (mesmo que informal)</li>
-      <li>Um parágrafo respondendo: <em>&quot;Por que você quer trabalhar como Banker/Advisor?&quot;</em></li>
+      <li>Um parágrafo respondendo: <em>"Por que você quer trabalhar como Banker/Advisor?"</em></li>
       <li>Se já estiver em processo seletivo: nome da instituição, cargo e etapa atual</li>
     </ul>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Fundamentos</label>
-      <textarea placeholder=&quot;Registre aqui percepções sobre a filosofia de mentoria, ajustes que funcionaram bem na sua prática, adaptações para o seu estilo...&quot; id=&quot;obs-fundamentos&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-fundamentos','fundamentos')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-fundamentos&quot;>Salvo!</span>
+      <textarea placeholder="Registre aqui percepções sobre a filosofia de mentoria, ajustes que funcionaram bem na sua prática, adaptações para o seu estilo..." id="obs-fundamentos"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-fundamentos','fundamentos')">Salvar observação</button>
+      <span class="saved-msg" id="saved-fundamentos">Salvo!</span>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- PARTE 1 - MENTORIA 1                                      -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;m1&quot;>
-    <h1 class=&quot;part-title&quot;>Parte 1 - Mentoria 1: Diagnóstico de Carreira e Postura</h1>
-    <div class=&quot;pill-row&quot;><span class=&quot;pill&quot;>60 minutos</span><span class=&quot;pill&quot;>Individual</span><span class=&quot;pill&quot;>Sem simulação</span></div>
+  <section class="block" id="m1">
+    <h1 class="part-title">Parte 1 - Mentoria 1: Diagnóstico de Carreira e Postura</h1>
+    <div class="pill-row"><span class="pill">60 minutos</span><span class="pill">Individual</span><span class="pill">Sem simulação</span></div>
 
     <h2>Objetivo da sessão</h2>
     <p>Ao final da Mentoria 1, o aluno deve saber:</p>
@@ -5593,67 +5593,67 @@ tr:nth-child(even) td{background:#fbf9f4;}
       <tr><td>Abertura e contexto</td><td>5 min</td><td>Quebrar o gelo, alinhar expectativas</td></tr>
       <tr><td>Escuta livre</td><td>15 min</td><td>Aluno fala sobre momento atual, sem interrupção</td></tr>
       <tr><td>Perguntas estratégicas</td><td>20 min</td><td>Mentor conduz com perguntas-guia</td></tr>
-      <tr><td>Avaliação do &quot;fale sobre você&quot;</td><td>10 min</td><td>Aluno apresenta pitch pessoal, Mentor avalia</td></tr>
+      <tr><td>Avaliação do "fale sobre você"</td><td>10 min</td><td>Aluno apresenta pitch pessoal, Mentor avalia</td></tr>
       <tr><td>Plano de ação e leitura</td><td>8 min</td><td>1-2 leituras e 1 exercício concreto</td></tr>
       <tr><td>Encerramento</td><td>2 min</td><td>Recapitular combinados, marcar M2</td></tr>
     </table>
 
     <h2>Abertura - script sugerido</h2>
-    <blockquote class=&quot;script&quot;>Oi [nome]. Essa primeira conversa é mais sua do que minha - eu vou fazer perguntas, mas quero que você fale bastante. Meu objetivo hoje não é te dar aula de produto ou macro, isso a Formação já trouxe. Meu objetivo é entender sua carreira até aqui, pra onde você quer ir, e descobrir junto com você os pontos que vão pesar contra você numa entrevista se a gente não trabalhar agora. Pode ser direto comigo, e eu vou ser direto com você. Combinado?</blockquote>
+    <blockquote class="script">Oi [nome]. Essa primeira conversa é mais sua do que minha - eu vou fazer perguntas, mas quero que você fale bastante. Meu objetivo hoje não é te dar aula de produto ou macro, isso a Formação já trouxe. Meu objetivo é entender sua carreira até aqui, pra onde você quer ir, e descobrir junto com você os pontos que vão pesar contra você numa entrevista se a gente não trabalhar agora. Pode ser direto comigo, e eu vou ser direto com você. Combinado?</blockquote>
 
-    <h2 id=&quot;m1-perguntas&quot;>Banco de perguntas estratégicas de carreira</h2>
-    <div class=&quot;callout gold&quot;><div class=&quot;callout-title&quot;>Regra de ouro</div>Deixe o aluno falar por pelo menos 3-4 minutos sem interromper após a pergunta de abertura. Observe: palavras que ele repete, se fala de forma cronológica ou estratégica, sinais de insegurança disfarçada, discurso genérico ou decorado.</div>
+    <h2 id="m1-perguntas">Banco de perguntas estratégicas de carreira</h2>
+    <div class="callout gold"><div class="callout-title">Regra de ouro</div>Deixe o aluno falar por pelo menos 3-4 minutos sem interromper após a pergunta de abertura. Observe: palavras que ele repete, se fala de forma cronológica ou estratégica, sinais de insegurança disfarçada, discurso genérico ou decorado.</div>
 
     <h4>Bloco A - Clareza de momento e motivação</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A1</b> Numa escala, o que pesa mais na sua decisão de migrar ou crescer na carreira: dinheiro, status, aprendizado técnico ou estilo de vida?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A2</b> Se você não conseguisse essa vaga em 1 ano, o que você teria feito diferente nesse meio tempo?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A3</b> O que te incomoda de verdade no seu trabalho atual - não a versão &quot;profissional&quot; da resposta, a versão real?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A4</b> Quando você imagina ter sucesso nessa área em 5 anos, o que está fazendo no dia a dia? Descreva uma terça-feira comum.</div>
+    <div class="qcard"><b class="qid">A1</b> Numa escala, o que pesa mais na sua decisão de migrar ou crescer na carreira: dinheiro, status, aprendizado técnico ou estilo de vida?</div>
+    <div class="qcard"><b class="qid">A2</b> Se você não conseguisse essa vaga em 1 ano, o que você teria feito diferente nesse meio tempo?</div>
+    <div class="qcard"><b class="qid">A3</b> O que te incomoda de verdade no seu trabalho atual - não a versão "profissional" da resposta, a versão real?</div>
+    <div class="qcard"><b class="qid">A4</b> Quando você imagina ter sucesso nessa área em 5 anos, o que está fazendo no dia a dia? Descreva uma terça-feira comum.</div>
 
     <h4>Bloco B - Histórico e trajetória</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B1</b> Da sua experiência até hoje, qual foi a situação em que você teve que vender algo, convencer alguém ou negociar - mesmo que não fosse formalmente &quot;vendas&quot;?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B2</b> Teve algum momento em que você foi malsucedido em alguma meta ou processo seletivo? O que aprendeu?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B3</b> Por que você está saindo, ou quer sair, do seu emprego/área atual?</div>
+    <div class="qcard"><b class="qid">B1</b> Da sua experiência até hoje, qual foi a situação em que você teve que vender algo, convencer alguém ou negociar - mesmo que não fosse formalmente "vendas"?</div>
+    <div class="qcard"><b class="qid">B2</b> Teve algum momento em que você foi malsucedido em alguma meta ou processo seletivo? O que aprendeu?</div>
+    <div class="qcard"><b class="qid">B3</b> Por que você está saindo, ou quer sair, do seu emprego/área atual?</div>
 
     <h4>Bloco C - Visão de carreira e instituição</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C1</b> Você já decidiu em que tipo de instituição quer atuar - banco tradicional, corretora independente ou cooperativa? O que te atrai em cada uma?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C2</b> Onde você se vê em 3 anos? E em 5?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C3</b> O que você faria diferente se hoje fosse seu primeiro dia assumindo uma carteira de clientes?</div>
+    <div class="qcard"><b class="qid">C1</b> Você já decidiu em que tipo de instituição quer atuar - banco tradicional, corretora independente ou cooperativa? O que te atrai em cada uma?</div>
+    <div class="qcard"><b class="qid">C2</b> Onde você se vê em 3 anos? E em 5?</div>
+    <div class="qcard"><b class="qid">C3</b> O que você faria diferente se hoje fosse seu primeiro dia assumindo uma carteira de clientes?</div>
 
     <h4>Bloco D - Autoconsciência</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D1</b> Me dê dois pontos fortes seus - não genéricos, com um exemplo real de cada.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D2</b> Me dê dois pontos a desenvolver - de verdade, não a versão disfarçada tipo &quot;sou muito perfeccionista&quot;.</div>
+    <div class="qcard"><b class="qid">D1</b> Me dê dois pontos fortes seus - não genéricos, com um exemplo real de cada.</div>
+    <div class="qcard"><b class="qid">D2</b> Me dê dois pontos a desenvolver - de verdade, não a versão disfarçada tipo "sou muito perfeccionista".</div>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Perguntas estratégicas</label>
-      <textarea placeholder=&quot;Anote quais perguntas geraram mais reações reveladoras nos alunos, adaptações que funcionaram para perfis específicos, novas perguntas que surgiram na prática...&quot; id=&quot;obs-m1-perguntas&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m1-perguntas','m1-perguntas')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-m1-perguntas&quot;>Salvo!</span>
+      <textarea placeholder="Anote quais perguntas geraram mais reações reveladoras nos alunos, adaptações que funcionaram para perfis específicos, novas perguntas que surgiram na prática..." id="obs-m1-perguntas"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-m1-perguntas','m1-perguntas')">Salvar observação</button>
+      <span class="saved-msg" id="saved-m1-perguntas">Salvo!</span>
     </div>
 
-    <h2 id=&quot;m1-pitch&quot;>Avaliação do &quot;Fale sobre você&quot;</h2>
+    <h2 id="m1-pitch">Avaliação do "Fale sobre você"</h2>
     <p>Depois das perguntas estratégicas, peça:</p>
-    <blockquote class=&quot;script&quot;>Agora finge que eu sou o entrevistador. Me fale sobre você, como se fosse a abertura de uma entrevista de verdade. Você tem até 2 minutos.</blockquote>
+    <blockquote class="script">Agora finge que eu sou o entrevistador. Me fale sobre você, como se fosse a abertura de uma entrevista de verdade. Você tem até 2 minutos.</blockquote>
     <p><strong>Cronometre.</strong> Pitch de mais de 2-3 minutos já é um sinal de problema.</p>
     <table>
       <tr><th>Critério</th><th>O que observar</th></tr>
       <tr><td>Estrutura</td><td>História cronológica ou narrativa estratégica (momento atual - trajetória relevante - objetivo claro)?</td></tr>
       <tr><td>Relevância</td><td>Filtrou o que importa pra vaga, ou narrou a biografia inteira?</td></tr>
-      <tr><td>Prova concreta</td><td>Citou números e situações reais, ou só adjetivos (&quot;sou dedicado, comunicativo&quot;)?</td></tr>
-      <tr><td>Conexão com o cargo</td><td>A fala termina conectando com a vaga, ou simplesmente &quot;acaba&quot;?</td></tr>
+      <tr><td>Prova concreta</td><td>Citou números e situações reais, ou só adjetivos ("sou dedicado, comunicativo")?</td></tr>
+      <tr><td>Conexão com o cargo</td><td>A fala termina conectando com a vaga, ou simplesmente "acaba"?</td></tr>
       <tr><td>Tom e ritmo</td><td>Nervosismo excessivo e fala monótona, ou energia e clareza?</td></tr>
       <tr><td>Tempo</td><td>Respeitou os 2 minutos?</td></tr>
     </table>
-    <div class=&quot;codeblock&quot;>[Momento atual]      &quot;Hoje atuo como ___, há ___ tempo, em ___&quot;
-[Trajetória]         &quot;Cheguei até aqui depois de ___ - destaco
-                      a experiência em ___ porque me ensinou ___&quot;
-[Habilidades-chave]  &quot;Ao longo desse caminho desenvolvi ___ e ___,
-                      que aplico através de ___ (exemplo concreto)&quot;
-[Ponte para a vaga]  &quot;É por isso que estou buscando essa posição:
+    <div class="codeblock">[Momento atual]      "Hoje atuo como ___, há ___ tempo, em ___"
+[Trajetória]         "Cheguei até aqui depois de ___ - destaco
+                      a experiência em ___ porque me ensinou ___"
+[Habilidades-chave]  "Ao longo desse caminho desenvolvi ___ e ___,
+                      que aplico através de ___ (exemplo concreto)"
+[Ponte para a vaga]  "É por isso que estou buscando essa posição:
                       quero unir ___ com ___, e acredito que aqui
-                      encontro o ambiente certo pra isso&quot;</div>
+                      encontro o ambiente certo pra isso"</div>
 
-    <h2 id=&quot;m1-leitura&quot;>Plano de ação e indicação de leitura</h2>
+    <h2 id="m1-leitura">Plano de ação e indicação de leitura</h2>
     <p>Escolha <strong>no máximo 2 leituras e 1 exercício prático</strong>. Excesso de tarefa gera abandono.</p>
     <table>
       <tr><th>Se o aluno demonstrou...</th><th>Indique...</th></tr>
@@ -5667,30 +5667,30 @@ tr:nth-child(even) td{background:#fbf9f4;}
     </table>
 
     <h2>Encerramento da Mentoria 1</h2>
-    <blockquote class=&quot;script&quot;>Então ficou assim: você vai trabalhar em [leitura escolhida] e [tarefa prática], e vamos nos ver de novo em [data] para simular a entrevista de verdade - com perguntas técnicas de macro, produto, portfólio e comportamental, no ritmo que vai acontecer na sala. Pode ser que eu seja mais duro nessa próxima conversa, de propósito - quero que a entrevista real seja mais fácil do que o nosso treino.</blockquote>
+    <blockquote class="script">Então ficou assim: você vai trabalhar em [leitura escolhida] e [tarefa prática], e vamos nos ver de novo em [data] para simular a entrevista de verdade - com perguntas técnicas de macro, produto, portfólio e comportamental, no ritmo que vai acontecer na sala. Pode ser que eu seja mais duro nessa próxima conversa, de propósito - quero que a entrevista real seja mais fácil do que o nosso treino.</blockquote>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Mentoria 1</label>
-      <textarea placeholder=&quot;Anotações gerais sobre a condução da Mentoria 1, padrões que observou em vários alunos, ajustes de timing ou estrutura que testou...&quot; id=&quot;obs-m1&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m1','m1')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-m1&quot;>Salvo!</span>
+      <textarea placeholder="Anotações gerais sobre a condução da Mentoria 1, padrões que observou em vários alunos, ajustes de timing ou estrutura que testou..." id="obs-m1"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-m1','m1')">Salvar observação</button>
+      <span class="saved-msg" id="saved-m1">Salvo!</span>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- PARTE 2 - MENTORIA 2                                      -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;m2&quot;>
-    <h1 class=&quot;part-title&quot;>Parte 2 - Mentoria 2: Simulação de Entrevista</h1>
-    <div class=&quot;pill-row&quot;><span class=&quot;pill&quot;>60 minutos</span><span class=&quot;pill&quot;>Individual</span><span class=&quot;pill&quot;>Pressão real</span></div>
+  <section class="block" id="m2">
+    <h1 class="part-title">Parte 2 - Mentoria 2: Simulação de Entrevista</h1>
+    <div class="pill-row"><span class="pill">60 minutos</span><span class="pill">Individual</span><span class="pill">Pressão real</span></div>
 
     <h2>Regras de condução para o Mentor</h2>
     <ol>
       <li><strong>Entre no papel.</strong> Nos primeiros 45-50 minutos você é o líder de investimentos avaliando um candidato - não o mentor simpático da semana passada.</li>
       <li><strong>Não avise qual pergunta vem a seguir.</strong> Surpresa é parte do treino.</li>
-      <li><strong>Use follow-ups de verdade.</strong> Se a resposta for rasa, pressione: &quot;Pode detalhar?&quot;, &quot;Por quê?&quot;, &quot;E se o cliente discordar disso?&quot;</li>
+      <li><strong>Use follow-ups de verdade.</strong> Se a resposta for rasa, pressione: "Pode detalhar?", "Por quê?", "E se o cliente discordar disso?"</li>
       <li><strong>Misture os pilares.</strong> Alterne comportamental com técnico, como numa entrevista real.</li>
       <li><strong>Reserve os últimos 10-12 minutos</strong> para sair do papel e dar feedback estruturado.</li>
     </ol>
@@ -5707,123 +5707,123 @@ tr:nth-child(even) td{background:#fbf9f4;}
     </table>
 
     <h2>Abertura formal</h2>
-    <blockquote class=&quot;script&quot;>Boa tarde. Sou [seu nome], e hoje vou conduzir essa conversa simulando exatamente o que vai acontecer numa entrevista real para a área de investimentos. Vamos tratar essa próxima hora como se fosse o processo de verdade - então responda como você responderia lá, sem perguntar &quot;isso é treino, né?&quot; no meio. No final, paro o personagem e te dou o feedback completo. Pode começar: me fale sobre você.</blockquote>
+    <blockquote class="script">Boa tarde. Sou [seu nome], e hoje vou conduzir essa conversa simulando exatamente o que vai acontecer numa entrevista real para a área de investimentos. Vamos tratar essa próxima hora como se fosse o processo de verdade - então responda como você responderia lá, sem perguntar "isso é treino, né?" no meio. No final, paro o personagem e te dou o feedback completo. Pode começar: me fale sobre você.</blockquote>
 
-    <div class=&quot;divider-gold&quot;></div>
+    <div class="divider-gold"></div>
 
-    <h2 id=&quot;m2-pilar-a&quot;>Pilar A - Comportamental e Fit</h2>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A1</b> Me fale sobre você.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A2</b> Por que você quer trabalhar com investimentos / nesta instituição especificamente?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A3</b> Por que você está saindo (ou quer sair) do seu emprego atual?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A4</b> Me dê dois pontos fortes seus, com exemplo.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A5</b> Me dê dois pontos a desenvolver, com exemplo.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A6</b> Onde você se vê em 3 anos? E em 5?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A7</b> Conte sobre uma situação em que você teve que lidar com um cliente ou colega muito difícil.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A8</b> O que você faz quando recebe um &quot;não&quot; - de um cliente, de um gestor, de um processo seletivo?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A9</b> Fale sobre uma vez em que você cometeu um erro sério no trabalho. O que aconteceu e o que fez depois?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A10</b> Como você reage à pressão por meta no fim do mês?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A11</b> O que te faz acordar motivado para trabalhar nesta área?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>A12</b> Se eu ligasse para seu último gestor agora, o que ele diria sobre você - bom e ruim?</div>
+    <h2 id="m2-pilar-a">Pilar A - Comportamental e Fit</h2>
+    <div class="qcard"><b class="qid">A1</b> Me fale sobre você.</div>
+    <div class="qcard"><b class="qid">A2</b> Por que você quer trabalhar com investimentos / nesta instituição especificamente?</div>
+    <div class="qcard"><b class="qid">A3</b> Por que você está saindo (ou quer sair) do seu emprego atual?</div>
+    <div class="qcard"><b class="qid">A4</b> Me dê dois pontos fortes seus, com exemplo.</div>
+    <div class="qcard"><b class="qid">A5</b> Me dê dois pontos a desenvolver, com exemplo.</div>
+    <div class="qcard"><b class="qid">A6</b> Onde você se vê em 3 anos? E em 5?</div>
+    <div class="qcard"><b class="qid">A7</b> Conte sobre uma situação em que você teve que lidar com um cliente ou colega muito difícil.</div>
+    <div class="qcard"><b class="qid">A8</b> O que você faz quando recebe um "não" - de um cliente, de um gestor, de um processo seletivo?</div>
+    <div class="qcard"><b class="qid">A9</b> Fale sobre uma vez em que você cometeu um erro sério no trabalho. O que aconteceu e o que fez depois?</div>
+    <div class="qcard"><b class="qid">A10</b> Como você reage à pressão por meta no fim do mês?</div>
+    <div class="qcard"><b class="qid">A11</b> O que te faz acordar motivado para trabalhar nesta área?</div>
+    <div class="qcard"><b class="qid">A12</b> Se eu ligasse para seu último gestor agora, o que ele diria sobre você - bom e ruim?</div>
 
-    <table style=&quot;margin-top:14px;&quot;>
+    <table style="margin-top:14px;">
       <tr><th>Sinal de resposta fraca</th><th>Sinal de resposta forte</th></tr>
       <tr><td>Genérica, serviria para qualquer vaga</td><td>Específica para a área e para a instituição</td></tr>
       <tr><td>Crítica ao empregador anterior, vitimismo</td><td>Aprendizado extraído sem atacar ninguém</td></tr>
-      <tr><td>Ponto fraco &quot;fake&quot; (ex: &quot;sou perfeccionista&quot;)</td><td>Ponto fraco real, com plano de melhoria</td></tr>
+      <tr><td>Ponto fraco "fake" (ex: "sou perfeccionista")</td><td>Ponto fraco real, com plano de melhoria</td></tr>
       <tr><td>Sem exemplo, só adjetivo</td><td>Exemplo real, com contexto, ação e resultado</td></tr>
     </table>
 
-    <h2 id=&quot;m2-pilar-b&quot;>Pilar B - Conhecimento de mercado e da instituição</h2>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B1</b> O que você sabe sobre [nome do banco]? Por que apostaram nesse segmento?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B2</b> Qual a diferença entre o segmento pleiteado e o varejo tradicional?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B3</b> Você sabe os critérios de elegibilidade para um cliente entrar nesse segmento?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B4</b> Qual a diferença entre o modelo de remuneração daqui e de uma corretora independente?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B5</b> Como você se atualiza sobre o mercado financeiro no seu dia a dia? Cite fontes reais.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B6</b> Qual foi a última notícia relevante que você leu sobre esta instituição?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>B7</b> O que diferencia um bom gerente/especialista de um mediano nesse segmento?</div>
+    <h2 id="m2-pilar-b">Pilar B - Conhecimento de mercado e da instituição</h2>
+    <div class="qcard"><b class="qid">B1</b> O que você sabe sobre [nome do banco]? Por que apostaram nesse segmento?</div>
+    <div class="qcard"><b class="qid">B2</b> Qual a diferença entre o segmento pleiteado e o varejo tradicional?</div>
+    <div class="qcard"><b class="qid">B3</b> Você sabe os critérios de elegibilidade para um cliente entrar nesse segmento?</div>
+    <div class="qcard"><b class="qid">B4</b> Qual a diferença entre o modelo de remuneração daqui e de uma corretora independente?</div>
+    <div class="qcard"><b class="qid">B5</b> Como você se atualiza sobre o mercado financeiro no seu dia a dia? Cite fontes reais.</div>
+    <div class="qcard"><b class="qid">B6</b> Qual foi a última notícia relevante que você leu sobre esta instituição?</div>
+    <div class="qcard"><b class="qid">B7</b> O que diferencia um bom gerente/especialista de um mediano nesse segmento?</div>
 
-    <h2 id=&quot;m2-pilar-c&quot;>Pilar C - Conhecimento técnico: cenário macroeconômico</h2>
-    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Atenção</div>O cenário muda constantemente. Antes de cada Mentoria 2, atualize-se via Banco Central, Relatório Focus, Morning Call do Itaú ou XP. O que importa avaliar não é &quot;acertar o número&quot;, mas a capacidade de conectar macro à carteira do cliente.</div>
+    <h2 id="m2-pilar-c">Pilar C - Conhecimento técnico: cenário macroeconômico</h2>
+    <div class="callout note"><div class="callout-title">Atenção</div>O cenário muda constantemente. Antes de cada Mentoria 2, atualize-se via Banco Central, Relatório Focus, Morning Call do Itaú ou XP. O que importa avaliar não é "acertar o número", mas a capacidade de conectar macro à carteira do cliente.</div>
     <p><strong>Padrão de resposta forte:</strong></p>
-    <div class=&quot;codeblock&quot;>[Dado atual]  →  [Mecanismo de transmissão]  →  [Efeito prático na carteira do cliente]</div>
+    <div class="codeblock">[Dado atual]  →  [Mecanismo de transmissão]  →  [Efeito prático na carteira do cliente]</div>
 
     <h4>Sobre o Brasil</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C1</b> Qual a taxa Selic atual e a expectativa para as próximas reuniões do Copom?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C2</b> Como está a inflação em relação à meta? O que está pressionando ela pra cima ou pra baixo?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C3</b> Como os gastos do governo (fiscal) impactam juros e inflação no Brasil hoje?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C4</b> O que explica a variação recente do dólar frente ao real?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C5</b> Se a Selic cair 1 ponto percentual nos próximos 12 meses, o que isso significa para quem está 100% em pós-fixado?</div>
+    <div class="qcard"><b class="qid">C1</b> Qual a taxa Selic atual e a expectativa para as próximas reuniões do Copom?</div>
+    <div class="qcard"><b class="qid">C2</b> Como está a inflação em relação à meta? O que está pressionando ela pra cima ou pra baixo?</div>
+    <div class="qcard"><b class="qid">C3</b> Como os gastos do governo (fiscal) impactam juros e inflação no Brasil hoje?</div>
+    <div class="qcard"><b class="qid">C4</b> O que explica a variação recente do dólar frente ao real?</div>
+    <div class="qcard"><b class="qid">C5</b> Se a Selic cair 1 ponto percentual nos próximos 12 meses, o que isso significa para quem está 100% em pós-fixado?</div>
 
     <h4>Sobre os EUA</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C6</b> Qual a taxa de juros americana hoje e o que o mercado espera do Fed nas próximas reuniões?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C7</b> O que é o Payroll e por que ele move tanto o mercado, inclusive aqui no Brasil?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C8</b> Se o Fed adotar postura dovish, cortando juros, quais os efeitos práticos na economia brasileira?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C9</b> Como as tarifas comerciais americanas afetam exportadores brasileiros?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C9b</b> O que é o ISM Manufacturing, o PCE e o CPI americano, e como cada um sinaliza para as decisões do Fed?</div>
+    <div class="qcard"><b class="qid">C6</b> Qual a taxa de juros americana hoje e o que o mercado espera do Fed nas próximas reuniões?</div>
+    <div class="qcard"><b class="qid">C7</b> O que é o Payroll e por que ele move tanto o mercado, inclusive aqui no Brasil?</div>
+    <div class="qcard"><b class="qid">C8</b> Se o Fed adotar postura dovish, cortando juros, quais os efeitos práticos na economia brasileira?</div>
+    <div class="qcard"><b class="qid">C9</b> Como as tarifas comerciais americanas afetam exportadores brasileiros?</div>
+    <div class="qcard"><b class="qid">C9b</b> O que é o ISM Manufacturing, o PCE e o CPI americano, e como cada um sinaliza para as decisões do Fed?</div>
 
     <h4>Sobre conflitos geopolíticos e impacto nos mercados</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C10</b> Como a guerra entre Rússia e Ucrânia afeta os preços de commodities como petróleo, gás e trigo, e o que isso significa para a inflação global e para carteiras de diferentes perfis de investidor?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C11</b> Como tensões no Oriente Médio (como EUA/Israel vs. Irã) impactam o preço do petróleo e, consequentemente, a inflação e os mercados emergentes?</div>
+    <div class="qcard"><b class="qid">C10</b> Como a guerra entre Rússia e Ucrânia afeta os preços de commodities como petróleo, gás e trigo, e o que isso significa para a inflação global e para carteiras de diferentes perfis de investidor?</div>
+    <div class="qcard"><b class="qid">C11</b> Como tensões no Oriente Médio (como EUA/Israel vs. Irã) impactam o preço do petróleo e, consequentemente, a inflação e os mercados emergentes?</div>
 
     <h4>Sobre a China</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C12</b> Por que a China é tão relevante para o Brasil? Qual o papel da Vale (VALE3) nessa relação?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C13</b> Se a China desacelera, o que acontece com o preço do minério de ferro e como isso impacta a Vale, a bolsa brasileira e a arrecadação do governo?</div>
+    <div class="qcard"><b class="qid">C12</b> Por que a China é tão relevante para o Brasil? Qual o papel da Vale (VALE3) nessa relação?</div>
+    <div class="qcard"><b class="qid">C13</b> Se a China desacelera, o que acontece com o preço do minério de ferro e como isso impacta a Vale, a bolsa brasileira e a arrecadação do governo?</div>
 
     <h4>Sobre a Europa</h4>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>C14</b> Como a política de juros europeia influencia o fluxo de capital para mercados emergentes como o Brasil?</div>
+    <div class="qcard"><b class="qid">C14</b> Como a política de juros europeia influencia o fluxo de capital para mercados emergentes como o Brasil?</div>
 
-    <div class=&quot;callout gold&quot;><div class=&quot;callout-title&quot;>Respostas-modelo Pilar C (uso exclusivo do Mentor)</div>
+    <div class="callout gold"><div class="callout-title">Respostas-modelo Pilar C (uso exclusivo do Mentor)</div>
       <p><strong>C8 - Fed dovish:</strong> Quando o Fed sinaliza corte de juros, capital estrangeiro tende a buscar mercados emergentes em busca de retorno melhor, valorizando o real e abrindo espaço para o Banco Central do Brasil cortar a Selic com mais tranquilidade.</p>
       <p><strong>C10 - Guerra Rússia-Ucrânia:</strong> O conflito restringiu a oferta de petróleo, gás e grãos no mercado global, pressionando inflação mundial. Para investidores conservadores isso implica maior risco em prefixados; para arrojados, pode ser oportunidade em fundos de commodities. A elevação de juros nos EUA e Europa para combater essa inflação impactou negativamente ativos de risco no período.</p>
       <p><strong>C13 - China/Vale:</strong> A Vale é a maior exportadora de minério de ferro do mundo e a China é sua principal compradora. Quando a China cresce, a demanda por minério sobe, os preços sobem, os resultados da Vale melhoram, a ação VALE3 sobe e o Ibovespa tende a subir junto (dado o peso da Vale no índice). O movimento inverso acontece na desaceleração chinesa.</p>
     </div>
 
-    <h2 id=&quot;m2-pilar-d&quot;>Pilar D - Perfil de investidor, suitability e objetivos</h2>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D1</b> Quais são os perfis de investidor que você conhece, e o que diferencia cada um na prática - não na teoria da apostila?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D2</b> Um cliente conservador te pergunta se deve investir em ações. O que você responde?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D3</b> Como você identifica se o perfil declarado no formulário é compatível com o comportamento real do cliente?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D4</b> O que você faz se o cliente insiste em um investimento incompatível com o perfil dele?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D5</b> Como os objetivos de um cliente mudam a forma como você monta a carteira dele?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>D6</b> Um cliente moderado quer entender por que investir em fundos multimercado em vez de só renda fixa. Como explicaria?</div>
+    <h2 id="m2-pilar-d">Pilar D - Perfil de investidor, suitability e objetivos</h2>
+    <div class="qcard"><b class="qid">D1</b> Quais são os perfis de investidor que você conhece, e o que diferencia cada um na prática - não na teoria da apostila?</div>
+    <div class="qcard"><b class="qid">D2</b> Um cliente conservador te pergunta se deve investir em ações. O que você responde?</div>
+    <div class="qcard"><b class="qid">D3</b> Como você identifica se o perfil declarado no formulário é compatível com o comportamento real do cliente?</div>
+    <div class="qcard"><b class="qid">D4</b> O que você faz se o cliente insiste em um investimento incompatível com o perfil dele?</div>
+    <div class="qcard"><b class="qid">D5</b> Como os objetivos de um cliente mudam a forma como você monta a carteira dele?</div>
+    <div class="qcard"><b class="qid">D6</b> Um cliente moderado quer entender por que investir em fundos multimercado em vez de só renda fixa. Como explicaria?</div>
 
-    <h2 id=&quot;m2-pilar-e&quot;>Pilar E - Produtos, montagem e defesa de portfólio</h2>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E1</b> Como você explica a diferença entre marcação a mercado e marcação na curva para um cliente leigo?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E2</b> Qual a diferença entre investir direto em um título público e investir em um fundo com benchmark equivalente?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E3</b> Como você explicaria a diferença entre LCI/LCA e CDB para um cliente?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E3b</b> O que é uma LIG (Letra Imobiliária Garantida) e quando ela faz sentido na carteira de um cliente?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E4</b> Qual tem mais risco: prefixado de vencimento curto ou longo? Por quê?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E5</b> Um cliente quer resgatar patrimônio para investir num CDB de outra instituição pagando taxa muito acima da média. Como você conduz?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E6</b> Qual a diferença entre trading e carregamento dentro de um fundo multimercado?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E7</b> Como você diferencia um fundo long &amp;amp; short neutro de um long &amp;amp; short direcional?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E8</b> O que diferencia fundos Long Only, Long &amp;amp; Short e Long Biased?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E9</b> Qual a diferença entre COE de capital protegido e capital em risco?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E10</b> Quando recomendar PGBL em vez de VGBL - e vice-versa?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E11</b> Por que um cliente com patrimônio relevante usaria crédito?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E12</b> Qual o papel do seguro na estratégia financeira de um cliente de alta renda?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E13</b> <strong>Case:</strong> cliente moderado, 45 anos, aposentadoria em 15 anos, R$2 milhões. Como você estruturaria o portfólio?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>E14</b> Defenda essa alocação: por que X% em renda fixa e não Y%? Por que incluiu multimercado?</div>
+    <h2 id="m2-pilar-e">Pilar E - Produtos, montagem e defesa de portfólio</h2>
+    <div class="qcard"><b class="qid">E1</b> Como você explica a diferença entre marcação a mercado e marcação na curva para um cliente leigo?</div>
+    <div class="qcard"><b class="qid">E2</b> Qual a diferença entre investir direto em um título público e investir em um fundo com benchmark equivalente?</div>
+    <div class="qcard"><b class="qid">E3</b> Como você explicaria a diferença entre LCI/LCA e CDB para um cliente?</div>
+    <div class="qcard"><b class="qid">E3b</b> O que é uma LIG (Letra Imobiliária Garantida) e quando ela faz sentido na carteira de um cliente?</div>
+    <div class="qcard"><b class="qid">E4</b> Qual tem mais risco: prefixado de vencimento curto ou longo? Por quê?</div>
+    <div class="qcard"><b class="qid">E5</b> Um cliente quer resgatar patrimônio para investir num CDB de outra instituição pagando taxa muito acima da média. Como você conduz?</div>
+    <div class="qcard"><b class="qid">E6</b> Qual a diferença entre trading e carregamento dentro de um fundo multimercado?</div>
+    <div class="qcard"><b class="qid">E7</b> Como você diferencia um fundo long &amp; short neutro de um long &amp; short direcional?</div>
+    <div class="qcard"><b class="qid">E8</b> O que diferencia fundos Long Only, Long &amp; Short e Long Biased?</div>
+    <div class="qcard"><b class="qid">E9</b> Qual a diferença entre COE de capital protegido e capital em risco?</div>
+    <div class="qcard"><b class="qid">E10</b> Quando recomendar PGBL em vez de VGBL - e vice-versa?</div>
+    <div class="qcard"><b class="qid">E11</b> Por que um cliente com patrimônio relevante usaria crédito?</div>
+    <div class="qcard"><b class="qid">E12</b> Qual o papel do seguro na estratégia financeira de um cliente de alta renda?</div>
+    <div class="qcard"><b class="qid">E13</b> <strong>Case:</strong> cliente moderado, 45 anos, aposentadoria em 15 anos, R$2 milhões. Como você estruturaria o portfólio?</div>
+    <div class="qcard"><b class="qid">E14</b> Defenda essa alocação: por que X% em renda fixa e não Y%? Por que incluiu multimercado?</div>
 
-    <h2 id=&quot;m2-pilar-f&quot;>Pilar F - Habilidades comerciais e captação</h2>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F1</b> Cite 3 estratégias que você usaria desde o primeiro dia para atingir sua meta de captação.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F2</b> No seu D+0 assumindo carteira nova, o que você faz? Por onde começa?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F3</b> Como você identifica oportunidades de captação em clientes que já estão na sua carteira mas têm dinheiro em outro lugar?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F4</b> Um cliente diz que está satisfeito no banco atual. Como você contorna sem ser invasivo?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F5</b> Como você reconquistaria um cliente que saiu insatisfeito da instituição no passado?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F6</b> Me conte um case real em que você convenceu alguém a fazer algo que resistia.</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F7</b> Temos clientes com cadastro ativo mas sem movimentação. Qual sua estratégia para reativá-los?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F8</b> Um cliente quer resgatar para CDB de outra casa pagando muito acima do mercado. Como você age?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F9</b> Como você lida com um cliente que &quot;acha que sabe tudo&quot; de investimentos?</div>
-    <div class=&quot;qcard&quot;><b class=&quot;qid&quot;>F10</b> Quais as estratégias para mapear e portabilizar previdências de outras instituições?</div>
+    <h2 id="m2-pilar-f">Pilar F - Habilidades comerciais e captação</h2>
+    <div class="qcard"><b class="qid">F1</b> Cite 3 estratégias que você usaria desde o primeiro dia para atingir sua meta de captação.</div>
+    <div class="qcard"><b class="qid">F2</b> No seu D+0 assumindo carteira nova, o que você faz? Por onde começa?</div>
+    <div class="qcard"><b class="qid">F3</b> Como você identifica oportunidades de captação em clientes que já estão na sua carteira mas têm dinheiro em outro lugar?</div>
+    <div class="qcard"><b class="qid">F4</b> Um cliente diz que está satisfeito no banco atual. Como você contorna sem ser invasivo?</div>
+    <div class="qcard"><b class="qid">F5</b> Como você reconquistaria um cliente que saiu insatisfeito da instituição no passado?</div>
+    <div class="qcard"><b class="qid">F6</b> Me conte um case real em que você convenceu alguém a fazer algo que resistia.</div>
+    <div class="qcard"><b class="qid">F7</b> Temos clientes com cadastro ativo mas sem movimentação. Qual sua estratégia para reativá-los?</div>
+    <div class="qcard"><b class="qid">F8</b> Um cliente quer resgatar para CDB de outra casa pagando muito acima do mercado. Como você age?</div>
+    <div class="qcard"><b class="qid">F9</b> Como você lida com um cliente que "acha que sabe tudo" de investimentos?</div>
+    <div class="qcard"><b class="qid">F10</b> Quais as estratégias para mapear e portabilizar previdências de outras instituições?</div>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Pilar F</label>
-      <textarea placeholder=&quot;Notas sobre dinâmicas comerciais que funcionaram na simulação, objeções incomuns que apareceram, adaptações para diferentes perfis de aluno...&quot; id=&quot;obs-m2-f&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m2-f','m2-f')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-m2-f&quot;>Salvo!</span>
+      <textarea placeholder="Notas sobre dinâmicas comerciais que funcionaram na simulação, objeções incomuns que apareceram, adaptações para diferentes perfis de aluno..." id="obs-m2-f"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-m2-f','m2-f')">Salvar observação</button>
+      <span class="saved-msg" id="saved-m2-f">Salvo!</span>
     </div>
 
-    <h2 id=&quot;m2-respostas&quot;>Banco de respostas-modelo (uso exclusivo do Mentor)</h2>
-    <div class=&quot;callout purple&quot;><div class=&quot;callout-title&quot;>Como usar</div>Estas respostas calibram o que é &quot;forte&quot; antes da sessão. Use mentalmente para comparar com o que o aluno responde - nunca leia em voz alta para o aluno copiar.</div>
+    <h2 id="m2-respostas">Banco de respostas-modelo (uso exclusivo do Mentor)</h2>
+    <div class="callout purple"><div class="callout-title">Como usar</div>Estas respostas calibram o que é "forte" antes da sessão. Use mentalmente para comparar com o que o aluno responde - nunca leia em voz alta para o aluno copiar.</div>
 
     <h4>Marcação a mercado vs. curva (E1)</h4>
     <p>A marcação na curva projeta o valor do título com base na rentabilidade contratada na compra, como uma trajetória linear até o vencimento - é uma fotografia teórica, não o preço real. A marcação a mercado mostra o que o título valeria se vendido hoje, e oscila com expectativas de juros, inflação e risco de crédito. Para o cliente: marcação a mercado é o que ele veria ao querer vender antes do vencimento; marcação na curva é a rentabilidade garantida apenas se ele mantiver o título até o fim.</p>
@@ -5840,72 +5840,72 @@ tr:nth-child(even) td{background:#fbf9f4;}
     <h4>China/Vale (C13)</h4>
     <p>A Vale é a maior exportadora global de minério de ferro e tem a China como seu principal comprador. Quando a economia chinesa acelera, a demanda por minério sobe, os resultados da Vale melhoram, a ação VALE3 sobe - e, dado o peso da empresa no Ibovespa, a bolsa brasileira tende a acompanhar. Na desaceleração, o movimento se inverte, afetando receitas de exportação, arrecadação fiscal e confiança dos investidores.</p>
 
-    <h2 id=&quot;m2-feedback&quot;>Saída do papel e feedback estruturado</h2>
-    <blockquote class=&quot;script&quot;>Tudo bem, vou parar aqui o papel de entrevistador. Agora sou seu mentor de novo, e quero te dar o feedback completo de tudo que vimos.</blockquote>
+    <h2 id="m2-feedback">Saída do papel e feedback estruturado</h2>
+    <blockquote class="script">Tudo bem, vou parar aqui o papel de entrevistador. Agora sou seu mentor de novo, e quero te dar o feedback completo de tudo que vimos.</blockquote>
     <ol>
       <li><strong>Comece pelo que funcionou.</strong> 2-3 momentos específicos com motivo técnico - não elogio vago.</li>
       <li><strong>Vá para os pontos de melhoria, pilar por pilar.</strong> O que faltou, por que pesa, como corrigir.</li>
-      <li><strong>Dê nota de prontidão:</strong> &quot;Pronto&quot;, &quot;Quase pronto&quot; ou &quot;Precisa de novo ciclo&quot;.</li>
+      <li><strong>Dê nota de prontidão:</strong> "Pronto", "Quase pronto" ou "Precisa de novo ciclo".</li>
       <li><strong>Defina próximo passo concreto.</strong></li>
     </ol>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Mentoria 2 geral</label>
-      <textarea placeholder=&quot;Padrões observados nas simulações, perguntas que consistentemente reprovam os alunos, técnicas de pressão que funcionaram bem para revelar lacunas...&quot; id=&quot;obs-m2&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-m2','m2')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-m2&quot;>Salvo!</span>
+      <textarea placeholder="Padrões observados nas simulações, perguntas que consistentemente reprovam os alunos, técnicas de pressão que funcionaram bem para revelar lacunas..." id="obs-m2"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-m2','m2')">Salvar observação</button>
+      <span class="saved-msg" id="saved-m2">Salvo!</span>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- PARTE 3 - ERROS COMUNS                                    -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;erros&quot;>
-    <h1 class=&quot;part-title&quot;>Parte 3 - Erros Comuns dos Mentorados</h1>
+  <section class="block" id="erros">
+    <h1 class="part-title">Parte 3 - Erros Comuns dos Mentorados</h1>
 
     <h3>O aluno que decora resposta</h3>
-    <p><strong>Sinal:</strong> fala &quot;redondo demais&quot;, sem capacidade de responder a um follow-up fora do script.</p>
-    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Faça uma pergunta de continuação inesperada. Se ele travar, diga: &quot;Percebo que quando eu mudo um pouco a pergunta, a resposta trava. Isso geralmente é sinal de que o conteúdo foi memorizado e não compreendido. Vamos reconstruir esse raciocínio do zero.&quot;</div>
+    <p><strong>Sinal:</strong> fala "redondo demais", sem capacidade de responder a um follow-up fora do script.</p>
+    <div class="callout note"><div class="callout-title">Como agir</div>Faça uma pergunta de continuação inesperada. Se ele travar, diga: "Percebo que quando eu mudo um pouco a pergunta, a resposta trava. Isso geralmente é sinal de que o conteúdo foi memorizado e não compreendido. Vamos reconstruir esse raciocínio do zero."</div>
 
     <h3>O aluno que sabe mas trava na entrega</h3>
     <p><strong>Sinal:</strong> sabe a resposta certa quando perguntado depois, mas na simulação gagueja ou esquece tudo.</p>
-    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>É ansiedade de performance, não falta de conhecimento. Caminho: repetição em ambiente de pressão controlada. Sugira gravar-se respondendo em voz alta, praticar com colegas, e uma técnica simples de respiração antes de entrar (3 respirações profundas, ombros relaxados).</div>
+    <div class="callout note"><div class="callout-title">Como agir</div>É ansiedade de performance, não falta de conhecimento. Caminho: repetição em ambiente de pressão controlada. Sugira gravar-se respondendo em voz alta, praticar com colegas, e uma técnica simples de respiração antes de entrar (3 respirações profundas, ombros relaxados).</div>
 
     <h3>O aluno comercial sem profundidade técnica</h3>
-    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Elogie a fluência comercial (é rara) mas seja direto: &quot;Se o entrevistador perceber que não há profundidade por trás, vai questionar se você entende o produto que está vendendo.&quot; Direcione para Morning Calls diários e leitura do Guia do Advisor.</div>
+    <div class="callout note"><div class="callout-title">Como agir</div>Elogie a fluência comercial (é rara) mas seja direto: "Se o entrevistador perceber que não há profundidade por trás, vai questionar se você entende o produto que está vendendo." Direcione para Morning Calls diários e leitura do Guia do Advisor.</div>
 
     <h3>O aluno técnico mas frio, sem conexão</h3>
-    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Indique Carnegie e Boothman, com foco em rapport - não para ser &quot;mais simpático&quot; de forma vaga, mas porque cliente de alta renda compra de quem confia.</div>
+    <div class="callout note"><div class="callout-title">Como agir</div>Indique Carnegie e Boothman, com foco em rapport - não para ser "mais simpático" de forma vaga, mas porque cliente de alta renda compra de quem confia.</div>
 
     <h3>O aluno que fala mal do emprego atual</h3>
-    <div class=&quot;callout bad&quot;><div class=&quot;callout-title&quot;>Como agir</div>Corte rápido, ainda na simulação: &quot;Para. Isso que você acabou de fazer - criticar a empresa anterior - é um dos erros mais comuns e decisivos. O mercado financeiro é pequeno. Vamos reconstruir essa resposta extraindo só o aprendizado.&quot;</div>
+    <div class="callout bad"><div class="callout-title">Como agir</div>Corte rápido, ainda na simulação: "Para. Isso que você acabou de fazer - criticar a empresa anterior - é um dos erros mais comuns e decisivos. O mercado financeiro é pequeno. Vamos reconstruir essa resposta extraindo só o aprendizado."</div>
 
     <h3>O aluno que não pesquisou a instituição</h3>
-    <div class=&quot;callout note&quot;><div class=&quot;callout-title&quot;>Como agir</div>Tarefa de casa concreta: &quot;Antes da próxima conversa, me manda por escrito: nome do segmento de alta renda da instituição-alvo, critério de elegibilidade do cliente, e uma notícia recente sobre ela.&quot;</div>
+    <div class="callout note"><div class="callout-title">Como agir</div>Tarefa de casa concreta: "Antes da próxima conversa, me manda por escrito: nome do segmento de alta renda da instituição-alvo, critério de elegibilidade do cliente, e uma notícia recente sobre ela."</div>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Erros comuns</label>
-      <textarea placeholder=&quot;Outros padrões de erro que você observou que ainda não estão listados aqui, variações dos perfis acima, como erros se combinam em casos específicos...&quot; id=&quot;obs-erros&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-erros','erros')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-erros&quot;>Salvo!</span>
+      <textarea placeholder="Outros padrões de erro que você observou que ainda não estão listados aqui, variações dos perfis acima, como erros se combinam em casos específicos..." id="obs-erros"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-erros','erros')">Salvar observação</button>
+      <span class="saved-msg" id="saved-erros">Salvo!</span>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- PARTE 4 - BIBLIOTECA                                      -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;biblioteca&quot;>
-    <h1 class=&quot;part-title&quot;>Parte 4 - Biblioteca do Mentor</h1>
+  <section class="block" id="biblioteca">
+    <h1 class="part-title">Parte 4 - Biblioteca do Mentor</h1>
 
     <h3>SPIN Selling - Neil Rackham</h3>
-    <p>Quando indicar: aluno com discurso baseado em &quot;falar sobre o produto&quot; em vez de diagnosticar a necessidade. O que cobrar: trazer exemplo de abordagem com as 4 categorias (Situação, Problema, Implicação, Necessidade de solução) aplicadas a um cliente fictício de investimentos.</p>
+    <p>Quando indicar: aluno com discurso baseado em "falar sobre o produto" em vez de diagnosticar a necessidade. O que cobrar: trazer exemplo de abordagem com as 4 categorias (Situação, Problema, Implicação, Necessidade de solução) aplicadas a um cliente fictício de investimentos.</p>
 
     <h3>Prospecção Fanática - Jeb Blount</h3>
-    <p>Quando indicar: medo de prospectar, de &quot;incomodar&quot; o cliente, trabalha só a carteira que já tem. O que cobrar: &quot;regra dos 30 dias&quot; - meta diária mínima de contatos de prospecção por 30 dias consecutivos antes de avaliar resultado.</p>
+    <p>Quando indicar: medo de prospectar, de "incomodar" o cliente, trabalha só a carteira que já tem. O que cobrar: "regra dos 30 dias" - meta diária mínima de contatos de prospecção por 30 dias consecutivos antes de avaliar resultado.</p>
 
     <h3>Como Fazer Amigos e Influenciar Pessoas - Dale Carnegie</h3>
     <p>Quando indicar: tecnicamente competente mas frio na entrega, trata relacionamento com cliente como transação. O que cobrar: 3 princípios aplicados deliberadamente por uma semana, relato do que mudou.</p>
@@ -5917,88 +5917,88 @@ tr:nth-child(even) td{background:#fbf9f4;}
     <p>Quando indicar: com moderação - desorganização pessoal ampla afetando consistência profissional. O que cobrar: 1-2 regras específicas, plano de aplicação de 2 semanas.</p>
 
     <h3>Picos e Vales</h3>
-    <p>Quando indicar: aluno de frustração recente que precisa processar antes de seguir. O que cobrar: identificar por escrito em que &quot;vale&quot; está agora e o que historicamente o tirou de vales anteriores.</p>
+    <p>Quando indicar: aluno de frustração recente que precisa processar antes de seguir. O que cobrar: identificar por escrito em que "vale" está agora e o que historicamente o tirou de vales anteriores.</p>
 
-    <div class=&quot;callout gold&quot;><div class=&quot;callout-title&quot;>Regra geral</div>Nunca mais de 2 leituras simultâneas por aluno. Prefira: 1 leitura técnica/comercial + 1 leitura comportamental/relacional. Nunca as duas comportamentais ao mesmo tempo.</div>
+    <div class="callout gold"><div class="callout-title">Regra geral</div>Nunca mais de 2 leituras simultâneas por aluno. Prefira: 1 leitura técnica/comercial + 1 leitura comportamental/relacional. Nunca as duas comportamentais ao mesmo tempo.</div>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações do Mentor - Biblioteca</label>
-      <textarea placeholder=&quot;Outros títulos que você descobriu e funcionaram bem na prática, notas sobre como cada livro foi recebido por diferentes perfis de aluno...&quot; id=&quot;obs-biblioteca&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-biblioteca','biblioteca')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-biblioteca&quot;>Salvo!</span>
+      <textarea placeholder="Outros títulos que você descobriu e funcionaram bem na prática, notas sobre como cada livro foi recebido por diferentes perfis de aluno..." id="obs-biblioteca"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-biblioteca','biblioteca')">Salvar observação</button>
+      <span class="saved-msg" id="saved-biblioteca">Salvo!</span>
     </div>
   </section>
 
-  <div class=&quot;divider-gold&quot;></div>
+  <div class="divider-gold"></div>
 
   <!-- ======================================================== -->
   <!-- PARTE 5 - CHECKLISTS E FICHAS                             -->
   <!-- ======================================================== -->
-  <section class=&quot;block&quot; id=&quot;anexos&quot;>
-    <h1 class=&quot;part-title&quot;>Parte 5 - Checklists e Fichas Operacionais</h1>
+  <section class="block" id="anexos">
+    <h1 class="part-title">Parte 5 - Checklists e Fichas Operacionais</h1>
 
     <h2>5.1 - Checklist antes de qualquer sessão</h2>
     <p>Marque os itens antes de iniciar cada mentoria:</p>
-    <ul class=&quot;ichecklist&quot; id=&quot;cl-pre&quot;>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-p1&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p1&quot;>Revisei o currículo/contexto que o aluno enviou antecipadamente</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-p2&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p2&quot;>Sei o cargo-alvo e a instituição-alvo do aluno (ou que ele ainda está decidindo)</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-p3&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p3&quot;>Atualizei os dados macro correntes (Selic, Fed, inflação) - se for Mentoria 2</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-p4&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p4&quot;>Defini quais perguntas dos pilares A-F vou usar nesta sessão (não use todas sempre)</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-p5&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p5&quot;>Tenho o formulário de registro de atendimento aberto para preencher ao final</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-p6&quot; onchange=&quot;salvarChecklist('cl-pre')&quot;><label for=&quot;cl-p6&quot;>Consultei o histórico de sessões anteriores do aluno (se houver)</label></li>
+    <ul class="ichecklist" id="cl-pre">
+      <li><input type="checkbox" id="cl-p1" onchange="salvarChecklist('cl-pre')"><label for="cl-p1">Revisei o currículo/contexto que o aluno enviou antecipadamente</label></li>
+      <li><input type="checkbox" id="cl-p2" onchange="salvarChecklist('cl-pre')"><label for="cl-p2">Sei o cargo-alvo e a instituição-alvo do aluno (ou que ele ainda está decidindo)</label></li>
+      <li><input type="checkbox" id="cl-p3" onchange="salvarChecklist('cl-pre')"><label for="cl-p3">Atualizei os dados macro correntes (Selic, Fed, inflação) - se for Mentoria 2</label></li>
+      <li><input type="checkbox" id="cl-p4" onchange="salvarChecklist('cl-pre')"><label for="cl-p4">Defini quais perguntas dos pilares A-F vou usar nesta sessão (não use todas sempre)</label></li>
+      <li><input type="checkbox" id="cl-p5" onchange="salvarChecklist('cl-pre')"><label for="cl-p5">Tenho o formulário de registro de atendimento aberto para preencher ao final</label></li>
+      <li><input type="checkbox" id="cl-p6" onchange="salvarChecklist('cl-pre')"><label for="cl-p6">Consultei o histórico de sessões anteriores do aluno (se houver)</label></li>
     </ul>
 
     <h2>5.2 - Checklist de qualidade da própria mentoria (autoavaliação pós-sessão)</h2>
-    <ul class=&quot;ichecklist&quot; id=&quot;cl-pos&quot;>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-q1&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q1&quot;>Eu ouvi mais do que falei na Mentoria 1?</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-q2&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q2&quot;>Eu realmente &quot;entrei no papel&quot; de entrevistador na Mentoria 2, sem suavizar?</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-q3&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q3&quot;>Dei pelo menos um exemplo concreto de resposta forte e um de fraca?</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-q4&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q4&quot;>O aluno saiu com uma tarefa específica e um prazo - não só &quot;precisa estudar mais&quot;?</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-q5&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q5&quot;>Preenchi e salvei o registro de atendimento no sistema?</label></li>
-      <li><input type=&quot;checkbox&quot; id=&quot;cl-q6&quot; onchange=&quot;salvarChecklist('cl-pos')&quot;><label for=&quot;cl-q6&quot;>Atualizei o agendamento da próxima sessão (se aplicável)?</label></li>
+    <ul class="ichecklist" id="cl-pos">
+      <li><input type="checkbox" id="cl-q1" onchange="salvarChecklist('cl-pos')"><label for="cl-q1">Eu ouvi mais do que falei na Mentoria 1?</label></li>
+      <li><input type="checkbox" id="cl-q2" onchange="salvarChecklist('cl-pos')"><label for="cl-q2">Eu realmente "entrei no papel" de entrevistador na Mentoria 2, sem suavizar?</label></li>
+      <li><input type="checkbox" id="cl-q3" onchange="salvarChecklist('cl-pos')"><label for="cl-q3">Dei pelo menos um exemplo concreto de resposta forte e um de fraca?</label></li>
+      <li><input type="checkbox" id="cl-q4" onchange="salvarChecklist('cl-pos')"><label for="cl-q4">O aluno saiu com uma tarefa específica e um prazo - não só "precisa estudar mais"?</label></li>
+      <li><input type="checkbox" id="cl-q5" onchange="salvarChecklist('cl-pos')"><label for="cl-q5">Preenchi e salvei o registro de atendimento no sistema?</label></li>
+      <li><input type="checkbox" id="cl-q6" onchange="salvarChecklist('cl-pos')"><label for="cl-q6">Atualizei o agendamento da próxima sessão (se aplicável)?</label></li>
     </ul>
 
     <h2>5.3 - Frases que o Mentor deve evitar</h2>
-    <div class=&quot;callout bad&quot;><div class=&quot;callout-title&quot;>Evite</div>&quot;Não se preocupa, vai dar tudo certo&quot; - &quot;Decora essa resposta que está perfeita&quot; - &quot;Todo mundo passa por isso, relaxa&quot;</div>
-    <div class=&quot;callout good&quot;><div class=&quot;callout-title&quot;>Prefira</div>&quot;Essa resposta ficou forte porque você fez X. Agora replica esse raciocínio nas próximas.&quot; - &quot;Vou ser honesto: isso ainda não está no nível que a entrevista vai exigir. Vamos trabalhar.&quot; - &quot;Você não precisa ter a resposta perfeita - precisa ter o raciocínio certo, mesmo sob pressão.&quot;</div>
+    <div class="callout bad"><div class="callout-title">Evite</div>"Não se preocupa, vai dar tudo certo" - "Decora essa resposta que está perfeita" - "Todo mundo passa por isso, relaxa"</div>
+    <div class="callout good"><div class="callout-title">Prefira</div>"Essa resposta ficou forte porque você fez X. Agora replica esse raciocínio nas próximas." - "Vou ser honesto: isso ainda não está no nível que a entrevista vai exigir. Vamos trabalhar." - "Você não precisa ter a resposta perfeita - precisa ter o raciocínio certo, mesmo sob pressão."</div>
 
     <h2>5.4 - Quando recomendar sessão adicional</h2>
     <ul>
-      <li>Aluno com entrevista real marcada em menos de 5 dias e prontidão ainda &quot;Frágil&quot; em 2+ pilares</li>
+      <li>Aluno com entrevista real marcada em menos de 5 dias e prontidão ainda "Frágil" em 2+ pilares</li>
       <li>Aluno que já foi reprovado em processo seletivo recente e precisa reconstruir confiança antes de tentar de novo</li>
       <li>Casos de ansiedade de performance muito acentuada, onde repetição (sem novo conteúdo) resolve mais que qualquer leitura</li>
     </ul>
     <p>Nesses casos, sinalizar à coordenação pedagógica - não decidir unilateralmente a extensão do programa.</p>
 
-    <div class=&quot;obs-box&quot;>
+    <div class="obs-box">
       <label>✎ Observações gerais do Mentor</label>
-      <textarea placeholder=&quot;Espaço livre para qualquer observação sobre o programa de mentorias, sugestões de melhoria do Guia, padrões que observou ao longo do tempo...&quot; id=&quot;obs-geral&quot;></textarea>
-      <button class=&quot;save-obs&quot; onclick=&quot;salvarObs('obs-geral','geral')&quot;>Salvar observação</button>
-      <span class=&quot;saved-msg&quot; id=&quot;saved-geral&quot;>Salvo!</span>
+      <textarea placeholder="Espaço livre para qualquer observação sobre o programa de mentorias, sugestões de melhoria do Guia, padrões que observou ao longo do tempo..." id="obs-geral"></textarea>
+      <button class="save-obs" onclick="salvarObs('obs-geral','geral')">Salvar observação</button>
+      <span class="saved-msg" id="saved-geral">Salvo!</span>
     </div>
 
     </section>
 
-    <div class=&quot;divider-gold&quot;></div>
+    <div class="divider-gold"></div>
 
     <!-- ======================================================== -->
     <!-- ANEXO - INTEGRAÇÃO COM CRM PRÓPRIO                        -->
     <!-- ======================================================== -->
-    <section class=&quot;block&quot; id=&quot;integracao-crm&quot; style=&quot;margin-bottom:0;&quot;>
-      <h1 class=&quot;part-title&quot;>Anexo - Integração com o CRM Comercial</h1>
-      <p>Esta seção é a especificação técnica para conectar o CRM próprio da escola a este Guia, de forma que todo aluno marcado como <strong>&quot;Fechado&quot;</strong> no CRM entre automaticamente na lista de seleção da Mentoria, sem cadastro manual.</p>
+    <section class="block" id="integracao-crm" style="margin-bottom:0;">
+      <h1 class="part-title">Anexo - Integração com o CRM Comercial</h1>
+      <p>Esta seção é a especificação técnica para conectar o CRM próprio da escola a este Guia, de forma que todo aluno marcado como <strong>"Fechado"</strong> no CRM entre automaticamente na lista de seleção da Mentoria, sem cadastro manual.</p>
 
-      <div class=&quot;callout note&quot;>
-        <div class=&quot;callout-title&quot;>Por que via CRM, e não via plataforma do aluno</div>
-        O CRM é a fonte do evento &quot;fechou a compra&quot; e já concentra os dados de qualificação comercial (cargo-alvo, instituição-alvo, contato) preenchidos pelo vendedor durante a negociação. A plataforma do aluno só sabe que existe acesso ao curso, não necessariamente que o fechamento acabou de acontecer nem os dados comerciais associados.
+      <div class="callout note">
+        <div class="callout-title">Por que via CRM, e não via plataforma do aluno</div>
+        O CRM é a fonte do evento "fechou a compra" e já concentra os dados de qualificação comercial (cargo-alvo, instituição-alvo, contato) preenchidos pelo vendedor durante a negociação. A plataforma do aluno só sabe que existe acesso ao curso, não necessariamente que o fechamento acabou de acontecer nem os dados comerciais associados.
       </div>
 
       <h2>1. Arquitetura: evento interno, não webhook externo</h2>
-      <p>CRM e Guia do Mentor rodam como sistemas irmãos do mesmo projeto (mesma base, mesmo armazenamento de dados). Por isso, a integração <strong>não</strong> precisa de chamada HTTP externa (webhook + endpoint intermediário) - ela é feita por um evento interno disparado no próprio sistema no momento em que o Closer muda o status do negócio para &quot;Fechado/Ganho&quot;:</p>
-      <div class=&quot;codeblock&quot;>CRM (ação do Closer: status → &quot;Fechado/Ganho&quot;)
+      <p>CRM e Guia do Mentor rodam como sistemas irmãos do mesmo projeto (mesma base, mesmo armazenamento de dados). Por isso, a integração <strong>não</strong> precisa de chamada HTTP externa (webhook + endpoint intermediário) - ela é feita por um evento interno disparado no próprio sistema no momento em que o Closer muda o status do negócio para "Fechado/Ganho":</p>
+      <div class="codeblock">CRM (ação do Closer: status → "Fechado/Ganho")
         |
         v
-  Evento interno &quot;negocio_fechado&quot; (mesma aplicação, sem rede externa)
+  Evento interno "negocio_fechado" (mesma aplicação, sem rede externa)
         |
         v
   Guia do Mentor: receberAlunoDoCRM() recebe o evento e cadastra o aluno</div>
@@ -6009,26 +6009,26 @@ tr:nth-child(even) td{background:#fbf9f4;}
       <table>
         <thead><tr><th>Perfil</th><th>O que vê/faz na integração</th></tr></thead>
         <tbody>
-          <tr><td><strong>Admin</strong></td><td>Acesso à tela de configuração da integração (ligar/desligar, ver log de sincronização) em &quot;Configurações &amp;gt; Integrações&quot; - área já restrita ao Admin.</td></tr>
-          <tr><td><strong>Closer</strong></td><td>Nenhuma tela nova. A ação de marcar o negócio como &quot;Fechado&quot;, que ele já faz hoje, passa a disparar o evento internamente, sem nenhuma mudança perceptível no fluxo dele.</td></tr>
+          <tr><td><strong>Admin</strong></td><td>Acesso à tela de configuração da integração (ligar/desligar, ver log de sincronização) em "Configurações &gt; Integrações" - área já restrita ao Admin.</td></tr>
+          <tr><td><strong>Closer</strong></td><td>Nenhuma tela nova. A ação de marcar o negócio como "Fechado", que ele já faz hoje, passa a disparar o evento internamente, sem nenhuma mudança perceptível no fluxo dele.</td></tr>
           <tr><td><strong>SDR</strong></td><td>Nenhum acesso a configurações de integração nem a dados do Guia do Mentor.</td></tr>
           <tr><td><strong>Mentor</strong></td><td>Continua acessando só o Guia do Mentor; recebe os alunos automaticamente na lista, sem visibilidade de nenhuma tela do CRM.</td></tr>
         </tbody>
       </table>
-      <p>Não deve existir uma área de &quot;integração&quot; genérica visível a todos os colaboradores - ela fica embutida no fluxo já existente (gatilho automático) e a única tela de configuração visível fica sob o nível Admin.</p>
+      <p>Não deve existir uma área de "integração" genérica visível a todos os colaboradores - ela fica embutida no fluxo já existente (gatilho automático) e a única tela de configuração visível fica sob o nível Admin.</p>
 
       <h2>3. Payload do evento interno</h2>
-      <p>Quando o Closer move o negócio para &quot;Fechado/Ganho&quot;, o evento interno carrega:</p>
-      <div class=&quot;codeblock&quot;>{
-  &quot;evento&quot;: &quot;negocio_fechado&quot;,
-  &quot;aluno&quot;: {
-    &quot;nome&quot;: &quot;Maria Oliveira&quot;,
-    &quot;cargo_alvo&quot;: &quot;Especialista de Investimentos - Bradesco Principal&quot;,
-    &quot;instituicao_alvo&quot;: &quot;Bradesco&quot;,
-    &quot;contato&quot;: &quot;(11) 99999-0000&quot;
+      <p>Quando o Closer move o negócio para "Fechado/Ganho", o evento interno carrega:</p>
+      <div class="codeblock">{
+  "evento": "negocio_fechado",
+  "aluno": {
+    "nome": "Maria Oliveira",
+    "cargo_alvo": "Especialista de Investimentos - Bradesco Principal",
+    "instituicao_alvo": "Bradesco",
+    "contato": "(11) 99999-0000"
   },
-  &quot;negocio_id&quot;: &quot;crm-12345&quot;,
-  &quot;fechado_em&quot;: &quot;2026-06-30T14:00:00-03:00&quot;
+  "negocio_id": "crm-12345",
+  "fechado_em": "2026-06-30T14:00:00-03:00"
 }</div>
       <table>
         <thead><tr><th>Campo</th><th>Obrigatório</th><th>Observação</th></tr></thead>
@@ -6051,32 +6051,32 @@ tr:nth-child(even) td{background:#fbf9f4;}
         <li>O formulário de cadastro manual do Guia continua existindo como fallback, caso algum aluno precise ser incluído fora do fluxo automático.</li>
       </ul>
 
-      <div class=&quot;callout gold&quot;>
-        <div class=&quot;callout-title&quot;>Próximo passo prático</div>
-        Implementar o disparo do evento interno no momento em que o Closer marca o negócio como &quot;Fechado/Ganho&quot;, conectando-o à função <code>receberAlunoDoCRM()</code> deste Guia. Qualquer mudança no fluxo estratégico do CRM (pipeline, automações comerciais, campos obrigatórios de fechamento) deve ser validada antes de implementada.
+      <div class="callout gold">
+        <div class="callout-title">Próximo passo prático</div>
+        Implementar o disparo do evento interno no momento em que o Closer marca o negócio como "Fechado/Ganho", conectando-o à função <code>receberAlunoDoCRM()</code> deste Guia. Qualquer mudança no fluxo estratégico do CRM (pipeline, automações comerciais, campos obrigatórios de fechamento) deve ser validada antes de implementada.
       </div>
     </section>
 
-    <footer style=&quot;margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-500);font-size:12.5px;display:flex;justify-content:space-between;&quot;>
+    <footer style="margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-500);font-size:12.5px;display:flex;justify-content:space-between;">
       <span>Guia do Mentor - Academia Advisor</span>
-      <span>Formação em Banker &amp;amp; Advisor</span>
+      <span>Formação em Banker &amp; Advisor</span>
     </footer>
   </main>
 </div>
 
 <!-- ====== MODAL CONFIRMAÇÃO ====== -->
-<div class=&quot;modal-overlay&quot; id=&quot;modalConfirm&quot;>
-  <div class=&quot;modal&quot;>
-    <h3 id=&quot;modal-title&quot;>Confirmar ação</h3>
-    <p id=&quot;modal-body&quot;></p>
-    <div class=&quot;modal-actions&quot;>
-      <button class=&quot;btn-secondary&quot; onclick=&quot;fecharModal()&quot;>Cancelar</button>
-      <button class=&quot;btn-danger&quot; id=&quot;modal-confirm-btn&quot;>Confirmar</button>
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal">
+    <h3 id="modal-title">Confirmar ação</h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-danger" id="modal-confirm-btn">Confirmar</button>
     </div>
   </div>
 </div>
 
-<a href=&quot;#&quot; class=&quot;back-to-top&quot; id=&quot;backToTop&quot;>↑</a>
+<a href="#" class="back-to-top" id="backToTop">↑</a>
 
 <script>
 // ============================================================
@@ -6085,7 +6085,7 @@ tr:nth-child(even) td{background:#fbf9f4;}
 function toggleNavGroup(el){
   el.classList.toggle('collapsed');
   const group = el.nextElementSibling;
-  if(group &amp;&amp; group.classList.contains('nav-group')){
+  if(group && group.classList.contains('nav-group')){
     group.classList.toggle('collapsed');
   }
 }
@@ -6127,7 +6127,7 @@ window.addEventListener('scroll',()=>{
 // STORAGE HELPERS — persistência real via Supabase (mesma base do CRM).
 // window.storage só existe dentro do ambiente de Artifacts do Claude.ai;
 // fora dali (ex.: publicado no Vercel) ele não existe e nada seria salvo.
-// Mantém a tabela &quot;mentor_storage&quot; como par chave/valor genérico, então o
+// Mantém a tabela "mentor_storage" como par chave/valor genérico, então o
 // resto do código do Guia (que já chama stGet/stSet) não precisa mudar.
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
@@ -6135,7 +6135,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 async function stGet(key){
   try{
-    const r = await fetch(`${SUPA_URL}/rest/v1/mentor_storage?key=eq.${encodeURIComponent(key)}&amp;select=value`, {
+    const r = await fetch(`${SUPA_URL}/rest/v1/mentor_storage?key=eq.${encodeURIComponent(key)}&select=value`, {
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY }
     });
     if(!r.ok) return null;
@@ -6164,19 +6164,19 @@ async function stSet(key, val){
 // ============================================================
 let alunos = [];
 
-// --- INTEGRAÇÃO COM CRM PRÓPRIO (ver seção &quot;Integração com CRM&quot; no Guia) ---
+// --- INTEGRAÇÃO COM CRM PRÓPRIO (ver seção "Integração com CRM" no Guia) ---
 // CRM e Guia rodam como sistemas irmãos do mesmo projeto: a integração é
 // feita por evento interno (não por webhook/fetch externo). O CRM deve
 // chamar receberAlunoDoCRM(payload) diretamente quando um negócio for
-// marcado como &quot;Fechado/Ganho&quot; pelo Closer. A dedupe por negocio_id evita
+// marcado como "Fechado/Ganho" pelo Closer. A dedupe por negocio_id evita
 // cadastro duplicado caso o evento dispare mais de uma vez.
 //
-// Formato esperado do payload (ver seção &quot;Integração com CRM&quot;):
+// Formato esperado do payload (ver seção "Integração com CRM"):
 // { aluno: { nome, cargo_alvo, instituicao_alvo, contato }, negocio_id, fechado_em }
 async function receberAlunoDoCRM(payload){
   if(!payload || !payload.aluno || !payload.aluno.nome) return false;
   const negocioId = payload.negocio_id || null;
-  const jaExiste = negocioId &amp;&amp; alunos.some(a => a.negocio_id === negocioId);
+  const jaExiste = negocioId && alunos.some(a => a.negocio_id === negocioId);
   if(jaExiste) return false; // evita duplicar se o evento disparar mais de uma vez
   alunos.push({
     id: Date.now() + Math.random(),
@@ -6278,7 +6278,7 @@ async function agendarSessao(){
 function atualizarProximaSessao(){
   const agora = new Date();
   const agoraStr = agora.toISOString().slice(0,10) + 'T' + agora.toTimeString().slice(0,5);
-  const proximas = agenda.filter(s => s.status !== 'concluido' &amp;&amp; (s.data+'T'+s.hora) >= agoraStr.slice(0,16));
+  const proximas = agenda.filter(s => s.status !== 'concluido' && (s.data+'T'+s.hora) >= agoraStr.slice(0,16));
   const alertEl = document.getElementById('nextAlert');
   if(proximas.length > 0){
     const p = proximas[0];
@@ -6304,7 +6304,7 @@ function formatarData(str){
 function renderizarAgenda(){
   const c = document.getElementById('agenda-lista-container');
   if(!c) return;
-  if(agenda.length === 0){ c.innerHTML='<p style=&quot;color:var(--ink-500);font-size:14px;padding:20px 0;&quot;>Nenhuma sessão agendada ainda.</p>'; return; }
+  if(agenda.length === 0){ c.innerHTML='<p style="color:var(--ink-500);font-size:14px;padding:20px 0;">Nenhuma sessão agendada ainda.</p>'; return; }
   const agora = new Date();
   const agoraStr = agora.toISOString().slice(0,10)+'T'+agora.toTimeString().slice(0,5);
   const card = document.createElement('div');
@@ -6316,17 +6316,17 @@ function renderizarAgenda(){
     if(s.status==='concluido'){ statusClass='status-concluido'; statusLabel='Concluído'; }
     else if(isPast){ statusClass='status-concluido'; statusLabel='Passou'; }
     else if(isToday){ statusClass='status-hoje'; statusLabel='Hoje!'; }
-    else if(i===0 || (agenda.filter(x=>x.status!=='concluido' &amp;&amp; (x.data+'T'+x.hora)>=agoraStr.slice(0,16))[0]?.id===s.id)){ statusClass='status-proximo'; statusLabel='Próxima'; }
-    return `<div class=&quot;agenda-slot&quot;>
-      <div class=&quot;slot-badge ${s.tipo==='M1'?'badge-m1':'badge-m2'}&quot;>${s.tipo}</div>
-      <div class=&quot;slot-info&quot;>
-        <div class=&quot;slot-name&quot;>${s.aluno}</div>
-        <div class=&quot;slot-time&quot;>${formatarData(s.data)} às ${s.hora}${s.obs?` - ${s.obs.slice(0,60)}...`:''}</div>
+    else if(i===0 || (agenda.filter(x=>x.status!=='concluido' && (x.data+'T'+x.hora)>=agoraStr.slice(0,16))[0]?.id===s.id)){ statusClass='status-proximo'; statusLabel='Próxima'; }
+    return `<div class="agenda-slot">
+      <div class="slot-badge ${s.tipo==='M1'?'badge-m1':'badge-m2'}">${s.tipo}</div>
+      <div class="slot-info">
+        <div class="slot-name">${s.aluno}</div>
+        <div class="slot-time">${formatarData(s.data)} às ${s.hora}${s.obs?` - ${s.obs.slice(0,60)}...`:''}</div>
       </div>
-      <span class=&quot;slot-status ${statusClass}&quot;>${statusLabel}</span>
-      <button onclick=&quot;irParaRegistro(${i})&quot; title=&quot;Ir para o registro de atendimento já preenchido&quot; style=&quot;margin-left:8px;background:var(--navy-900);border:1px solid var(--navy-900);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--gold-400);font-weight:600;&quot;>📝 Registrar</button>
-      <button onclick=&quot;concluirSessao(${i})&quot; title=&quot;Marcar como concluído&quot; style=&quot;margin-left:4px;background:none;border:1px solid var(--line);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--ink-500);&quot;>✓ Concluir</button>
-      <button onclick=&quot;excluirSessao(${i})&quot; title=&quot;Excluir&quot; style=&quot;margin-left:4px;background:none;border:1px solid #f3c0bb;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--red-line);&quot;>✕</button>
+      <span class="slot-status ${statusClass}">${statusLabel}</span>
+      <button onclick="irParaRegistro(${i})" title="Ir para o registro de atendimento já preenchido" style="margin-left:8px;background:var(--navy-900);border:1px solid var(--navy-900);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--gold-400);font-weight:600;">📝 Registrar</button>
+      <button onclick="concluirSessao(${i})" title="Marcar como concluído" style="margin-left:4px;background:none;border:1px solid var(--line);border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--ink-500);">✓ Concluir</button>
+      <button onclick="excluirSessao(${i})" title="Excluir" style="margin-left:4px;background:none;border:1px solid #f3c0bb;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--red-line);">✕</button>
     </div>`;
   }).join('');
   c.innerHTML = '';
@@ -6426,26 +6426,26 @@ function renderizarHistorico(filtroNome='', filtroTipo=''){
   let lista = registros;
   if(filtroNome) lista = lista.filter(r => r.aluno.toLowerCase().includes(filtroNome.toLowerCase()));
   if(filtroTipo) lista = lista.filter(r => r.tipo === filtroTipo);
-  if(lista.length === 0){ c.innerHTML='<p style=&quot;color:var(--ink-500);font-size:14px;padding:20px 0;&quot;>Nenhum registro encontrado.</p>'; return; }
+  if(lista.length === 0){ c.innerHTML='<p style="color:var(--ink-500);font-size:14px;padding:20px 0;">Nenhum registro encontrado.</p>'; return; }
 
   c.innerHTML = lista.map(r => {
-    const pilaresHtml = r.tipo === 'M2' ? Object.entries(r.pilares||{}).filter(([,v])=>v).map(([k,v]) => `<span class=&quot;pilar-chip ${v==='forte'?'forte':v==='fragil'?'fragil':''}&quot;>${k}: ${v==='forte'?'Forte':v==='fragil'?'Frágil':'Em dev.'}</span>`).join('') : '';
+    const pilaresHtml = r.tipo === 'M2' ? Object.entries(r.pilares||{}).filter(([,v])=>v).map(([k,v]) => `<span class="pilar-chip ${v==='forte'?'forte':v==='fragil'?'fragil':''}">${k}: ${v==='forte'?'Forte':v==='fragil'?'Frágil':'Em dev.'}</span>`).join('') : '';
     const prontMap = {pronto:'pront-pronto',quase:'pront-quase',ciclo:'pront-ciclo'};
     const prontLabel = {pronto:'Pronto',quase:'Quase pronto',ciclo:'Novo ciclo'};
-    return `<div class=&quot;atend-item&quot;>
-      <div class=&quot;atend-header&quot;>
+    return `<div class="atend-item">
+      <div class="atend-header">
         <div>
-          <div class=&quot;atend-aluno&quot;>${r.aluno}</div>
-          <div class=&quot;atend-meta&quot;>${r.tipo==='M1'?'Mentoria 1':'Mentoria 2'} - ${formatarData(r.data)} - ${r.duracao} min</div>
+          <div class="atend-aluno">${r.aluno}</div>
+          <div class="atend-meta">${r.tipo==='M1'?'Mentoria 1':'Mentoria 2'} - ${formatarData(r.data)} - ${r.duracao} min</div>
         </div>
-        ${r.prontidao ? `<span class=&quot;prontidao-badge ${prontMap[r.prontidao]||''}&quot;>${prontLabel[r.prontidao]||r.prontidao}</span>` : ''}
+        ${r.prontidao ? `<span class="prontidao-badge ${prontMap[r.prontidao]||''}">${prontLabel[r.prontidao]||r.prontidao}</span>` : ''}
       </div>
-      ${r.fortes ? `<p style=&quot;font-size:13px;margin:6px 0 4px;&quot;><strong style=&quot;color:var(--green-line);&quot;>Fortes:</strong> ${r.fortes}</p>` : ''}
-      ${r.atencao ? `<p style=&quot;font-size:13px;margin:4px 0;&quot;><strong style=&quot;color:var(--red-line);&quot;>Atenção:</strong> ${r.atencao}</p>` : ''}
-      ${r.obs ? `<p style=&quot;font-size:13px;margin:4px 0;color:var(--ink-500);&quot;>${r.obs}</p>` : ''}
-      ${r.prox ? `<p style=&quot;font-size:12.5px;margin:6px 0 0;background:var(--blue-bg);padding:6px 10px;border-radius:5px;&quot;><strong>Próx. passo:</strong> ${r.prox}</p>` : ''}
-      ${r.leitura ? `<p style=&quot;font-size:12px;margin:6px 0 0;color:var(--gold-600,#a8801f);&quot;>📚 Indicado: ${r.leitura}</p>` : ''}
-      ${pilaresHtml ? `<div class=&quot;atend-pilares&quot;>${pilaresHtml}</div>` : ''}
+      ${r.fortes ? `<p style="font-size:13px;margin:6px 0 4px;"><strong style="color:var(--green-line);">Fortes:</strong> ${r.fortes}</p>` : ''}
+      ${r.atencao ? `<p style="font-size:13px;margin:4px 0;"><strong style="color:var(--red-line);">Atenção:</strong> ${r.atencao}</p>` : ''}
+      ${r.obs ? `<p style="font-size:13px;margin:4px 0;color:var(--ink-500);">${r.obs}</p>` : ''}
+      ${r.prox ? `<p style="font-size:12.5px;margin:6px 0 0;background:var(--blue-bg);padding:6px 10px;border-radius:5px;"><strong>Próx. passo:</strong> ${r.prox}</p>` : ''}
+      ${r.leitura ? `<p style="font-size:12px;margin:6px 0 0;color:var(--gold-600,#a8801f);">📚 Indicado: ${r.leitura}</p>` : ''}
+      ${pilaresHtml ? `<div class="atend-pilares">${pilaresHtml}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -6463,7 +6463,7 @@ function exportarHistorico(){
     r.aluno, r.tipo, r.data, r.duracao, r.prontidao, r.leitura,
     (r.fortes||'').replace(/,/g,';'), (r.atencao||'').replace(/,/g,';'), (r.prox||'').replace(/,/g,';'),
     r.pilares?.A||'', r.pilares?.B||'', r.pilares?.C||'', r.pilares?.D||'', r.pilares?.E||'', r.pilares?.F||''
-  ].map(v=>`&quot;${v||''}&quot;`).join(','));
+  ].map(v=>`"${v||''}"`).join(','));
   const csv = [header,...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -6549,10 +6549,23 @@ async function init(){
 }
 
 document.addEventListener('DOMContentLoaded', init);
-</script>
+<\/script>
 </body>
-</html>
-"></iframe>
+</html></script>
+    <script>
+    // Carrega o Guia do Mentor via Blob (em vez de atributo srcdoc gigante) —
+    // elimina o risco de aspas/entidades mal-parseadas quebrarem a página host
+    // e evita qualquer chance de o conteúdo "vazar" para fora do iframe.
+    (function montarGuiaMentor(){
+      var src = document.getElementById('guia-mentor-source');
+      var frame = document.getElementById('guia-mentor-frame');
+      if (!src || !frame) return;
+      var htmlGuia = src.textContent.replace('<\\/script>', '</script>');
+      var blob = new Blob([htmlGuia], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      frame.src = url;
+    })();
+    </script>
   </div>
 
   <!-- BI DASHBOARD -->
