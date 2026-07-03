@@ -94,7 +94,7 @@
   .err { color: var(--red); font-size: 13px; margin-top: 8px; }
 
   /* APP LAYOUT */
-  #app { display: none; min-height: 100vh; }
+  #app { display: none; }
   .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 72px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; gap: 16px; }
   .topbar-logo {
     display: flex;
@@ -6443,6 +6443,7 @@ window.toggleNavGroup = toggleNavGroup;
 window.__initGuiaMentor = init;
 })();
 </script>
+  </div>
 
   <!-- BI DASHBOARD -->
   <!-- ADMIN -->
@@ -7977,10 +7978,7 @@ function conectarRealtime() {
           
           // Mudança detectada em qualquer tabela monitorada
           if (['INSERT','UPDATE','DELETE'].includes(msg.payload?.type)) {
-            if (refreshing) return;
-            refreshing = true;
-            await recarregarDados();
-            refreshing = false;
+            recarregarDadosDebounced();
           }
         } catch(e) {}
       };
@@ -8063,9 +8061,13 @@ async function recarregarDados() {
       (leads.length > 0 ? Promise.resolve(leads) : fetchLeadsPage(0, '').catch(() => leads)),
       getCached('daily_reports', '?select=*&order=data.desc').catch(() => dailyReports),
       getCached('tarefas', '?select=*&order=data.asc').catch(() => tarefas),
-      get('historico_status', (() => {
-      const d30 = new Date(Date.now() - 30*24*60*60*1000).toISOString();
-      return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d30;
+      getCached('historico_status', (() => {
+      // Arredonda para a hora cheia — sem isso, o timestamp mudava a cada
+      // milissegundo e a chave de cache nunca repetia, então nunca batia
+      // (o cache nunca funcionava de verdade, mesmo usando getCached).
+      const d = new Date(Date.now() - 30*24*60*60*1000);
+      d.setMinutes(0,0,0);
+      return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d.toISOString();
     })()).catch(() => historicoStatus),
       getCached('guias', '?select=*&order=titulo.asc').catch(() => guias.length ? guias : _loadGuiasLocal()),
     ]);
@@ -8337,11 +8339,6 @@ function navigateTo(pageId) {
   // Mentor: o único botão do menu ("Treinamento") abre direto o Guia do Mentor,
   // já que esse papel não tem acesso a mais nada no sistema.
   const targetPageId = (pageId === 'treinamento' && user && user.papel === 'mentor') ? 'guia-mentor' : pageId;
-  // Reseta a posição de rolagem ao trocar de página: sem isso, ao navegar de
-  // uma página longa (ex.: Playbook) para uma mais curta (ex.: Admin), a
-  // janela mantém o scroll anterior e a nova página aparece com um vazio
-  // enorme no topo, com o conteúdo real "empurrado" para baixo da dobra.
-  window.scrollTo(0, 0);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const pg = document.getElementById(`page-${targetPageId}`);
