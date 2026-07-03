@@ -6827,7 +6827,6 @@ window.__initGuiaMentor = init;
       </table>
     </div>
   </div>
-</div>
 
 <!-- MODAL LEAD -->
 <div class="modal-bg" id="modal-lead">
@@ -7371,7 +7370,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '1.3'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '1.4'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -7387,8 +7386,10 @@ const TICKET_MBA = 13000;
 const _cache = {
   store: {},
   ttl: {
-    leads: 3 * 60 * 1000,      // 3min — era 30s; tabela grande (1500+ linhas, select=*),
-                                 // 30s gerava recarga completa a cada troca de tela/refresh
+    leads: 20 * 60 * 1000,     // 20min — era 3min. O Realtime (com debounce corrigido)
+                                 // já mantém os dados vivos pra quem está com a aba aberta;
+                                 // esse TTL só controla a busca completa (1511 linhas) que
+                                 // acontece a cada nova sessão/reload. Não precisa ser curto.
     daily_reports: 120 * 1000, // 2min
     tarefas: 60 * 1000,        // 1min
     guias: 10 * 60 * 1000,     // 10min — raramente muda
