@@ -7370,7 +7370,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '1.5'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '1.7'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -8942,6 +8942,21 @@ function renderConversaoPorEtapa() {
   el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Etapa</th><th>Leads</th><th>Avançaram</th><th>Conversão</th></tr></thead><tbody>'+rows+'</tbody></table></div><p style="margin-top:8px">'+badge+'</p>';
 }
 
+// Pesos de probabilidade de fechamento por estágio do funil — técnica
+// padrão de "weighted pipeline" usada em previsão de vendas. Os valores
+// refletem a proximidade de cada estágio do fechamento; se no futuro
+// vocês quiserem calibrar com dados históricos reais de conversão por
+// estágio, é só ajustar este objeto — o resto do cálculo se adapta sozinho.
+const PESO_ESTAGIO_FUNIL = {
+  'Contatar': 0.03,
+  'Contatado': 0.08,
+  'Respondeu': 0.15,
+  'Diagnóstico Agendado': 0.25,
+  'Diagnóstico Realizado': 0.40,
+  'Proposta Enviada': 0.60,
+  'Compra Agendada': 0.80,
+};
+
 function renderForecast() {
   const el = document.getElementById('dash-forecast');
   if (!el) return;
@@ -8955,15 +8970,37 @@ function renderForecast() {
   const closersAtivosFc = colaboradores.filter(cx => cx.papel==='closer').length || 1;
   const precoFc = programas[0]?.preco || 2997;
   const meta = 7 * closersAtivosFc * precoFc;
-  const ritmo = diaDoMes > 0 ? faturado/diaDoMes : 0;
+
+  // Ritmo recente (últimos 7 dias) em vez de média do mês inteiro — reage
+  // mais rápido a uma equipe acelerando ou desacelerando. Se o mês tem
+  // menos de 7 dias corridos ainda, usa a média do que já se passou.
+  const seteDiasAtras = new Date(hoje); seteDiasAtras.setDate(hoje.getDate() - 7);
+  const vendasUltimos7d = vendasMes.filter(l => {
+    const ref = new Date(l.data_compra_prevista || l.ultima_interacao);
+    return ref >= seteDiasAtras;
+  });
+  const janelaDias = Math.min(7, diaDoMes);
+  const faturado7d = vendasUltimos7d.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
+  const ritmo = janelaDias > 0 ? faturado7d / janelaDias : 0;
   const projecao = faturado + ritmo * diasRestantes;
   const pct = meta > 0 ? Math.round(faturado/meta*100) : 0;
   const pctProj = meta > 0 ? Math.round(projecao/meta*100) : 0;
 
-  let html = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">';
+  // Pipeline ponderado por estágio — sinal complementar, mostrado à parte
+  // (não somado à projeção acima) pra manter os dois números transparentes
+  // e fáceis de auditar separadamente.
+  const leadsAbertos = leads.filter(l => l.status !== 'Fechado' && l.status !== 'Perdido' && PESO_ESTAGIO_FUNIL[l.status] !== undefined);
+  const pipelinePonderado = leadsAbertos.reduce((s,l) => s + (l.valor_oportunidade||0) * PESO_ESTAGIO_FUNIL[l.status], 0);
+  const pipelineTotalBruto = leadsAbertos.reduce((s,l) => s + (l.valor_oportunidade||0), 0);
+
+  let html = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">';
   const corProj = pctProj>=100?'var(--green)':pctProj>=70?'var(--yellow)':'var(--red)';
-  html += '<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Projeção de fechamento do mês</div><div style="font-size:26px;font-weight:800;color:'+corProj+'">'+formatBRL(projecao)+'</div><div style="font-size:12px;color:var(--muted)">no ritmo atual de '+formatBRL(ritmo)+'/dia</div></div>';
+  html += '<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Projeção de fechamento do mês</div><div style="font-size:26px;font-weight:800;color:'+corProj+'">'+formatBRL(projecao)+'</div><div style="font-size:12px;color:var(--muted)">ritmo dos últimos '+janelaDias+' dias: '+formatBRL(ritmo)+'/dia</div></div>';
   html += '<div style="text-align:right"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">% da meta projetado</div><div style="font-size:26px;font-weight:800;color:'+corProj+'">'+pctProj+'%</div><div style="font-size:12px;color:var(--muted)">realizado hoje: '+pct+'%</div></div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">';
+  html += '<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Pipeline em aberto (ponderado por estágio)</div><div style="font-size:20px;font-weight:800;color:var(--accent)">'+formatBRL(pipelinePonderado)+'</div><div style="font-size:11px;color:var(--muted)">de '+formatBRL(pipelineTotalBruto)+' em negociação — quanto mais perto do fechamento, maior o peso</div></div>';
   html += '</div>';
 
   // Detalhamento por Closer — responde diretamente "quem está puxando para baixo?"
@@ -8973,7 +9010,8 @@ function renderForecast() {
     const linhas = closers.map(c => {
       const vendasClosers = vendasMes.filter(l => l.closer_nome === c.nome);
       const realizadoC = vendasClosers.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
-      const ritmoC = diaDoMes > 0 ? realizadoC/diaDoMes : 0;
+      const vendasClosers7d = vendasUltimos7d.filter(l => l.closer_nome === c.nome);
+      const ritmoC = janelaDias > 0 ? vendasClosers7d.reduce((s,l) => s+(l.valor_oportunidade||0), 0) / janelaDias : 0;
       const projecaoC = realizadoC + ritmoC * diasRestantes;
       const pctProjC = metaIndividual > 0 ? Math.round(projecaoC/metaIndividual*100) : 0;
       return { nome: c.nome, realizadoC, projecaoC, pctProjC, vendas: vendasClosers.length };
@@ -13787,14 +13825,14 @@ function enviarNotificacaoPush(titulo, corpo, icone) {
         tag: 'crm-aa-' + Date.now(),
         requireInteraction: false,
       }).catch(() => {
-        // Fallback: Notification API direta
-        new Notification(titulo, { body: corpo }).catch(() => {});
+        // Fallback: Notification API direta (não é Promise — sem .catch)
+        try { new Notification(titulo, { body: corpo }); } catch(e) {}
       });
     }).catch(() => {
-      new Notification(titulo, { body: corpo }).catch(() => {});
+      try { new Notification(titulo, { body: corpo }); } catch(e) {}
     });
   } else {
-    new Notification(titulo, { body: corpo }).catch(() => {});
+    try { new Notification(titulo, { body: corpo }); } catch(e) {}
   }
 }
 
