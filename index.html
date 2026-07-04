@@ -455,26 +455,79 @@ table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:15px;back
     <div class="login-logo-sub">CRM</div>
     <div class="login-logo">Academia Advisor</div>
     <div class="login-sub">Plataforma de gestão comercial</div>
-    <div class="field">
-      <label>Nome</label>
-      <input id="login-nome" type="text" placeholder="Seu nome completo" autocomplete="off">
-    </div>
-    <div class="field">
-      <label>Senha</label>
-      <div style="position:relative">
-        <input id="login-senha" type="password" placeholder="Senha de acesso" style="padding-right:42px">
-        <button type="button" onclick="toggleLoginPassword()" id="toggle-pwd-btn" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;display:flex;align-items:center" title="Mostrar senha">
-          <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
+    <div id="login-form-antigo">
+      <div class="field">
+        <label>Nome</label>
+        <input id="login-nome" type="text" placeholder="Seu nome completo" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <div style="position:relative">
+          <input id="login-senha" type="password" placeholder="Senha de acesso" style="padding-right:42px">
+          <button type="button" onclick="toggleLoginPassword()" id="toggle-pwd-btn" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;display:flex;align-items:center" title="Mostrar senha">
+            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="login-err" class="err"></div>
+      <button class="btn btn-primary btn-full" style="margin-top:18px" onclick="doLogin()">Entrar</button>
+      <div style="text-align:center;margin-top:14px">
+        <a href="#" onclick="openForgotPassword();return false;" style="font-size:12px;color:var(--muted);text-decoration:underline">Esqueci a senha</a>
       </div>
     </div>
-    <div id="login-err" class="err"></div>
-    <button class="btn btn-primary btn-full" style="margin-top:18px" onclick="doLogin()">Entrar</button>
-    <div style="text-align:center;margin-top:14px">
-      <a href="#" onclick="openForgotPassword();return false;" style="font-size:12px;color:var(--muted);text-decoration:underline">Esqueci a senha</a>
+
+    <div id="login-form-seguro" style="display:none">
+      <div class="field">
+        <label>E-mail</label>
+        <input id="login-auth-email" type="email" placeholder="seu@email.com" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input id="login-auth-senha" type="password" placeholder="Senha de acesso">
+      </div>
+      <div id="login-auth-err" class="err"></div>
+      <button class="btn btn-primary btn-full" style="margin-top:18px" onclick="doLoginSeguro()">Entrar</button>
+    </div>
+
+    <div style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <a href="#" onclick="toggleTipoLogin();return false;" id="toggle-tipo-login-link" style="font-size:12px;color:var(--accent);text-decoration:underline">🔐 Entrar com conta segura (novo)</a>
     </div>
   </div>
 </div>
+
+<script>
+function toggleTipoLogin() {
+  const antigo = document.getElementById('login-form-antigo');
+  const seguro = document.getElementById('login-form-seguro');
+  const link = document.getElementById('toggle-tipo-login-link');
+  const usandoSeguro = seguro.style.display !== 'none';
+  antigo.style.display = usandoSeguro ? 'block' : 'none';
+  seguro.style.display = usandoSeguro ? 'none' : 'block';
+  link.textContent = usandoSeguro ? '🔐 Entrar com conta segura (novo)' : '← Voltar para o login tradicional';
+}
+
+async function doLoginSeguro() {
+  const email = document.getElementById('login-auth-email').value.trim();
+  const senha = document.getElementById('login-auth-senha').value;
+  const err = document.getElementById('login-auth-err');
+  err.textContent = '';
+  if (!email || !senha) { err.textContent = 'Preencha e-mail e senha.'; return; }
+  try {
+    const authUser = await authSignIn(email, senha);
+    // Busca o colaborador vinculado a essa conta segura
+    const res = await get('colaboradores', `?auth_user_id=eq.${authUser.id}&select=*`);
+    if (!res || !res.length) {
+      err.textContent = 'Conta segura existe, mas ainda não foi vinculada a nenhum colaborador. Peça ao admin para vincular em Admin → Colaboradores.';
+      authSignOut();
+      return;
+    }
+    user = res[0];
+    startApp();
+  } catch (e) {
+    err.textContent = 'E-mail ou senha incorretos.';
+  }
+}
+</script>
 
 <!-- APP -->
 <div id="app">
@@ -7370,7 +7423,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '1.7'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '2.1'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -7450,13 +7503,20 @@ const _origPatch = (t, b, q='') => { _cache.invalidate(t); return supa(t, 'PATCH
 const _origDel   = (t, q='')    => { _cache.invalidate(t); return supa(t, 'DELETE', null, '?' + q); };
 // ═══════════════════════════════════════════════════════════
 
+// ── Auth real (Supabase Auth) — sessão em paralelo ao login antigo ──────
+// Enquanto authSession estiver vazia (ninguém migrou ainda), o comportamento
+// é IDÊNTICO ao de sempre (chave anon). Assim que alguém logar pelo Auth
+// real, as chamadas passam a usar o token daquela pessoa automaticamente.
+let authSession = null; // { access_token, refresh_token, expires_at, user }
+
 async function supa(path, method = 'GET', body = null, extra = '') {
   const url = `${SUPA_URL}/rest/v1/${path}${extra}`;
+  const tokenAtivo = (authSession && authSession.access_token) ? authSession.access_token : SUPA_KEY;
   const opts = {
     method,
     headers: {
       'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Authorization': 'Bearer ' + tokenAtivo,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     }
@@ -7471,6 +7531,101 @@ const get    = (t, q='')          => supa(t, 'GET', null, q);
 const post   = (t, b)             => supa(t, 'POST', b);
 const patch  = (t, b, q)          => supa(t, 'PATCH', b, `?${q}`);
 const del    = (t, q)             => supa(t, 'DELETE', null, `?${q}`);
+
+// ── Funções de Auth real (Supabase Auth) ─────────────────────────────────
+// Tudo aqui é NOVO e roda em paralelo ao login antigo (nome+senha na
+// tabela colaboradores). Nada disso é chamado automaticamente ainda —
+// só passa a valer quando alguém explicitamente cria/usa uma conta segura.
+
+async function authRequest(grantPath, body) {
+  const r = await fetch(`${SUPA_URL}/auth/v1${grantPath}`, {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error_description || data.msg || data.error || 'Falha na autenticação');
+  return data;
+}
+
+// NOTA: a criação de conta segura NÃO usa mais o cadastro público do
+// Supabase Auth (authSignUp foi removida de propósito). Qualquer pessoa
+// com a chave anon conseguiria chamar esse endpoint público diretamente,
+// criando contas sem nenhuma validação. Criação de conta agora só
+// acontece via Edge Function (admin-action → criar_conta_segura), que
+// confirma no servidor que quem está criando é realmente admin.
+
+// Login de verdade — email + senha reais, validados pelo Supabase Auth
+// (não mais comparando texto puro numa tabela).
+async function authSignIn(email, password) {
+  const data = await authRequest('/token?grant_type=password', { email, password });
+  authSession = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+    user: data.user,
+  };
+  localStorage.setItem('auth_refresh_token', data.refresh_token);
+  return data.user;
+}
+
+// Renova o access_token usando o refresh_token guardado — chamado ao
+// reabrir o app, pra restaurar a sessão sem pedir senha de novo.
+async function authRestoreSession() {
+  const refreshToken = localStorage.getItem('auth_refresh_token');
+  if (!refreshToken) return null;
+  try {
+    const data = await authRequest('/token?grant_type=refresh_token', { refresh_token: refreshToken });
+    authSession = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+      user: data.user,
+    };
+    localStorage.setItem('auth_refresh_token', data.refresh_token);
+    return data.user;
+  } catch (e) {
+    localStorage.removeItem('auth_refresh_token');
+    authSession = null;
+    return null;
+  }
+}
+
+function authSignOut() {
+  authSession = null;
+  localStorage.removeItem('auth_refresh_token');
+}
+
+// Chama uma Edge Function. Usa a sessão nova (Auth real) quando disponível;
+// senão, usa o nome+senha do login atual como alternativa — o servidor
+// valida essas credenciais direto na tabela colaboradores antes de agir,
+// então continua sendo uma checagem de verdade, não uma confiança cega
+// no que o navegador informa.
+async function chamarEdgeFunction(nome, action, payload) {
+  const headers = { 'Content-Type': 'application/json' };
+  const body = { action, payload };
+
+  if (authSession && authSession.access_token) {
+    headers['Authorization'] = 'Bearer ' + authSession.access_token;
+  } else if (user && user.nome && user.senha) {
+    body.credenciaisAntigas = { nome: user.nome, senha: user.senha };
+  } else {
+    throw new Error('Não foi possível confirmar sua identidade para esta ação.');
+  }
+
+  const r = await fetch(`${SUPA_URL}/functions/v1/${nome}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || 'Falha na ação administrativa.');
+  return data;
+}
+
+// NOTA: a vinculação de conta agora acontece dentro da própria Edge
+// Function (criar_conta_segura), usando a chave de serviço — não faz
+// mais sentido ter isso como uma chamada separada do cliente.
 
 // Busca todas as linhas de uma tabela, contornando o limite padrão de 1000
 // linhas por requisição do PostgREST, paginando automaticamente em blocos de 1000.
@@ -7801,13 +7956,13 @@ document.getElementById('login-senha').addEventListener('keydown', e => { if (e.
 (async function restoreSession() {
   try {
     const saved = localStorage.getItem('crm_session');
-    if (!saved) return;
+    if (!saved) { await restoreSessionSegura(); return; }
     const { id, nome, senha, session_token } = JSON.parse(saved);
     const res = await get('colaboradores', `?id=eq.${id}&select=*`);
-    if (!res || res.length === 0) { localStorage.removeItem('crm_session'); return; }
+    if (!res || res.length === 0) { localStorage.removeItem('crm_session'); await restoreSessionSegura(); return; }
     const colab = res[0];
     // Verificar senha (case-insensitive)
-    if (colab.senha.toLowerCase().trim() !== senha.toLowerCase().trim()) { localStorage.removeItem('crm_session'); return; }
+    if (colab.senha.toLowerCase().trim() !== senha.toLowerCase().trim()) { localStorage.removeItem('crm_session'); await restoreSessionSegura(); return; }
     // ── VERIFICAR TOKEN DE SESSÃO ÚNICO ─────────────────────────────
     // Se o token salvo localmente não bate com o do banco,
     // significa que outra pessoa fez login com essa conta — expulsar!
@@ -7822,12 +7977,26 @@ document.getElementById('login-senha').addEventListener('keydown', e => { if (e.
       return;
     }
     // Verificar se conta está suspensa
-    if (colab.suspenso) { localStorage.removeItem('crm_session'); return; }
+    if (colab.suspenso) { localStorage.removeItem('crm_session'); await restoreSessionSegura(); return; }
     user = { ...colab, session_token: session_token || colab.session_token };
     patch('colaboradores', { ultima_atividade: new Date().toISOString() }, `id=eq.${user.id}`).catch(() => {});
     startApp();
-  } catch(e) { /* sem sessão salva, fica na tela de login */ }
+  } catch(e) { await restoreSessionSegura().catch(() => {}); }
 })();
+
+// Restaura a sessão do login NOVO (Auth real), se existir e for válida.
+// Só é chamada quando o login antigo não tem sessão salva — os dois
+// sistemas não competem entre si.
+async function restoreSessionSegura() {
+  try {
+    const authUser = await authRestoreSession();
+    if (!authUser) return;
+    const res = await get('colaboradores', `?auth_user_id=eq.${authUser.id}&select=*`);
+    if (!res || !res.length) return;
+    user = res[0];
+    startApp();
+  } catch (e) { /* sem sessão segura salva, fica na tela de login */ }
+}
 
 
 function toggleLoginPassword() {
@@ -10722,12 +10891,23 @@ async function saveLead() {
 async function deleteLead(id) {
   if (!confirm('Excluir este lead?')) return;
   try {
-    // ── Auditoria: exclusão de lead ───────────────────────────────────
-    try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_delete', detalhe: `Lead excluído: id=${id}`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
-    await del('leads', `id=eq.${id}`);
+    await chamarEdgeFunction('admin-action', 'delete_lead', { leadId: id });
     leads = leads.filter(l => l.id !== id);
     renderLeadsTable();
-  } catch(e) { alert('Erro: ' + e.message); }
+  } catch(e) {
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+      // Edge Function ainda não publicada — mantém o comportamento de
+      // sempre, pra não travar o uso enquanto o backend não sobe.
+      try {
+        try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_delete', detalhe: `Lead excluído (fallback, backend indisponível): id=${id}`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
+        await del('leads', `id=eq.${id}`);
+        leads = leads.filter(l => l.id !== id);
+        renderLeadsTable();
+      } catch(e3) { alert('Erro: ' + e3.message); }
+    } else {
+      alert('Erro: ' + e.message);
+    }
+  }
 }
 
 // ============================================================
@@ -11801,12 +11981,49 @@ function renderAdmin() {
       </td>
       <td style="font-size:12px">${metaText}</td>
       <td>
+        ${c.auth_user_id
+          ? '<span class="badge badge-green" style="font-size:10px">🔐 Conta segura ativa</span><br>'
+          : '<button class="btn btn-ghost btn-sm" style="margin-bottom:4px;font-size:11px" onclick="abrirCriarContaSegura(\'' + c.id + '\')">🔐 Criar conta segura</button><br>'}
         <button class="btn btn-ghost btn-sm" onclick="editColab('${c.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="deleteColab('${c.id}')">Remover</button>
       </td>
     </tr>
   `;
   }).join('');
+}
+
+// ── Migração para Auth real — criar conta segura pra um colaborador ─────
+// Isso é uma ação MANUAL e explícita do admin, feita uma vez por pessoa.
+// Não afeta o login antigo (nome+senha) — os dois continuam funcionando
+// em paralelo até vocês decidirem desativar o antigo.
+async function abrirCriarContaSegura(colabId) {
+  const colab = colaboradores.find(c => c.id === colabId);
+  if (!colab) return;
+
+  const email = prompt(`E-mail para a conta segura de ${colab.nome}:`, colab.email || '');
+  if (!email) return;
+  const senha = prompt(`Senha para a conta segura de ${colab.nome} (mínimo 6 caracteres):`);
+  if (!senha || senha.length < 6) { alert('Senha precisa ter pelo menos 6 caracteres.'); return; }
+
+  try {
+    // Funciona tanto se você (admin) já estiver na conta segura quanto se
+    // ainda estiver no login de sempre — o servidor confirma sua
+    // identidade de qualquer uma das duas formas antes de agir.
+    await chamarEdgeFunction('admin-action', 'criar_conta_segura', {
+      colaboradorId: colabId,
+      email,
+      senha,
+    });
+    colab.auth_user_id = 'pendente'; // atualizado de verdade no próximo carregamento
+    alert(`Conta segura criada e vinculada a ${colab.nome} com sucesso!\n\nE-mail: ${email}\n\nA partir de agora, ${colab.nome} pode entrar tanto pelo login antigo quanto pela opção "Entrar com conta segura" na tela de login, usando esse e-mail e senha.`);
+    renderAdmin();
+  } catch (e) {
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+      alert('A Edge Function ainda não parece estar publicada no seu projeto Supabase. Veja o GUIA_BACKEND_EDGE_FUNCTIONS.md para publicar (supabase functions deploy admin-action) antes de criar contas seguras.');
+    } else {
+      alert('Erro ao criar conta segura: ' + e.message);
+    }
+  }
 }
 
 async function quickEditLink(colabId, field) {
@@ -11943,10 +12160,20 @@ async function deleteColab(id) {
   if (id === user.id) { alert('Você não pode remover seu próprio usuário.'); return; }
   if (!confirm('Remover este colaborador?')) return;
   try {
-    await del('colaboradores', `id=eq.${id}`);
+    await chamarEdgeFunction('admin-action', 'delete_colaborador', { colaboradorId: id });
     colaboradores = colaboradores.filter(c => c.id !== id);
     renderAdmin();
-  } catch(e) { alert('Erro: ' + e.message); }
+  } catch(e) {
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+      try {
+        await del('colaboradores', `id=eq.${id}`);
+        colaboradores = colaboradores.filter(c => c.id !== id);
+        renderAdmin();
+      } catch(e3) { alert('Erro: ' + e3.message); }
+    } else {
+      alert('Erro: ' + e.message);
+    }
+  }
 }
 
 // ============================================================
