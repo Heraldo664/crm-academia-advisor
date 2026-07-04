@@ -7423,7 +7423,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '2.2'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '2.4'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -7524,8 +7524,48 @@ async function supa(path, method = 'GET', body = null, extra = '') {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(url, opts);
   if (!r.ok) { const e = await r.json().catch(()=>({message:r.status})); throw new Error(e.message || r.status); }
-  if (r.status === 204) return null;
-  return r.json();
+  const resultado = r.status === 204 ? null : await r.json().catch(() => null);
+
+  // ── Mantém o cache correto após qualquer escrita ──────────────────────
+  // Pra leads e colaboradores (tabelas com TTL longo, onde vale a pena),
+  // corrige só o registro que mudou, usando o que o próprio Supabase já
+  // devolveu na resposta — sem precisar buscar tudo de novo depois.
+  // Pras demais tabelas (TTL curto, baixo impacto), mantém o jeito mais
+  // simples de apagar o cache inteiro daquela tabela.
+  if (method !== 'GET') {
+    const tabela = path.split('?')[0];
+    const CACHE_KEYS = {
+      leads: 'leads::all::?select=*&order=criado_em.desc',
+      colaboradores: 'colaboradores::?select=*&order=nome',
+    };
+    if (CACHE_KEYS[tabela]) {
+      const chave = CACHE_KEYS[tabela];
+      if (method === 'DELETE') {
+        const idMatch = extra.match(/id=eq\.([^&]+)/);
+        if (idMatch) {
+          const idAlvo = decodeURIComponent(idMatch[1]);
+          idbPatchValue(chave, (arr) => (arr || []).filter(x => String(x.id) !== idAlvo)).catch(() => {});
+        } else {
+          idbDelete(chave).catch(() => {}); // sem id específico — mais seguro apagar tudo
+        }
+      } else if (resultado && Array.isArray(resultado) && resultado.length) {
+        // POST (criação) ou PATCH (edição) — usa a linha que o Supabase
+        // devolveu de verdade, em vez de confiar no que o navegador enviou.
+        idbPatchValue(chave, (arr) => {
+          arr = arr || [];
+          resultado.forEach(novaLinha => {
+            const idx = arr.findIndex(x => x.id === novaLinha.id);
+            if (idx >= 0) arr[idx] = novaLinha; else arr.push(novaLinha);
+          });
+          return arr;
+        }).catch(() => {});
+      }
+    } else {
+      try { _cache.invalidate(tabela); } catch(e) {}
+      idbDelete(tabela + '::all::').catch(() => {});
+    }
+  }
+  return resultado;
 }
 const get    = (t, q='')          => supa(t, 'GET', null, q);
 const post   = (t, b)             => supa(t, 'POST', b);
@@ -10902,6 +10942,13 @@ async function deleteLead(id) {
   try {
     await chamarEdgeFunction('admin-action', 'delete_lead', { leadId: id });
     leads = leads.filter(l => l.id !== id);
+    // A Edge Function roda no servidor, não passa pelo supa() do navegador
+    // — então precisa corrigir o cache aqui manualmente, senão um reload
+    // traz o lead "de volta" a partir da foto antiga guardada em cache.
+    // Corrige o CONTEÚDO em vez de apagar tudo — assim quem recarregar a
+    // página continua aproveitando o cache (sem gastar saída do Supabase
+    // à toa), só que agora com o dado certo.
+    idbPatchValue('leads::all::?select=*&order=criado_em.desc', (arr) => (arr || []).filter(l => l.id !== id)).catch(() => {});
     renderLeadsTable();
   } catch(e) {
     if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
@@ -12018,12 +12065,15 @@ async function abrirCriarContaSegura(colabId) {
     // Funciona tanto se você (admin) já estiver na conta segura quanto se
     // ainda estiver no login de sempre — o servidor confirma sua
     // identidade de qualquer uma das duas formas antes de agir.
-    await chamarEdgeFunction('admin-action', 'criar_conta_segura', {
+    const resultado = await chamarEdgeFunction('admin-action', 'criar_conta_segura', {
       colaboradorId: colabId,
       email,
       senha,
     });
-    colab.auth_user_id = 'pendente'; // atualizado de verdade no próximo carregamento
+    colab.auth_user_id = resultado.authUserId || 'pendente';
+    idbPatchValue('colaboradores::?select=*&order=nome', (arr) =>
+      (arr || []).map(c => c.id === colabId ? { ...c, auth_user_id: colab.auth_user_id } : c)
+    ).catch(() => {});
     alert(`Conta segura criada e vinculada a ${colab.nome} com sucesso!\n\nE-mail: ${email}\n\nA partir de agora, ${colab.nome} pode entrar tanto pelo login antigo quanto pela opção "Entrar com conta segura" na tela de login, usando esse e-mail e senha.`);
     renderAdmin();
   } catch (e) {
@@ -12171,6 +12221,7 @@ async function deleteColab(id) {
   try {
     await chamarEdgeFunction('admin-action', 'delete_colaborador', { colaboradorId: id });
     colaboradores = colaboradores.filter(c => c.id !== id);
+    idbPatchValue('colaboradores::?select=*&order=nome', (arr) => (arr || []).filter(c => c.id !== id)).catch(() => {});
     renderAdmin();
   } catch(e) {
     if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
@@ -14796,6 +14847,28 @@ async function idbSet(key, value, ttlMs) {
       req.onerror   = function() { resolve(); };
     });
   } catch(e) {}
+}
+
+// Corrige o CONTEÚDO de uma entrada em cache sem resetar o relógio de
+// expiração — ao contrário de idbSet, que sempre reinicia a contagem.
+// Usado depois de criar/editar/excluir um registro: em vez de jogar fora
+// a "foto" inteira em cache (o que forçaria uma busca nova na próxima
+// vez, gastando saída do Supabase à toa), corrige só o que mudou.
+async function idbPatchValue(key, mutatorFn) {
+  try {
+    var db = await idbOpen();
+    if (!db) return false;
+    var rec = await idbGet(key);
+    if (!rec) return false; // nada em cache pra corrigir, tudo bem
+    var novoValor = mutatorFn(rec.value);
+    var registroCorrigido = { key: key, value: novoValor, ts: rec.ts, ttl: rec.ttl };
+    return new Promise(function(resolve) {
+      var tx  = db.transaction(IDB_STORE, 'readwrite');
+      var req = tx.objectStore(IDB_STORE).put(registroCorrigido);
+      req.onsuccess = function() { resolve(true); };
+      req.onerror   = function() { resolve(false); };
+    });
+  } catch(e) { return false; }
 }
 
 async function idbDelete(prefix) {
