@@ -12668,11 +12668,16 @@ function playNotifySound() {
   } catch(e) { /* Web Audio não disponível neste browser */ }
 }
 
-// ── Som de venda fechada — "cha-ching" de moedas ────────────────────────
-// Sequência curta de notas agudas e brilhantes, imitando o clássico som
-// de caixa registradora / moedas caindo. Reaproveita o mesmo AudioContext
-// e respeita o volume configurado, mas tem um interruptor próprio
-// (somVendaAtivo) — pode desligar só esse, mantendo as notificações.
+// ── Som de venda fechada — "cha-ching" de caixa registradora ────────────
+// Não é possível extrair o áudio de um vídeo do YouTube (nem reproduzir
+// um efeito sonoro protegido) — então este som foi reconstruído do zero
+// pra imitar a ESTRUTURA de um "cha-ching" de caixa registradora mecânica
+// de verdade: um golpe mecânico curto (o "cha", o gatilho do sino) seguido
+// de um sino metálico batendo duas vezes em sequência rápida (o
+// "ching-ching"), em vez do arpejo de notas subindo de antes.
+// Reaproveita o mesmo AudioContext e respeita o volume configurado, mas
+// tem um interruptor próprio (somVendaAtivo) — pode desligar só esse,
+// mantendo as notificações normais.
 function playSomVenda() {
   if (!configNotificacao.somVendaAtivo) return;
   const vol = configNotificacao.volume;
@@ -12681,24 +12686,49 @@ function playSomVenda() {
     const ctx = _getAudioCtx();
     const doPlay = () => {
       const t = ctx.currentTime;
-      // Notas em arpejo ascendente (dó-mi-sol-dó), tipo "cha-ching" de caixa
-      const notas = [
-        { freq: 1046.5, inicio: 0,     dur: 0.28, ganho: 0.22 }, // Dó6
-        { freq: 1318.5, inicio: 0.07,  dur: 0.28, ganho: 0.20 }, // Mi6
-        { freq: 1568.0, inicio: 0.14,  dur: 0.30, ganho: 0.20 }, // Sol6
-        { freq: 2093.0, inicio: 0.22,  dur: 0.45, ganho: 0.24 }, // Dó7 (brilho final)
-      ];
-      notas.forEach(n => {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = 'triangle';
-        o.frequency.setValueAtTime(n.freq, t + n.inicio);
-        g.gain.setValueAtTime(0, t + n.inicio);
-        g.gain.linearRampToValueAtTime(n.ganho * vol, t + n.inicio + 0.015);
-        g.gain.exponentialRampToValueAtTime(0.001, t + n.inicio + n.dur);
-        o.start(t + n.inicio); o.stop(t + n.inicio + n.dur);
-      });
+
+      // "Cha" — golpe mecânico curto (ruído filtrado em faixa média),
+      // como o gatilho/trava de uma caixa registradora antiga.
+      const durRuido = 0.05;
+      const bufferSize = Math.floor(ctx.sampleRate * durRuido);
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const dados = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) dados[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      const noiseFiltro = ctx.createBiquadFilter();
+      noiseFiltro.type = 'bandpass';
+      noiseFiltro.frequency.value = 1200;
+      noiseFiltro.Q.value = 0.7;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.45 * vol, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + durRuido);
+      noise.connect(noiseFiltro); noiseFiltro.connect(noiseGain); noiseGain.connect(ctx.destination);
+      noise.start(t); noise.stop(t + durRuido);
+
+      // "Ching-ching" — sino metálico: cada toque usa parciais levemente
+      // dessintonizadas entre si (como um sino de metal de verdade, que
+      // nunca é um tom puro) com decaimento longo — é isso que dá o
+      // brilho característico, batendo duas vezes em sequência rápida.
+      function tocarSino(inicio, intensidade, duracao) {
+        [
+          { freq: 1760.0, ganho: 0.24 * intensidade },
+          { freq: 2637.0, ganho: 0.16 * intensidade },
+          { freq: 3520.0, ganho: 0.10 * intensidade },
+        ].forEach(p => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(p.freq, inicio);
+          g.gain.setValueAtTime(0, inicio);
+          g.gain.linearRampToValueAtTime(p.ganho * vol, inicio + 0.008);
+          g.gain.exponentialRampToValueAtTime(0.001, inicio + duracao);
+          o.connect(g); g.connect(ctx.destination);
+          o.start(inicio); o.stop(inicio + duracao);
+        });
+      }
+      tocarSino(t + 0.04, 1.0, 0.55);
+      tocarSino(t + 0.19, 0.75, 0.9);
     };
     if (ctx.state === 'suspended') {
       ctx.resume().then(doPlay).catch(() => {});
