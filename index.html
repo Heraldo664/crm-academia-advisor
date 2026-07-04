@@ -7370,7 +7370,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '1.4'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '1.5'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -10621,7 +10621,7 @@ async function saveLead() {
       if (res && res[0]) leads[idx] = res[0];
       if (statusMudou) {
         // ── Registrar histórico de status ─────────────────────────────
-        post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status', detalhe: `Status: ${statusAnterior} → ${novoStatus} (Lead: ${leadId})`, device_info: getDeviceInfo(), session_token: user.session_token || null }).catch(() => {});
+        post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status', detalhe: `Status: ${leadAnterior.status} → ${status} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }).catch(() => {});
         post('historico_status', {
           lead_id: id,
           lead_nome: (leads.find(l=>l.id===id)||{}).nome || '',
