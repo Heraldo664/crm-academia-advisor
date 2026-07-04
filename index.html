@@ -455,56 +455,30 @@ table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:15px;back
     <div class="login-logo-sub">CRM</div>
     <div class="login-logo">Academia Advisor</div>
     <div class="login-sub">Plataforma de gestão comercial</div>
-    <div id="login-form-antigo">
-      <div class="field">
-        <label>Nome</label>
-        <input id="login-nome" type="text" placeholder="Seu nome completo" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Senha</label>
-        <div style="position:relative">
-          <input id="login-senha" type="password" placeholder="Senha de acesso" style="padding-right:42px">
-          <button type="button" onclick="toggleLoginPassword()" id="toggle-pwd-btn" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;display:flex;align-items:center" title="Mostrar senha">
-            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </div>
-      <div id="login-err" class="err"></div>
-      <button class="btn btn-primary btn-full" style="margin-top:18px" onclick="doLogin()">Entrar</button>
-      <div style="text-align:center;margin-top:14px">
-        <a href="#" onclick="openForgotPassword();return false;" style="font-size:12px;color:var(--muted);text-decoration:underline">Esqueci a senha</a>
-      </div>
-    </div>
-
-    <div id="login-form-seguro" style="display:none">
+    <div id="login-form-seguro">
       <div class="field">
         <label>E-mail</label>
         <input id="login-auth-email" type="email" placeholder="seu@email.com" autocomplete="off">
       </div>
       <div class="field">
         <label>Senha</label>
-        <input id="login-auth-senha" type="password" placeholder="Senha de acesso">
+        <div style="position:relative">
+          <input id="login-auth-senha" type="password" placeholder="Senha de acesso" style="padding-right:42px">
+          <button type="button" onclick="toggleLoginPasswordSegura()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;display:flex;align-items:center" title="Mostrar senha">
+            <svg id="eye-icon-segura" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div id="login-auth-err" class="err"></div>
       <button class="btn btn-primary btn-full" style="margin-top:18px" onclick="doLoginSeguro()">Entrar</button>
-    </div>
-
-    <div style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-      <a href="#" onclick="toggleTipoLogin();return false;" id="toggle-tipo-login-link" style="font-size:12px;color:var(--accent);text-decoration:underline">🔐 Entrar com conta segura (novo)</a>
+      <div style="text-align:center;margin-top:14px">
+        <a href="#" onclick="abrirModalEsqueciSenha();return false;" style="font-size:12px;color:var(--accent);text-decoration:underline">Esqueci a senha</a>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-function toggleTipoLogin() {
-  const antigo = document.getElementById('login-form-antigo');
-  const seguro = document.getElementById('login-form-seguro');
-  const link = document.getElementById('toggle-tipo-login-link');
-  const usandoSeguro = seguro.style.display !== 'none';
-  antigo.style.display = usandoSeguro ? 'block' : 'none';
-  seguro.style.display = usandoSeguro ? 'none' : 'block';
-  link.textContent = usandoSeguro ? '🔐 Entrar com conta segura (novo)' : '← Voltar para o login tradicional';
-}
 
 async function doLoginSeguro() {
   const email = document.getElementById('login-auth-email').value.trim();
@@ -514,17 +488,114 @@ async function doLoginSeguro() {
   if (!email || !senha) { err.textContent = 'Preencha e-mail e senha.'; return; }
   try {
     const authUser = await authSignIn(email, senha);
-    // Busca o colaborador vinculado a essa conta segura
+    // Busca o colaborador vinculado a essa conta segura. Se a conta
+    // estiver suspensa, o RLS bloqueia essa consulta e ela volta vazia —
+    // de propósito não dá pra saber daqui se é "não vinculada" ou
+    // "suspensa" (evita confirmar pra quem não está logado qual é o caso).
     const res = await get('colaboradores', `?auth_user_id=eq.${authUser.id}&select=*`);
     if (!res || !res.length) {
-      err.textContent = 'Conta segura existe, mas ainda não foi vinculada a nenhum colaborador. Peça ao admin para vincular em Admin → Colaboradores.';
+      err.textContent = 'Não foi possível concluir o login. Se sua conta existe mas está suspensa, ou ainda não foi vinculada a um colaborador, procure o administrador.';
       authSignOut();
       return;
     }
     user = res[0];
+
+    // ── Sessão única por conta ──────────────────────────────────────────
+    // Gera um token novo a cada login e grava no banco. Sem isso, duas
+    // pessoas podiam usar a mesma conta ao mesmo tempo sem o sistema
+    // perceber: o dispositivo antigo nunca via um token diferente porque
+    // nenhum token novo era gravado no login. Agora, a sessão anterior
+    // dessa mesma conta é detectada e encerrada em até 5min (verificarSessao).
+    const novoToken = gerarSessionToken();
+    user.session_token = novoToken;
+    const deviceInfo = await getDeviceInfoComLocalizacao();
+    await patch('colaboradores', {
+      session_token: novoToken,
+      ultimo_login: new Date().toISOString(),
+      ultimo_device: deviceInfo
+    }, `id=eq.${user.id}`).catch(() => {});
+    post('audit_log', {
+      colaborador_id: user.id, colaborador_nome: user.nome,
+      acao: 'login', detalhe: 'Login (conta segura)',
+      device_info: deviceInfo, session_token: novoToken
+    }).catch(() => {});
+    localStorage.setItem('crm_session', JSON.stringify({ id: user.id, papel: user.papel }));
+
+    document.dispatchEvent(new CustomEvent('crm-login-success', { detail: { id: user.id, nome: user.nome, papel: user.papel } }));
     startApp();
   } catch (e) {
     err.textContent = 'E-mail ou senha incorretos.';
+  }
+}
+
+// ── "Esqueci a senha" (sem estar logado) ────────────────────────────
+// Chama a Edge Function com a chave anon (não com sessão de usuário,
+// porque quem esqueceu a senha não está logado). A validação de qual
+// colaborador é real e o INSERT em solicitacoes_senha acontecem dentro
+// da função, com a chave de serviço — nenhuma política de escrita
+// pública foi aberta na tabela.
+async function chamarEdgeFunctionPublica(nome, action, payload) {
+  const r = await fetch(`${SUPA_URL}/functions/v1/${nome}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'apikey': SUPA_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action, payload }),
+  });
+  const textoResposta = await r.text();
+  let data = {};
+  try { data = JSON.parse(textoResposta); } catch (e) { /* resposta não era JSON */ }
+  if (!r.ok) throw new Error(data.error || data.message || textoResposta.slice(0, 200) || `Falha na ação (HTTP ${r.status}).`);
+  return data;
+}
+
+function abrirModalEsqueciSenha() {
+  const emailAtual = (document.getElementById('login-auth-email')?.value || '').trim();
+  let modal = document.getElementById('esqueci-senha-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'esqueci-senha-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 36px;max-width:380px;width:90%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.7)">
+      <div style="font-size:18px;font-weight:900;margin-bottom:10px;color:var(--text)">Esqueci a senha</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.6">Informe o e-mail da sua conta. O administrador será avisado e vai te procurar para confirmar sua identidade e passar uma nova senha.</div>
+      <input id="esqueci-senha-email" type="email" placeholder="seu@email.com" value="${emailAtual.replace(/"/g, '&quot;')}" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-size:14px;box-sizing:border-box">
+      <div id="esqueci-senha-msg" style="font-size:12px;margin-bottom:12px;min-height:16px"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('esqueci-senha-modal').remove()" style="flex:1;background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px;font-size:14px;cursor:pointer">Cancelar</button>
+        <button id="esqueci-senha-btn" onclick="enviarPedidoEsqueciSenha()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:700;cursor:pointer">Enviar</button>
+      </div>
+    </div>
+  `;
+  modal.style.display = 'flex';
+}
+
+async function enviarPedidoEsqueciSenha() {
+  const email = (document.getElementById('esqueci-senha-email').value || '').trim();
+  const msg = document.getElementById('esqueci-senha-msg');
+  const btn = document.getElementById('esqueci-senha-btn');
+  if (!email) { msg.style.color = 'var(--red)'; msg.textContent = 'Informe um e-mail.'; return; }
+  msg.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  try {
+    await chamarEdgeFunctionPublica('admin-action', 'solicitar_redefinicao_senha', { email });
+    document.getElementById('esqueci-senha-modal').innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 36px;max-width:380px;width:90%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.7)">
+        <div style="font-size:18px;font-weight:900;margin-bottom:10px;color:var(--text)">Pedido enviado</div>
+        <div style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6">Se esse e-mail estiver cadastrado, o administrador foi avisado e vai te procurar para confirmar sua identidade e passar uma nova senha.</div>
+        <button onclick="document.getElementById('esqueci-senha-modal').remove()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Entendi</button>
+      </div>`;
+  } catch (e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Não foi possível enviar agora. Tente novamente em instantes.';
+    btn.disabled = false;
+    btn.textContent = 'Enviar';
   }
 }
 </script>
@@ -7257,19 +7328,6 @@ window.__initGuiaMentor = init;
 </div>
 
 <!-- MODAL ESQUECI SENHA -->
-<div class="modal-bg" id="modal-forgot">
-  <div class="modal" style="width:400px">
-    <div class="modal-title">Esqueci minha senha</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">Informe seu nome. O administrador vai receber uma notificação para te lembrar a senha de acesso.</p>
-    <div class="field"><label>Seu nome</label><input id="forgot-nome" placeholder="Nome completo cadastrado"></div>
-    <div id="forgot-err" class="err"></div>
-    <div id="forgot-success" style="display:none;color:var(--green);font-size:13px;margin-top:8px">✓ Solicitação enviada! O admin foi notificado.</div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-forgot')">Fechar</button>
-      <button class="btn btn-primary" onclick="submitForgotPassword()">Enviar solicitação</button>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL PERFIL (colaborador edita foto própria) -->
 <div class="modal-bg" id="modal-profile">
@@ -7319,8 +7377,20 @@ window.__initGuiaMentor = init;
       <input type="range" id="cfg-volume" min="0" max="100" value="70" style="width:100%" oninput="onVolumeChange()" onchange="salvarConfigNotificacao()">
     </div>
 
+    <div class="field" style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
+      <div>
+        <div style="font-weight:700;font-size:14px">🎉 Som de venda fechada</div>
+        <div style="font-size:12px;color:var(--muted)">Toca um som de dinheiro quando você fecha uma venda</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="cfg-som-venda-ativo" checked onchange="salvarConfigNotificacao()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Fechar</button>
+      <button class="btn btn-ghost" onclick="playSomVenda()">🎉 Testar som de venda</button>
       <button class="btn btn-primary" onclick="testarSomNotificacao()">Testar Som</button>
     </div>
   </div>
@@ -7423,7 +7493,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '2.4'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '3.0'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -7636,34 +7706,20 @@ function authSignOut() {
   localStorage.removeItem('auth_refresh_token');
 }
 
-// Chama uma Edge Function. Usa a sessão nova (Auth real) quando disponível;
-// senão, usa o nome+senha do login atual como alternativa — o servidor
-// valida essas credenciais direto na tabela colaboradores antes de agir,
-// então continua sendo uma checagem de verdade, não uma confiança cega
-// no que o navegador informa.
-//
-// IMPORTANTE: o Supabase exige um token válido (qualquer um, nem que seja
-// a chave anon) só pra REQUISIÇÃO CHEGAR na função — isso é uma checagem
-// da plataforma, antes mesmo do nosso código rodar. Por isso sempre
-// mandamos um Authorization, mesmo no caminho de credenciaisAntigas (que
-// é quem realmente decide se a pessoa pode ou não, dentro da função).
+// Chama uma Edge Function usando a sessão real (conta segura) de quem
+// está logado. O servidor confirma quem é a pessoa e o papel dela antes
+// de agir — não dá pra "enganar" só editando o navegador.
 async function chamarEdgeFunction(nome, action, payload) {
-  const headers = { 'Content-Type': 'application/json' };
-  const body = { action, payload };
-
-  if (authSession && authSession.access_token) {
-    headers['Authorization'] = 'Bearer ' + authSession.access_token;
-  } else if (user && user.nome && user.senha) {
-    headers['Authorization'] = 'Bearer ' + SUPA_KEY; // satisfaz a checagem da plataforma
-    body.credenciaisAntigas = { nome: user.nome, senha: user.senha };
-  } else {
-    throw new Error('Não foi possível confirmar sua identidade para esta ação.');
+  if (!authSession || !authSession.access_token) {
+    throw new Error('Sua sessão expirou. Saia e entre novamente.');
   }
-
   const r = await fetch(`${SUPA_URL}/functions/v1/${nome}`, {
     method: 'POST',
-    headers,
-    body: JSON.stringify(body),
+    headers: {
+      'Authorization': 'Bearer ' + authSession.access_token,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action, payload }),
   });
   const textoResposta = await r.text();
   let data = {};
@@ -7861,181 +7917,12 @@ function iniciarCountdownBloqueio(bloqueadoAte, nome, errEl) {
   }, 1000);
 }
 
-async function doLogin() {
-  const nome = document.getElementById('login-nome').value.trim();
-  const senha = document.getElementById('login-senha').value;
-  const err = document.getElementById('login-err');
-  err.textContent = '';
-  if (!nome || !senha) { err.textContent = 'Preencha nome e senha.'; return; }
-
-  // ── Verificar bloqueio ativo (15 min após 5 tentativas) ─────────────────
-  const attempts = getAttempts(nome);
-  const agora = Date.now();
-  // Reset automático após 15 min
-  if (attempts.bloqueadoAte && agora >= attempts.bloqueadoAte) {
-    clearAttempts(nome);
-    attempts.count = 0;
-    attempts.bloqueadoAte = null;
-  }
-  // Se ainda bloqueado — verificar se admin desbloqueou no banco
-  if (attempts.bloqueadoAte && agora < attempts.bloqueadoAte) {
-    try { // graceful — ignora se audit_log não existir
-      const desbloq = await get('audit_log',
-        `?acao=eq.desbloqueio_admin&colaborador_nome=eq.${encodeURIComponent(nome)}&order=criado_em.desc&limit=1`
-      ).catch(() => null);
-      if (!desbloq) throw new Error('audit_log indisponível');
-      if (desbloq && desbloq[0]) {
-        const tsDesbloq = new Date(desbloq[0].criado_em).getTime();
-        if (tsDesbloq > (attempts.since || 0)) {
-          // Admin desbloqueou — limpar e deixar tentar
-          clearAttempts(nome);
-          attempts.count = 0;
-          attempts.bloqueadoAte = null;
-          err.textContent = '✓ Conta desbloqueada pelo gestor. Digite sua senha.';
-          err.style.color = 'var(--green)';
-          // Não retornar — deixa continuar o login
-        }
-      }
-    } catch(e2) {}
-    // Se ainda bloqueado após verificação
-    if (attempts.bloqueadoAte && agora < attempts.bloqueadoAte) {
-      const minRestantes = Math.ceil((attempts.bloqueadoAte - agora) / 60000);
-      err.style.color = 'var(--red)';
-      err.textContent = `⛔ Conta bloqueada. Aguarde ${minRestantes} min ou contate o gestor.`;
-      iniciarCountdownBloqueio(attempts.bloqueadoAte, nome, err);
-      return;
-    }
-  }
-  // Reset contador normal após 2h sem atividade
-  if (!attempts.bloqueadoAte && agora - (attempts.since || agora) > 2 * 60 * 60 * 1000) {
-    clearAttempts(nome);
-    attempts.count = 0;
-  }
-
-  try {
-    const res = await get('colaboradores', `?nome=eq.${encodeURIComponent(nome)}&select=*`);
-
-    // ── Comparação case-insensitive (CFP funciona em maiúsculo ou minúsculo) ──
-    const senhaDigitada = senha.toLowerCase().trim();
-    const senhaCorreta = res && res[0] ? res[0].senha.toLowerCase().trim() : '';
-
-    if (!res || res.length === 0 || senhaCorreta !== senhaDigitada) {
-      // Incrementar tentativas
-      const novaCount = (attempts.count || 0) + 1;
-      const novas = { count: novaCount, since: attempts.since || agora, bloqueadoAte: null };
-
-      if (novaCount >= 5) {
-        // ── BLOQUEIO REAL: 15 minutos ─────────────────────────────
-        const bloqueadoAte = agora + 15 * 60 * 1000;
-        novas.bloqueadoAte = bloqueadoAte;
-        setAttempts(nome, novas);
-
-        err.style.color = 'var(--red)';
-        err.textContent = `⛔ Conta bloqueada por 15 min após 5 tentativas erradas.`;
-        iniciarCountdownBloqueio(bloqueadoAte, nome, err);
-
-        // ── Gravar no banco para o admin ver (graceful) ──────────
-        post('audit_log', {
-          colaborador_id: res && res[0] ? res[0].id : null,
-          colaborador_nome: nome,
-          acao: 'login_bloqueado',
-          detalhe: 'Conta bloqueada por 15 min após 5 tentativas incorretas',
-          device_info: getDeviceInfo(),
-          session_token: null
-        }).catch(() => {});
-      } else {
-        setAttempts(nome, novas);
-        const restantes = 5 - novaCount;
-        err.style.color = 'var(--red)';
-        err.textContent = `Senha incorreta. ${restantes} tentativa${restantes !== 1 ? 's' : ''} restante${restantes !== 1 ? 's' : ''} antes de bloquear.`;
-      }
-      return;
-    }
-
-    const colab = res[0];
-
-    // ── Verificar se conta está suspensa pelo admin ───────────────────
-    if (colab.suspenso) {
-      err.textContent = '⛔ Conta suspensa. Entre em contato com o administrador.';
-      return;
-    }
-
-    // ── Gerar token de sessão único ───────────────────────────────────
-    const sessionToken = gerarSessionToken();
-    const deviceInfo = await getDeviceInfoComLocalizacao();
-    const now = new Date().toISOString();
-
-    // ── Salvar sessão local ──────────────────────────────────────────
-    user = { ...colab, session_token: sessionToken, ultimo_device: deviceInfo, ultimo_login: now };
-    localStorage.setItem('crm_session', JSON.stringify({ id: user.id, nome: user.nome, senha: user.senha, session_token: sessionToken, papel: user.papel }));
-    // Dispatch login event for mobile check and Sentry
-    document.dispatchEvent(new CustomEvent('crm-login-success', { detail: { id: user.id, nome: user.nome, papel: user.papel } }));
-    clearAttempts(nome);
-
-    // ── Gravar segurança no banco (graceful — não bloqueia login se falhar) ──
-    // Tenta salvar session_token + device. Se colunas não existirem, ignora.
-    patch('colaboradores', {
-      session_token: sessionToken,
-      ultimo_device: deviceInfo,
-      ultimo_login: now,
-      ultima_atividade: now
-    }, `id=eq.${colab.id}`).catch(() => {
-      // Fallback: salvar só ultima_atividade (coluna que sempre existiu)
-      patch('colaboradores', { ultima_atividade: now }, `id=eq.${colab.id}`).catch(() => {});
-    });
-
-    // ── Log de auditoria (graceful) ───────────────────────────────────
-    post('audit_log', {
-      colaborador_id: colab.id,
-      colaborador_nome: colab.nome,
-      acao: 'login',
-      detalhe: 'Login bem-sucedido',
-      device_info: deviceInfo,
-      session_token: sessionToken
-    }).catch(() => {}); // ignora se tabela não existir ainda
-
-    startApp();
-  } catch(e) {
-    err.textContent = 'Erro ao conectar: ' + e.message;
-  }
-}
-document.getElementById('login-senha').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-auth-senha').addEventListener('keydown', e => { if (e.key === 'Enter') doLoginSeguro(); });
 
 // Restaurar sessão salva ao abrir a página
-(async function restoreSession() {
-  try {
-    const saved = localStorage.getItem('crm_session');
-    if (!saved) { await restoreSessionSegura(); return; }
-    const { id, nome, senha, session_token } = JSON.parse(saved);
-    const res = await get('colaboradores', `?id=eq.${id}&select=*`);
-    if (!res || res.length === 0) { localStorage.removeItem('crm_session'); await restoreSessionSegura(); return; }
-    const colab = res[0];
-    // Verificar senha (case-insensitive)
-    if (colab.senha.toLowerCase().trim() !== senha.toLowerCase().trim()) { localStorage.removeItem('crm_session'); await restoreSessionSegura(); return; }
-    // ── VERIFICAR TOKEN DE SESSÃO ÚNICO ─────────────────────────────
-    // Se o token salvo localmente não bate com o do banco,
-    // significa que outra pessoa fez login com essa conta — expulsar!
-    if (session_token && colab.session_token && colab.session_token !== session_token) {
-      localStorage.removeItem('crm_session');
-      // Mostrar aviso ao usuário que foi deslogado por sessão simultânea
-      const errEl = document.getElementById('login-err');
-      if (errEl) {
-        errEl.textContent = '⚠️ Sua sessão foi encerrada porque outro dispositivo entrou com esta conta.';
-        errEl.style.color = 'var(--yellow)';
-      }
-      return;
-    }
-    // Verificar se conta está suspensa
-    if (colab.suspenso) { localStorage.removeItem('crm_session'); await restoreSessionSegura(); return; }
-    user = { ...colab, session_token: session_token || colab.session_token };
-    patch('colaboradores', { ultima_atividade: new Date().toISOString() }, `id=eq.${user.id}`).catch(() => {});
-    startApp();
-  } catch(e) { await restoreSessionSegura().catch(() => {}); }
-})();
+// Restaura a sessão da conta segura (Auth real), se existir e for válida.
+restoreSessionSegura();
 
-// Restaura a sessão do login NOVO (Auth real), se existir e for válida.
-// Só é chamada quando o login antigo não tem sessão salva — os dois
-// sistemas não competem entre si.
 async function restoreSessionSegura() {
   try {
     const authUser = await authRestoreSession();
@@ -8043,42 +7930,21 @@ async function restoreSessionSegura() {
     const res = await get('colaboradores', `?auth_user_id=eq.${authUser.id}&select=*`);
     if (!res || !res.length) return;
     user = res[0];
+    localStorage.setItem('crm_session', JSON.stringify({ id: user.id, papel: user.papel }));
+    document.dispatchEvent(new CustomEvent('crm-login-success', { detail: { id: user.id, nome: user.nome, papel: user.papel } }));
     startApp();
   } catch (e) { /* sem sessão segura salva, fica na tela de login */ }
 }
 
 
-function toggleLoginPassword() {
-  const input = document.getElementById('login-senha');
-  const icon = document.getElementById('eye-icon');
+function toggleLoginPasswordSegura() {
+  const input = document.getElementById('login-auth-senha');
+  const icon = document.getElementById('eye-icon-segura');
   const isHidden = input.type === 'password';
   input.type = isHidden ? 'text' : 'password';
   icon.innerHTML = isHidden
     ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-}
-
-function openForgotPassword() {
-  document.getElementById('forgot-nome').value = document.getElementById('login-nome').value || '';
-  document.getElementById('forgot-err').textContent = '';
-  document.getElementById('forgot-success').style.display = 'none';
-  document.getElementById('modal-forgot').classList.add('open');
-}
-
-async function submitForgotPassword() {
-  const nome = document.getElementById('forgot-nome').value.trim();
-  const err = document.getElementById('forgot-err');
-  err.textContent = '';
-  if (!nome) { err.textContent = 'Informe seu nome.'; return; }
-  try {
-    const res = await get('colaboradores', `?nome=eq.${encodeURIComponent(nome)}&select=id,nome`);
-    const colab = res && res[0];
-    await post('solicitacoes_senha', { colaborador_nome: nome, colaborador_id: colab ? colab.id : null });
-    document.getElementById('forgot-success').style.display = 'block';
-    setTimeout(() => closeModal('modal-forgot'), 2000);
-  } catch(e) {
-    err.textContent = 'Erro ao enviar: ' + e.message;
-  }
 }
 
 async function logout() {
@@ -8097,12 +7963,16 @@ async function logout() {
       patch('colaboradores', { session_token: null }, `id=eq.${user.id}`).catch(() => {});
     } catch(e) {}
   }
+  authSignOut(); // limpa a sessão segura (Auth real) — sem isso, o logout
+                  // não tirava de verdade quem usava a conta segura, já
+                  // que o refresh_token continuava salvo e logava de novo
+                  // sozinho ao reabrir a página.
   localStorage.removeItem('crm_session');
   user = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-senha').value = '';
-  document.getElementById('login-nome').value = '';
+  document.getElementById('login-auth-senha').value = '';
+  document.getElementById('login-auth-email').value = '';
 }
 
 // ============================================================
@@ -8400,14 +8270,15 @@ async function forcarLogoutInatividade() {
     }).catch(() => {});
     await patch('colaboradores', { session_token: null }, `id=eq.${user.id}`).catch(() => {});
   } catch(e) {}
+  authSignOut();
   localStorage.removeItem('crm_session');
   user = null;
   const warn = document.getElementById('inactivity-warning');
   if (warn) warn.style.display = 'none';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-senha').value = '';
-  const errEl = document.getElementById('login-err');
+  document.getElementById('login-auth-senha').value = '';
+  const errEl = document.getElementById('login-auth-err');
   if (errEl) { errEl.textContent = '⏱ Sessão encerrada por inatividade. Faça login novamente.'; errEl.style.color = 'var(--yellow)'; }
 }
 
@@ -8441,21 +8312,23 @@ function startActivityTracking() {
         const colab = res[0];
         // Conta suspensa pelo admin
         if (colab.suspenso) {
+          authSignOut();
           localStorage.removeItem('crm_session');
           user = null;
           document.getElementById('app').style.display = 'none';
           document.getElementById('login-screen').style.display = 'flex';
-          const errEl = document.getElementById('login-err');
+          const errEl = document.getElementById('login-auth-err');
           if (errEl) { errEl.textContent = '⛔ Sua conta foi suspensa. Entre em contato com o administrador.'; errEl.style.color = 'var(--red)'; }
           return;
         }
         // Token diferente = outro dispositivo entrou com essa conta
         if (user.session_token && colab.session_token && colab.session_token !== user.session_token) {
+          authSignOut();
           localStorage.removeItem('crm_session');
           user = null;
           document.getElementById('app').style.display = 'none';
           document.getElementById('login-screen').style.display = 'flex';
-          const errEl = document.getElementById('login-err');
+          const errEl = document.getElementById('login-auth-err');
           if (errEl) { errEl.textContent = '⚠️ Sua sessão foi encerrada porque outro dispositivo entrou com esta conta.'; errEl.style.color = 'var(--yellow)'; }
         }
       } catch(eVerif) { /* colunas de segurança ainda não criadas — continua normalmente */ }
@@ -10900,6 +10773,7 @@ async function saveLead() {
             autoRegistrarDaily('propostas').catch(() => {});
           } else if (status === 'Fechado') {
             showMicroFeedback('🎉', '+1 Venda! 🏆', 'var(--gold)');
+            if (typeof playSomVenda === 'function') playSomVenda();
             autoRegistrarDaily('vendas').catch(() => {});
           } else if (status === 'Respondeu') {
             showMicroFeedback('💬', 'Lead respondeu!', 'var(--green)');
@@ -11520,11 +11394,19 @@ async function deleteGuia(id) {
   if (!user || user.papel !== 'admin') return;
   if (!confirm('Excluir este guia? Os colaboradores não poderão mais enviá-lo.')) return;
   try {
-    await del('guias', `id=eq.${id}`);
+    await chamarEdgeFunction('admin-action', 'delete_guia', { guiaId: id });
     guias = guias.filter(g => g.id !== id);
     renderGuiasList();
   } catch(e) {
-    alert('Erro ao excluir guia: ' + e.message);
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+      try {
+        await del('guias', `id=eq.${id}`);
+        guias = guias.filter(g => g.id !== id);
+        renderGuiasList();
+      } catch(e3) { alert('Erro ao excluir guia: ' + e3.message); }
+    } else {
+      alert('Erro ao excluir guia: ' + e.message);
+    }
   }
 }
 
@@ -12038,7 +11920,7 @@ function renderAdmin() {
       <td style="font-size:12px">${metaText}</td>
       <td>
         ${c.auth_user_id
-          ? '<span class="badge badge-green" style="font-size:10px">🔐 Conta segura ativa</span><br>'
+          ? '<span class="badge badge-green" style="font-size:10px">🔐 Conta segura ativa</span><br><button class="btn btn-ghost btn-sm" style="margin-bottom:4px;font-size:11px" onclick="abrirRedefinirSenhaSegura(\'' + c.id + '\')">🔑 Redefinir senha</button><br>'
           : '<button class="btn btn-ghost btn-sm" style="margin-bottom:4px;font-size:11px" onclick="abrirCriarContaSegura(\'' + c.id + '\')">🔐 Criar conta segura</button><br>'}
         <button class="btn btn-ghost btn-sm" onclick="editColab('${c.id}')">Editar</button>
         <button class="btn btn-danger btn-sm" onclick="deleteColab('${c.id}')">Remover</button>
@@ -12052,6 +11934,22 @@ function renderAdmin() {
 // Isso é uma ação MANUAL e explícita do admin, feita uma vez por pessoa.
 // Não afeta o login antigo (nome+senha) — os dois continuam funcionando
 // em paralelo até vocês decidirem desativar o antigo.
+async function abrirRedefinirSenhaSegura(colabId) {
+  const colab = colaboradores.find(c => c.id === colabId);
+  if (!colab) return;
+  const novaSenha = prompt(`Nova senha para ${colab.nome} (mínimo 6 caracteres):`);
+  if (!novaSenha || novaSenha.length < 6) { alert('Senha precisa ter pelo menos 6 caracteres.'); return; }
+  try {
+    await chamarEdgeFunction('admin-action', 'redefinir_senha_segura', {
+      colaboradorId: colabId,
+      novaSenha,
+    });
+    alert(`Senha de ${colab.nome} redefinida com sucesso! Avise a pessoa da nova senha.`);
+  } catch (e) {
+    alert('Erro ao redefinir senha: ' + e.message);
+  }
+}
+
 async function abrirCriarContaSegura(colabId) {
   const colab = colaboradores.find(c => c.id === colabId);
   if (!colab) return;
@@ -12301,7 +12199,6 @@ async function saveProfilePhoto() {
     if (res && res[0]) user = res[0];
     const idx = colaboradores.findIndex(c => c.id === user.id);
     if (idx >= 0) colaboradores[idx] = user;
-    localStorage.setItem('crm_session', JSON.stringify({ id: user.id, nome: user.nome, senha: user.senha }));
     renderTopUser();
     closeModal('modal-profile');
   } catch(e) {
@@ -12422,7 +12319,13 @@ async function savePrograma() {
 
 async function deletePrograma(id) {
   if(!confirm('Remover este programa?')) return;
-  try{await del('programas',`id=eq.${id}`);}catch(e){}
+  try {
+    await chamarEdgeFunction('admin-action', 'delete_programa', { programaId: id });
+  } catch(e) {
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+      try { await del('programas', `id=eq.${id}`); } catch(e3) {}
+    }
+  }
   programas=programas.filter(p=>p.id!==id); renderProgramasList();
 }
 
@@ -12622,7 +12525,7 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
 // ============================================================
 // SOM DE NOTIFICAÇÃO
 // ============================================================
-let configNotificacao = { somAtivo: true, volume: 0.7 };
+let configNotificacao = { somAtivo: true, volume: 0.7, somVendaAtivo: true };
 
 function carregarConfigNotificacao() {
   try {
@@ -12632,9 +12535,11 @@ function carregarConfigNotificacao() {
   const chk = document.getElementById('cfg-som-ativo');
   const vol = document.getElementById('cfg-volume');
   const lbl = document.getElementById('cfg-volume-label');
+  const chkVenda = document.getElementById('cfg-som-venda-ativo');
   if (chk) chk.checked = configNotificacao.somAtivo;
   if (vol) vol.value = Math.round(configNotificacao.volume * 100);
   if (lbl) lbl.textContent = Math.round(configNotificacao.volume * 100) + '%';
+  if (chkVenda) chkVenda.checked = configNotificacao.somVendaAtivo;
 }
 
 function onVolumeChange() {
@@ -12646,6 +12551,8 @@ function onVolumeChange() {
 function salvarConfigNotificacao() {
   configNotificacao.somAtivo = document.getElementById('cfg-som-ativo').checked;
   configNotificacao.volume = Number(document.getElementById('cfg-volume').value) / 100;
+  const chkVenda = document.getElementById('cfg-som-venda-ativo');
+  if (chkVenda) configNotificacao.somVendaAtivo = chkVenda.checked;
   try {
     localStorage.setItem('crm_config_notificacao', JSON.stringify(configNotificacao));
   } catch(e) { /* segue sem salvar se localStorage estiver bloqueado */ }
@@ -12729,6 +12636,46 @@ function playNotifySound() {
       g2.gain.linearRampToValueAtTime(0.20 * vol, t + 0.18);
       g2.gain.exponentialRampToValueAtTime(0.001, t + 0.50);
       o2.start(t + 0.16); o2.stop(t + 0.50);
+    };
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(doPlay).catch(() => {});
+    } else {
+      doPlay();
+    }
+  } catch(e) { /* Web Audio não disponível neste browser */ }
+}
+
+// ── Som de venda fechada — "cha-ching" de moedas ────────────────────────
+// Sequência curta de notas agudas e brilhantes, imitando o clássico som
+// de caixa registradora / moedas caindo. Reaproveita o mesmo AudioContext
+// e respeita o volume configurado, mas tem um interruptor próprio
+// (somVendaAtivo) — pode desligar só esse, mantendo as notificações.
+function playSomVenda() {
+  if (!configNotificacao.somVendaAtivo) return;
+  const vol = configNotificacao.volume;
+  if (vol <= 0) return;
+  try {
+    const ctx = _getAudioCtx();
+    const doPlay = () => {
+      const t = ctx.currentTime;
+      // Notas em arpejo ascendente (dó-mi-sol-dó), tipo "cha-ching" de caixa
+      const notas = [
+        { freq: 1046.5, inicio: 0,     dur: 0.28, ganho: 0.22 }, // Dó6
+        { freq: 1318.5, inicio: 0.07,  dur: 0.28, ganho: 0.20 }, // Mi6
+        { freq: 1568.0, inicio: 0.14,  dur: 0.30, ganho: 0.20 }, // Sol6
+        { freq: 2093.0, inicio: 0.22,  dur: 0.45, ganho: 0.24 }, // Dó7 (brilho final)
+      ];
+      notas.forEach(n => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(n.freq, t + n.inicio);
+        g.gain.setValueAtTime(0, t + n.inicio);
+        g.gain.linearRampToValueAtTime(n.ganho * vol, t + n.inicio + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, t + n.inicio + n.dur);
+        o.start(t + n.inicio); o.stop(t + n.inicio + n.dur);
+      });
     };
     if (ctx.state === 'suspended') {
       ctx.resume().then(doPlay).catch(() => {});
