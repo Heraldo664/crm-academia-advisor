@@ -11148,7 +11148,10 @@ function renderDailyWithReports(myReports, label) {
             <div class="report-name">${r.colaborador_nome}</div>
             <div class="report-date">${formatDate(r.data)}</div>
           </div>
-          ${(user.papel==='admin'||r.colaborador_id===user.id)?`<button class="btn btn-ghost btn-sm" onclick="editDaily('${r.id}')">Editar</button>`:''}
+          <div style="display:flex;gap:6px">
+            ${(user.papel==='admin'||r.colaborador_id===user.id)?`<button class="btn btn-ghost btn-sm" onclick="editDaily('${r.id}')">Editar</button>`:''}
+            ${user.papel==='admin'?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteDailyReport('${r.id}')">Excluir</button>`:''}
+          </div>
         </div>
         <div class="report-stats" style="margin-top:12px">
           <div class="report-stat"><div class="report-stat-label">Conexões</div><div class="report-stat-val accent">${r.conexoes||0}</div></div>
@@ -11200,6 +11203,26 @@ function openDailyModal(report = null) {
 function editDaily(id) {
   const r = dailyReports.find(r => r.id === id);
   if (r) openDailyModal(r);
+}
+
+async function deleteDailyReport(id) {
+  if (!user || user.papel !== 'admin') return;
+  if (!confirm('Excluir este registro de Daily Report? Esta ação não pode ser desfeita.')) return;
+  try {
+    await chamarEdgeFunction('admin-action', 'delete_daily_report', { reportId: id });
+    dailyReports = dailyReports.filter(r => r.id !== id);
+    renderDaily();
+  } catch(e) {
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+      try {
+        await del('daily_reports', `id=eq.${id}`);
+        dailyReports = dailyReports.filter(r => r.id !== id);
+        renderDaily();
+      } catch(e3) { alert('Erro ao excluir: ' + e3.message); }
+    } else {
+      alert('Erro ao excluir: ' + e.message);
+    }
+  }
 }
 
 async function saveDaily() {
@@ -13435,12 +13458,19 @@ function verRegraVariavel() {
   // Único ponto de decisão: sempre executado no momento exato do clique,
   // nunca decidido com antecedência. Assim, se o navegador liberou o prompt
   // nativo a qualquer momento antes do clique, ele é usado — senão, cai
-  // no fallback adequado.
+  // no fallback adequado (Chrome/Edge nunca recebem instrução de menu,
+  // porque neles a instalação de um clique é real e vai aparecer sozinha).
   function onClickInstallBtn() {
     if (isMobileDevice()) return;
     if (deferredPrompt) { instalarComPrompt(); return; }
     if (!isSecureContextForPWA()) { mostrarAvisoProtocoloInseguro(); return; }
-    mostrarInstrucoesInstalacao();
+    const ua = navigator.userAgent;
+    const isChromiumBased = /Chrome\//.test(ua) || /Edg\//.test(ua);
+    if (isChromiumBased) {
+      mostrarAguardeInstalacaoAutomatica();
+    } else {
+      mostrarInstrucoesInstalacao();
+    }
   }
 
   // Exibe o botão logo após login (chamado de fora) e mantém o listener
@@ -13474,9 +13504,34 @@ function verRegraVariavel() {
     modal.style.display = 'flex';
   }
 
+  // Chrome/Edge: eles ainda vão oferecer a instalação de um clique sozinhos
+  // (o site já está pronto: manifesto e Service Worker corretos) — só que a
+  // decisão de "quando" é do próprio navegador, baseada no uso do site, e
+  // não pode ser forçada por código. Aqui NÃO mandamos caçar em menu nenhum,
+  // porque pra esses dois navegadores isso vai aparecer sozinho em breve.
+  function mostrarAguardeInstalacaoAutomatica() {
+    let modal = document.getElementById('pwa-instrucoes-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'pwa-instrucoes-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center';
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 36px;max-width:420px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.7)">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div style="font-size:18px;font-weight:900;margin-bottom:10px;color:var(--text)">Instalação automática ainda não liberada</div>
+        <div style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.6">Seu navegador (Chrome/Edge) decide sozinho quando oferecer a instalação de um clique, com base no seu uso do site — não é algo que o CRM controla. Não precisa procurar em nenhum menu: continue usando normalmente e, quando o navegador liberar, este mesmo botão vai instalar o app instantaneamente.</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5">Isso costuma acontecer depois de algumas visitas ao site em dias diferentes.</div>
+        <button onclick="document.getElementById('pwa-instrucoes-modal').style.display='none'" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Entendi</button>
+      </div>
+    `;
+    modal.style.display = 'flex';
+  }
+
   // ── Modal com o passo a passo de instalação real (ícone no SO) ────
-  // Última linha de defesa: só aparece se, no momento exato do clique,
-  // o navegador realmente não tiver liberado o prompt nativo.
+  // Agora só é chamado para navegadores que realmente não suportam
+  // instalação automática de um clique (Firefox desktop, Safari).
   function mostrarInstrucoesInstalacao() {
     const ua = navigator.userAgent;
     const isEdge = /Edg\//.test(ua);
