@@ -848,6 +848,12 @@ async function enviarPedidoEsqueciSenha() {
       </div>
 
       <div class="panel" style="margin-top:0">
+        <div class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Leads em Risco (Follow-up)</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Leads parados há 5 dias ou mais sem resposta. Uma tarefa de retomada já é criada automaticamente pro SDR aos 2 dias — o que aparece aqui já passou desse ponto sem resultado e precisa de decisão do gestor (ligar, reatribuir ou mover pra nutrição).</p>
+        <div id="dash-leads-risco"></div>
+      </div>
+
+      <div class="panel" style="margin-top:0">
         <div class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Central de Objeções</div>
         <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Ranking dos motivos de perda. Identifica onde o time perde mais vendas para direcionar treinamento e melhorar o roteiro de contorno.</p>
         <div id="dash-objecoes"></div>
@@ -7990,6 +7996,11 @@ async function startApp() {
     return;
   }
   await loadData();
+  // Escalação automática de follow-up (cria tarefa pro SDR aos 2 dias
+  // parado, alimenta o painel de risco do gestor aos 5+) — roda pouco
+  // depois do carregamento inicial e depois a cada 10min.
+  setTimeout(() => { if (typeof verificarEscalacaoFollowup === 'function') verificarEscalacaoFollowup(); }, 4000);
+  setInterval(() => { if (typeof verificarEscalacaoFollowup === 'function') verificarEscalacaoFollowup(); }, 10 * 60 * 1000);
   // SDR → vai direto para Leads no Kanban (fila de trabalho)
   // Admin/Closer → Dashboard (visão gerencial)
   if (user.papel === 'sdr') {
@@ -9241,6 +9252,7 @@ function renderDashGeral() {
   renderCapacidadeSDR();
   renderCarenciaContratos();
   if (typeof renderConversaoPorEtapa === 'function') renderConversaoPorEtapa();
+  if (typeof renderLeadsEmRisco === 'function') renderLeadsEmRisco();
   if (typeof renderForecast === 'function') renderForecast();
   if (typeof renderCentralObjecoes === 'function') renderCentralObjecoes();
   if (typeof renderMapaProdutividade === 'function') renderMapaProdutividade();
@@ -9812,6 +9824,122 @@ function copiarMsgPlaybook(leadId, dias) {
   if (navigator.clipboard) navigator.clipboard.writeText(msg).then(() => showMicroFeedback('📋', 'Mensagem copiada!', 'var(--green)')).catch(() => {});
 }
 
+// ============================================================
+// PONTUAÇÃO DE PRIORIDADE (lead score) — combina valor, estágio do
+// funil e urgência (dias sem interação) num único número comparável,
+// pra que um lead de valor alto respondendo rápido e um lead de valor
+// baixo esfriando há dias não tenham o mesmo peso visual no Kanban.
+// Reaproveita o PESO_ESTAGIO_FUNIL que já existe pro forecast — não
+// cria uma segunda régua de pesos por estágio.
+// ============================================================
+// Teto de referência pra normalizar valor — ajuste aqui se a faixa de
+// preço dos programas mudar bastante; não precisa mexer no resto.
+const TETO_VALOR_SCORE = 15000;
+
+function extrairValorNumerico(faixaTexto) {
+  if (!faixaTexto) return 0;
+  // Pega todos os números da faixa ("R$:3.000 a R$:8.000" → [3000, 8000])
+  // e usa o maior — representa o potencial da oportunidade, não o piso.
+  const numeros = (faixaTexto.match(/[\d.,]+/g) || [])
+    .map(n => parseFloat(n.replace(/\./g, '').replace(',', '.')))
+    .filter(n => !isNaN(n));
+  return numeros.length ? Math.max(...numeros) : 0;
+}
+
+function leadScore(lead) {
+  if (lead.status === 'Fechado') return -1; // já vendeu, não compete por prioridade
+  const valor = lead.valor_oportunidade || extrairValorNumerico(lead.faixa_salarial);
+  const valorNorm = Math.min(valor / TETO_VALOR_SCORE, 1);
+  const pesoEstagio = PESO_ESTAGIO_FUNIL[lead.status] || 0.05;
+  const dias = FOLLOWUP_ATIVOS.includes(lead.status) ? diasSemInteracao(lead) : 0;
+  const urgenciaNorm = Math.min(dias / 5, 1);
+  // Pesos: valor pesa mais (é o que mais importa pro faturamento), estágio
+  // em segundo (proximidade do fechamento), urgência entra pra não deixar
+  // um lead valioso simplesmente esfriar até virar perda.
+  const score = (valorNorm * 45) + (pesoEstagio / 0.80 * 35) + (urgenciaNorm * 20);
+  return Math.round(score);
+}
+
+function leadPriorityBadgeHtml(lead) {
+  const score = leadScore(lead);
+  if (score < 0) return '';
+  let nivel, cor, fundo;
+  if (score >= 55) { nivel = '🔥 Alta'; cor = 'var(--red)'; fundo = 'rgba(255,77,106,.15)'; }
+  else if (score >= 30) { nivel = '🟠 Média'; cor = 'var(--yellow)'; fundo = 'rgba(245,166,35,.15)'; }
+  else { nivel = '⚪ Baixa'; cor = 'var(--muted)'; fundo = 'rgba(122,155,191,.12)'; }
+  return `<span style="background:${fundo};color:${cor};font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px" title="Pontuação de prioridade: ${score}/100 (valor + estágio + urgência)">${nivel}</span>`;
+}
+
+// ============================================================
+// ESCALAÇÃO AUTOMÁTICA DE FOLLOW-UP
+// ============================================================
+// Hoje o badge de dias-sem-resposta (followupBadgeHtml) já existe, mas
+// é só visual — alguém precisa abrir o Kanban e reparar. Isso fecha o
+// gatilho automático que faltava:
+//  - 2 dias parado  → cria uma tarefa pro SDR responsável (idempotente:
+//    checa se já existe antes de criar, então rodar isso várias vezes
+//    não gera tarefa duplicada).
+//  - 5+ dias parado → não cria tarefa nova (o SDR já devia ter sido
+//    acionado aos 2 dias); em vez disso, entra no painel "Leads em
+//    Risco" do Dashboard, pra decisão do gestor.
+// Não cria tabela nova nem política de RLS nova — só usa 'tarefas',
+// que já existe e já é gravável por qualquer colaborador ativo.
+async function verificarEscalacaoFollowup() {
+  if (!Array.isArray(leads) || !leads.length || !Array.isArray(tarefas)) return;
+  const candidatos2d = leads.filter(l => {
+    const a = followupAlerta(l);
+    return a && a.nivel === '2d';
+  });
+  for (const lead of candidatos2d) {
+    const jaExiste = tarefas.some(t => t.lead_id === lead.id && t.tipo === 'followup_auto');
+    if (jaExiste) continue;
+    try {
+      // Checagem final no servidor antes de criar — evita duplicar
+      // caso outra sessão (outro colaborador logado) já tenha criado
+      // a tarefa entre o carregamento local e agora.
+      const existentes = await get('tarefas', `?lead_id=eq.${lead.id}&tipo=eq.followup_auto&select=id`);
+      if (existentes && existentes.length) { tarefas.push(existentes[0]); continue; }
+      const resp = await post('tarefas', {
+        lead_id: lead.id,
+        lead_nome: lead.nome,
+        tipo: 'followup_auto',
+        titulo: `Retomar contato — ${diasSemInteracao(lead)}d sem resposta`,
+        data: new Date().toISOString().slice(0, 10),
+        colaborador_id: lead.sdr_id || null,
+        colaborador_nome: lead.sdr_nome || null,
+      });
+      if (resp && resp[0]) tarefas.push(resp[0]);
+    } catch (e) { /* silencioso — não deve travar o resto do app */ }
+  }
+  if (typeof renderNextActions === 'function') renderNextActions();
+  if (typeof renderLeadsEmRisco === 'function') renderLeadsEmRisco();
+}
+
+function renderLeadsEmRisco() {
+  const el = document.getElementById('dash-leads-risco');
+  if (!el) return;
+  const emRisco = (leads || [])
+    .map(l => ({ lead: l, alerta: followupAlerta(l) }))
+    .filter(x => x.alerta && (x.alerta.nivel === '5d' || x.alerta.nivel === '7d'))
+    .sort((a, b) => b.alerta.dias - a.alerta.dias);
+
+  if (!emRisco.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--green)">✓ Nenhum lead em risco no momento.</p>';
+    return;
+  }
+  el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Lead</th><th>SDR</th><th>Parado há</th><th>Situação</th><th></th></tr></thead><tbody>' +
+    emRisco.map(({ lead, alerta }) => {
+      const cor = alerta.nivel === '7d' ? 'var(--red)' : 'var(--yellow)';
+      return `<tr>
+        <td style="font-weight:600">${lead.nome}</td>
+        <td>${lead.sdr_nome || '—'}</td>
+        <td><span style="color:${cor};font-weight:700">${alerta.dias}d</span></td>
+        <td style="font-size:12px;color:var(--muted)">${alerta.label}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="editLead('${lead.id}')">Abrir</button></td>
+      </tr>`;
+    }).join('') + '</tbody></table></div>';
+}
+
 function abrirWAPlaybook(leadId, dias) {
   const lead = leads.find(l => l.id === leadId);
   if (!lead || !lead.telefone) { alert('Lead sem telefone cadastrado.'); return; }
@@ -10113,8 +10241,15 @@ function renderKanban() {
     let cards = filtered.filter(l => l.status === col);
 
     // Coluna "Contatar": ordenar do mais antigo para o mais novo + badge de urgência
+    // (mantido como já era — é a fila de primeiro contato, ordem de chegada
+    // importa aqui por causa do SLA de resposta).
     if (col === 'Contatar') {
       cards = cards.sort((a, b) => (a.criado_em || '').localeCompare(b.criado_em || ''));
+    } else {
+      // Demais colunas: ordenar por pontuação de prioridade (valor + estágio +
+      // urgência) em vez da ordem de chegada — um lead de valor alto ou
+      // esfriando não deve ficar escondido no meio da coluna.
+      cards = cards.sort((a, b) => leadScore(b) - leadScore(a));
     }
 
     const isGold = col === 'Compra Agendada';
@@ -10151,6 +10286,7 @@ function renderKanban() {
               <div class="kanban-card-name">${l.nome} ${slaBadge(l)} ${followupBadgeHtml(l)}</div>
               <div class="kanban-card-sub">${l.empresa}</div>
               <div class="kanban-card-sub" style="font-size:10px;opacity:.75;margin-top:1px">🕒 ${formatDateTime(l.criado_em)}</div>
+              ${col !== 'Contatar' ? `<div style="margin-top:3px">${leadPriorityBadgeHtml(l)}</div>` : ''}
               ${l.faixa_salarial ? `<div style="margin-top:3px">${faixaSalarialBadgeHtml(l)}</div>` : ''}
               ${urgenciaBadge ? `<div style="margin-top:4px">${urgenciaBadge}</div>` : ''}
               ${l.data_compra_prevista ? `<div class="kanban-card-sub" style="margin-top:4px">📅 ${formatDate(l.data_compra_prevista)}</div>` : ''}
