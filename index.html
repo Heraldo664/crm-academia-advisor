@@ -196,11 +196,6 @@
   #modal-lead .modal { width: 1240px; max-width: 94vw; }
   .modal-lead-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 36px; align-items: start; }
   .modal-lead-col > .modal-section:first-child { margin-top: 0; border-top: none; padding-top: 0; }
-  @media (max-width: 900px) {
-    #modal-lead .modal { width: 620px; }
-    .modal-lead-cols { grid-template-columns: 1fr; column-gap: 0; }
-    .check-grid { grid-template-columns: 1fr; }
-  }
 
   /* checkboxes for objetivos */
   .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -209,6 +204,12 @@
   .check-item.checked { border-color: var(--green); background: rgba(34,201,123,.08); }
   .check-mark { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size:14px; color: transparent; font-weight: 900; }
   .check-item.checked .check-mark { background: var(--green); border-color: var(--green); color: #fff; }
+
+  @media (max-width: 900px) {
+    #modal-lead .modal { width: 620px; }
+    .modal-lead-cols { grid-template-columns: 1fr; column-gap: 0; }
+    .check-grid { grid-template-columns: 1fr; }
+  }
 
   /* KANBAN */
   .kanban { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 16px; }
@@ -7060,6 +7061,10 @@ window.__initGuiaMentor = init;
       </select>
     </div>
     <div class="field"><label>Observações</label><textarea id="l-obs" placeholder="Notas adicionais…"></textarea></div>
+
+    <div class="modal-section"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="3" x2="12" y2="7"/><circle cx="8.5" cy="16.5" r="1.5"/><circle cx="15.5" cy="16.5" r="1.5"/><path d="M8 20h8"/></svg> Automação de Aquecimento (WhatsApp)</span></div>
+    <div id="whatsapp-automacao-status" style="margin-bottom:10px;font-size:15px;color:var(--muted)"></div>
+    <div id="whatsapp-conversa-historico" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
     </div>
 
     <div class="modal-lead-col">
@@ -7167,10 +7172,6 @@ window.__initGuiaMentor = init;
         <button class="btn btn-primary btn-sm" onclick="adicionarInteracao()">+ Add</button>
       </div>
     </div>
-
-    <div class="modal-section"><span style="display:inline-flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;flex-shrink:0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="3" x2="12" y2="7"/><circle cx="8.5" cy="16.5" r="1.5"/><circle cx="15.5" cy="16.5" r="1.5"/><path d="M8 20h8"/></svg> Automação de Aquecimento (WhatsApp)</span></div>
-    <div id="whatsapp-automacao-status" style="margin-bottom:10px;font-size:15px;color:var(--muted)"></div>
-    <div id="whatsapp-conversa-historico" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
     </div>
     </div>
 
