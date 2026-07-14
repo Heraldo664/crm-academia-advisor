@@ -712,17 +712,17 @@ async function enviarPedidoEsqueciSenha() {
 
       <!-- ─── KPIs MACRO: 4 números que importam ─────────────────────── -->
       <div id="dash-kpis-macro" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
-        <div id="kpi-leads-mes" style="background:var(--surface);padding:24px 28px;text-align:center">
+        <div id="kpi-leads-mes" onclick="irParaLeadsPorStatus('', mesAtualStr())" title="Ver os leads cadastrados este mês" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center">
           <div style="font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Leads este mês</div>
           <div id="kpi-leads-num" style="font-size:52px;font-weight:900;color:var(--accent);line-height:1;letter-spacing:-2px">—</div>
           <div id="kpi-leads-sub" style="font-size:14px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
-        <div id="kpi-faturamento-mes" style="background:var(--surface);padding:24px 28px;text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)">
+        <div id="kpi-faturamento-mes" onclick="irParaLeadsPorStatus('Fechado', mesAtualStr())" title="Ver os leads fechados que compõem este número" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)">
           <div style="font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Faturamento no Mês</div>
           <div id="kpi-fat-num" style="font-size:52px;font-weight:900;color:var(--gold);line-height:1;letter-spacing:-2px">—</div>
           <div id="kpi-fat-sub" style="font-size:14px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
-        <div id="kpi-meta-mes" style="background:var(--surface);padding:24px 28px;text-align:center;border-right:1px solid var(--border)">
+        <div id="kpi-meta-mes" onclick="irParaLeadsPorStatus('Fechado', mesAtualStr())" title="Ver os leads fechados que compõem este número" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center;border-right:1px solid var(--border)">
           <div style="font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">% da Meta</div>
           <div id="kpi-meta-num" style="font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px;color:var(--muted)">—</div>
           <div id="kpi-meta-sub" style="font-size:14px;color:var(--muted);margin-top:6px">carregando...</div>
@@ -933,6 +933,9 @@ async function enviarPedidoEsqueciSenha() {
           </select>
           <select id="lead-filter-sdr" class="search-input" style="width:150px" onchange="renderLeadsTable()">
             <option value="">Todos os SDRs</option>
+          </select>
+          <select id="lead-filter-mes" class="search-input" style="width:170px" onchange="renderLeadsTable()" title="Filtra por mês — usa a data da compra para leads Fechados (mesma referência usada nos números do Dashboard) e a data de cadastro para os demais status">
+            <option value="">Todos os meses</option>
           </select>
           <a href="https://www.youtube.com/@academia.advisor/videos" target="_blank" title="Ver vídeos de depoimento no canal" class="btn-depoimentos" style="display:inline-flex;align-items:center;gap:5px;flex-shrink:0;padding:4px 12px 4px 6px;border-radius:7px;background:#FF0000;border:1px solid #ff3030;box-shadow:0 1px 4px rgba(255,0,0,.35)">
             <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#fff;flex-shrink:0">
@@ -7478,6 +7481,39 @@ window.__initGuiaMentor = init;
   </div>
 </div>
 
+<!-- POPUP COMPRA AGENDADA PARA HOJE -->
+<div class="modal-bg" id="popup-compra-hoje">
+  <div class="modal" style="width:440px;border:1.5px solid var(--gold)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2b2200" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="modal-title" style="margin-bottom:0">📅 Compra agendada para hoje!</div>
+    </div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:14px">A data prevista de compra deste lead é hoje. Confirme com ele e atualize o status pra "Fechado" assim que a venda fechar.</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <div id="ch-nome" style="font-size:16px;font-weight:800"></div>
+      <div id="ch-empresa" style="font-size:14px;color:var(--muted);margin-top:2px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+        <div><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Telefone</div><div id="ch-telefone" style="font-size:14px;font-weight:600"></div></div>
+        <div><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Programa</div><div id="ch-programa" style="font-size:14px;font-weight:600"></div></div>
+        <div><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Valor</div><div id="ch-valor" style="font-size:14px;font-weight:600"></div></div>
+        <div><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">SDR / Closer</div><div id="ch-responsaveis" style="font-size:14px;font-weight:600"></div></div>
+      </div>
+    </div>
+    <div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">💰 Sua comissão variável nesta venda</div>
+        <div id="ch-comissao" style="font-size:22px;font-weight:800;color:var(--gold)">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Liberada a partir do 8º dia após o fechamento (respeita os 7 dias de cancelamento)</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openRegraComissao()">Ver Regra</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="fecharPopupCompraHoje()">Fechar</button>
+      <button class="btn btn-primary" onclick="verCadastroCompraHoje()">Ver Cadastro Completo</button>
+    </div>
+  </div>
+</div>
+
 <!-- POPUP CONEXÕES LINKEDIN SEMANAL -->
 <div class="modal-bg" id="popup-conexoes">
   <div class="modal" style="width:420px;border:1.5px solid var(--gold)">
@@ -9182,6 +9218,29 @@ function renderForecast() {
 }
 
 
+// Leva o usuário da tela de Dashboard direto pra lista de Leads já filtrada
+// por status e por mês — usado nos cards de faturamento/meta/realizado pra
+// "ver a fonte" do número exibido, com o recorte exato (mesmo status + mesmo
+// mês que o card está somando).
+function irParaLeadsPorStatus(status, mes) {
+  navigateTo('leads');
+  setView('list');
+  popularFiltroMes(); // garante que o mês pedido exista nas opções antes de setar
+  const statusEl = document.getElementById('lead-filter-status');
+  const searchEl = document.getElementById('lead-search');
+  const mesEl = document.getElementById('lead-filter-mes');
+  if (statusEl) statusEl.value = status || '';
+  if (searchEl) searchEl.value = '';
+  if (mesEl) mesEl.value = mes || '';
+  renderLeadsTable();
+  document.getElementById('leads-list-view')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function mesAtualStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
 function renderKPIsMacro() {
   const hoje = new Date();
   const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
@@ -9349,7 +9408,7 @@ function renderDashHojeEMes() {
     <div class="stat-card ${nsP>0?'red-border':''}"><div class="stat-label">No-Show</div><div class="stat-value ${nsP>0?'red':'muted'}">${nsP}${agendP>0?` <span style="font-size:14px">(${taxaNSP}%)</span>`:''}</div></div>
   `;
 
-  const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr);
+  const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.data_compra_prevista||l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr);
   const vendasMes = fechadosMes.length;
   const realizadoMes = fechadosMes.reduce((s,l) => s+(l.valor_oportunidade||TICKET), 0);
   const closersAtivos = colaboradores.filter(cx => cx.papel==='closer').length || 1;
@@ -9369,7 +9428,7 @@ function renderDashHojeEMes() {
       <div class="stat-label">Meta — ${META_TOTAL} vendas</div>
       <div class="stat-value gold">${isAdm ? formatBRL(metaValor) : `${META_TOTAL} vendas`}</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" onclick="irParaLeadsPorStatus('Fechado', '${mesStr}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer">
       <div class="stat-label">Realizado — ${vendasMes} vendas</div>
       <div class="stat-value green">${isAdm ? formatBRL(realizadoMes) : `${vendasMes} vendas`}</div>
       <div style="margin-top:6px;background:var(--surface3);border-radius:4px;height:6px"><div style="height:6px;border-radius:4px;background:var(--green);width:${pctMeta}%"></div></div>
@@ -9543,7 +9602,7 @@ function renderMetaProgress(containerId, colab) {
   if (colab.papel === 'sdr') {
     const realizado = leads.filter(l => l.sdr_id === colab.id && l.data_diagnostico && l.data_diagnostico.slice(0,7)===mesStr).length;
     const pct = Math.min(100, Math.round(realizado / META_DIAGS_SDR * 100));
-    const vendasSDR = leads.filter(l => l.sdr_id === colab.id && l.status==='Fechado' && (l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr).length;
+    const vendasSDR = leads.filter(l => l.sdr_id === colab.id && l.status==='Fechado' && (l.data_compra_prevista||l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr).length;
     html = `
       <div class="progress-block">
         <div class="progress-top"><span>Diagnósticos no Mês — Meta: ${META_DIAGS_SDR}</span><span class="progress-pct">${realizado}/${META_DIAGS_SDR} · ${pct}%</span></div>
@@ -9564,7 +9623,7 @@ function renderMetaProgress(containerId, colab) {
   }
 
   if (colab.papel === 'closer') {
-    const realizadoVendas = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr).length;
+    const realizadoVendas = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.data_compra_prevista||l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr).length;
     const pctVendas = Math.min(100, Math.round(realizadoVendas / META_VENDAS * 100));
     const reunioesMes = tarefas.filter(t => t.colaborador_id===colab.id && t.status_reuniao==='compareceu' && t.data.slice(0,7)===mesStr).length;
     const pctReun = Math.min(100, Math.round(reunioesMes / META_VENDAS * 100));
@@ -9643,6 +9702,28 @@ function populateFilters() {
   const closers = colaboradores.filter(c => c.papel === 'closer' || c.papel === 'admin');
   closerSel.innerHTML = '<option value="">Nenhum</option>' +
     closers.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+
+  popularFiltroMes();
+}
+
+// Preenche o seletor de mês da tela de Leads com os últimos 12 meses (o atual
+// primeiro). Gerado dinamicamente a partir da data de hoje — não precisa
+// atualizar na mão conforme o tempo passa.
+const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function popularFiltroMes() {
+  const sel = document.getElementById('lead-filter-mes');
+  if (!sel) return;
+  const valorAtual = sel.value;
+  const hoje = new Date();
+  let opts = '<option value="">Todos os meses</option>';
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    const chave = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    const label = MESES_PT[d.getMonth()] + ' de ' + d.getFullYear() + (i === 0 ? ' (atual)' : '');
+    opts += `<option value="${chave}">${label}</option>`;
+  }
+  sel.innerHTML = opts;
+  if (valorAtual) sel.value = valorAtual; // preserva a seleção ao repopular
 }
 
 // ── Deduplicação de leads (mesma pessoa cadastrada 2+ vezes) ─────────────
@@ -9695,6 +9776,8 @@ function getFilteredLeads() {
   const q = document.getElementById('lead-search').value.toLowerCase();
   const st = document.getElementById('lead-filter-status').value;
   const sdr = document.getElementById('lead-filter-sdr').value;
+  const mesEl = document.getElementById('lead-filter-mes');
+  const mes = mesEl ? mesEl.value : '';
   const base = deduplicarLeadsPorTelefone(leads);
   return base.filter(l => {
     // Visibilidade por papel
@@ -9705,6 +9788,16 @@ function getFilteredLeads() {
     if (q && !l.nome.toLowerCase().includes(q) && !(l.empresa||'').toLowerCase().includes(q)) return false;
     if (st && l.status !== st) return false;
     if (sdr && l.sdr_nome !== sdr) return false;
+    if (mes) {
+      // Mesma referência de data usada nos cálculos de faturamento do Dashboard:
+      // para leads Fechados, prioriza a data da compra; para os demais status,
+      // usa a data de cadastro (não faz sentido usar "data da compra" pra quem
+      // ainda não comprou).
+      const ref = l.status === 'Fechado'
+        ? (l.data_compra_prevista || l.ultima_interacao || l.criado_em)
+        : l.criado_em;
+      if (!ref || ref.slice(0,7) !== mes) return false;
+    }
     return true;
   });
 }
@@ -10327,14 +10420,14 @@ function renderKanban() {
             }
 
             return `
-            <div class="kanban-card" onclick="editLead('${l.id}')">
+            <div class="kanban-card" onclick="editLead('${l.id}')" style="${l.data_compra_prevista === todayStr() ? 'border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)' : ''}">
               <div class="kanban-card-name">${l.nome} ${slaBadge(l)} ${followupBadgeHtml(l)}</div>
               <div class="kanban-card-sub">${l.empresa}</div>
               <div class="kanban-card-sub" style="font-size:14px;opacity:.75;margin-top:1px">🕒 ${formatDateTime(l.criado_em)}</div>
               ${col !== 'Contatar' ? `<div style="margin-top:3px">${leadPriorityBadgeHtml(l)}</div>` : ''}
               ${l.faixa_salarial ? `<div style="margin-top:3px">${faixaSalarialBadgeHtml(l)}</div>` : ''}
               ${urgenciaBadge ? `<div style="margin-top:4px">${urgenciaBadge}</div>` : ''}
-              ${l.data_compra_prevista ? `<div class="kanban-card-sub" style="margin-top:4px">📅 ${formatDate(l.data_compra_prevista)}</div>` : ''}
+              ${l.data_compra_prevista ? `<div class="kanban-card-sub" style="margin-top:4px;${l.data_compra_prevista === todayStr() ? 'color:var(--gold);font-weight:800' : ''}">📅 ${formatDate(l.data_compra_prevista)}${l.data_compra_prevista === todayStr() ? ' · HOJE 🔔' : ''}</div>` : ''}
               ${turmaInfo}
               <div style="margin-top:6px">${whatsappBtnHtml(l)}</div>
             </div>`;
@@ -12093,7 +12186,7 @@ function renderPerformanceComercial() {
         const bateuMeta = contatosHoje >= metaContatos;
 
         const diagsMes = leads.filter(l => l.sdr_id === c.id && l.data_diagnostico && l.data_diagnostico.slice(0,7) === hoje.slice(0,7)).length;
-        const vendasMes = leads.filter(l => l.closer_nome === c.nome && l.status === 'Fechado' && (l.criado_em || '').slice(0,7) === hoje.slice(0,7)).length;
+        const vendasMes = leads.filter(l => l.closer_nome === c.nome && l.status === 'Fechado' && (l.data_compra_prevista || l.ultima_interacao || l.criado_em || '').slice(0,7) === hoje.slice(0,7)).length;
 
         return `
           <tr>
@@ -13438,6 +13531,94 @@ async function confirmConexoes(action) {
 }
 
 // ============================================================
+// POPUP "COMPRA AGENDADA PARA HOJE" — avisa o SDR/Closer responsável
+// quando a data prevista de compra de um lead chega, mostrando o card
+// da pessoa e o valor da comissão variável dessa venda em específico.
+// ============================================================
+let comprasHojeQueue = [];
+let currentCompraHojePopup = null;
+
+// Tabela de comissão do Closer (mesma usada em openRegraComissao()), mas
+// aqui como função — retorna o TOTAL acumulado no mês pra N vendas, pra dar
+// pra calcular o valor MARGINAL de uma venda específica (total(N) - total(N-1)).
+function totalComissaoCloserPorVendas(n) {
+  if (n <= 0) return 0;
+  if (n <= 14) return n * 100;
+  if (n === 15) return 2000;
+  if (n <= 19) return 2000 + (n - 15) * 100;
+  if (n === 20) return 3000;
+  return 3000 + (n - 20) * 100;
+}
+
+function comissaoVariavelDaVenda(lead) {
+  if (!user) return null;
+  const hoje = new Date();
+  const mesStr = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  if (user.papel === 'sdr' && lead.sdr_id === user.id) {
+    return { valor: 100, detalhe: 'SDR — valor fixo por venda fechada' };
+  }
+  if (user.papel === 'closer' && lead.closer_nome === user.nome) {
+    // Quantas vendas esse closer já tem fechadas este mês — essa entra como a próxima.
+    const jaFechadas = leads.filter(l => l.closer_nome === user.nome && l.status === 'Fechado'
+      && (l.data_compra_prevista || l.ultima_interacao || l.criado_em || '').slice(0,7) === mesStr).length;
+    const ordemDestaVenda = jaFechadas + 1;
+    const marginal = totalComissaoCloserPorVendas(ordemDestaVenda) - totalComissaoCloserPorVendas(ordemDestaVenda - 1);
+    return { valor: marginal, detalhe: `Closer — ${ordemDestaVenda}ª venda do mês, pela tabela de faixas` };
+  }
+  // Admin ou visualização fora do vínculo direto: mostra a referência padrão do SDR.
+  return { valor: 100, detalhe: 'Valor de referência (R$100/venda, faixa SDR)' };
+}
+
+function checkComprasAgendadasHoje() {
+  if (!user) return;
+  const hoje = todayStr();
+  const candidatos = leads.filter(l =>
+    l.status === 'Compra Agendada' &&
+    l.data_compra_prevista === hoje &&
+    (user.papel === 'admin' || l.sdr_id === user.id || l.closer_nome === user.nome)
+  );
+  for (const lead of candidatos) {
+    const key = `compra_hoje_shown_${lead.id}_${hoje}_${user.id}`;
+    if (sessionStorage.getItem(key)) continue;
+    comprasHojeQueue.push(lead);
+  }
+  showNextCompraHojePopup();
+}
+
+function showNextCompraHojePopup() {
+  if (currentCompraHojePopup || comprasHojeQueue.length === 0) return;
+  const lead = comprasHojeQueue.shift();
+  currentCompraHojePopup = lead;
+  sessionStorage.setItem(`compra_hoje_shown_${lead.id}_${todayStr()}_${user.id}`, '1');
+
+  document.getElementById('ch-nome').textContent = lead.nome;
+  document.getElementById('ch-empresa').textContent = lead.empresa || '—';
+  document.getElementById('ch-telefone').textContent = lead.telefone || '—';
+  document.getElementById('ch-programa').textContent = lead.programa || '—';
+  document.getElementById('ch-valor').textContent = lead.valor_oportunidade ? formatBRL(lead.valor_oportunidade) : '—';
+  document.getElementById('ch-responsaveis').textContent = [lead.sdr_nome, lead.closer_nome].filter(Boolean).join(' / ') || '—';
+
+  const com = comissaoVariavelDaVenda(lead);
+  const comEl = document.getElementById('ch-comissao');
+  if (comEl) comEl.textContent = com ? formatBRL(com.valor) + (com.detalhe ? ` · ${com.detalhe}` : '') : '—';
+
+  document.getElementById('popup-compra-hoje').classList.add('open');
+  playNotifySound();
+}
+
+function fecharPopupCompraHoje() {
+  document.getElementById('popup-compra-hoje').classList.remove('open');
+  currentCompraHojePopup = null;
+  setTimeout(showNextCompraHojePopup, 500);
+}
+
+function verCadastroCompraHoje() {
+  const lead = currentCompraHojePopup;
+  fecharPopupCompraHoje();
+  if (lead) editLead(lead.id);
+}
+
+// ============================================================
 // POP-UP RECOMENDAÇÃO — 2x ao dia no Dashboard
 // ============================================================
 function recomendacaoStorageKey() {
@@ -13472,6 +13653,7 @@ async function initNotificationSystems() {
   setTimeout(() => checkAvisosParaExibir(), 12000);
   setTimeout(() => checkAvisosAutomaticos(), 25000);
   setTimeout(() => checkConexoesPopup(), 40000);
+  setTimeout(() => checkComprasAgendadasHoje(), 55000);
 }
 
 // ─── Aviso de boas-vindas ao colaborador ────────────────────────────────────
