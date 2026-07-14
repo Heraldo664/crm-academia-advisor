@@ -8455,13 +8455,22 @@ function mostrarErrosAdmin(falhas) {
 // usuário volte pra uma aba e encontre a barra de rolagem no meio/direita,
 // já que as páginas do sistema não são recriadas ao trocar de aba — só
 // escondidas via CSS — então o scrollLeft antigo ficaria "preso".
+//
+// ATENÇÃO: a tabela "Todos os Leads" usa direction:rtl só pra colocar a
+// barra de rolagem visualmente à esquerda. Nesse caso, scrollLeft=0 é o
+// lado DIREITO (não o esquerdo) — o começo real (esquerda) é o valor
+// negativo -(scrollWidth - clientWidth). Por isso não dá pra tratar tudo
+// igual: precisa checar a direção de cada elemento.
 function resetHorizontalScrollBars() {
   document.querySelectorAll('*').forEach(el => {
-    if (el.scrollLeft > 0) {
-      const cs = getComputedStyle(el);
-      if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') {
-        el.scrollLeft = 0;
-      }
+    if (el.scrollWidth <= el.clientWidth) return; // sem overflow horizontal
+    const cs = getComputedStyle(el);
+    if (cs.overflowX !== 'auto' && cs.overflowX !== 'scroll') return;
+    if (cs.direction === 'rtl') {
+      const inicioEsquerda = -(el.scrollWidth - el.clientWidth);
+      if (el.scrollLeft !== inicioEsquerda) el.scrollLeft = inicioEsquerda;
+    } else if (el.scrollLeft !== 0) {
+      el.scrollLeft = 0;
     }
   });
 }
@@ -12954,6 +12963,12 @@ document.addEventListener('click', (e) => {
 let avisosAtivos = [];
 let avisoPopupQueue = [];
 let currentAvisoPopup = null;
+// Tempo de espera entre um aviso da fila e o próximo, depois que o colaborador
+// fecha o atual. Evita que vários avisos "vencidos" apareçam todos empilhados
+// nos primeiros minutos após o login — mantém 1 a cada ~10min, respeitando por
+// cima o throttle de 3h e as janelas de horário (manhã/tarde/fim do dia) que já
+// controlam quando cada aviso individual pode aparecer de novo.
+const AVISO_ESPACAMENTO_FILA = 10 * 60 * 1000;
 
 function isHorarioComercial() {
   const h = new Date().getHours();
@@ -13068,7 +13083,11 @@ async function dismissAvisoPopup(confirmou) {
     if (confirmou) sessionStorage.setItem(avisoAutoDismissKey(aviso.id), '1');
     document.getElementById('popup-aviso').classList.remove('open');
     currentAvisoPopup = null;
-    setTimeout(showNextAvisoPopup, 400);
+    // Espaça o próximo aviso da fila em ~10min em vez de mostrar em sequência —
+    // evita que vários avisos vencidos apareçam empilhados nos primeiros minutos
+    // após o login. O throttle de 3h e as janelas de horário continuam valendo
+    // por cima disso (essa espera só regula o ritmo dentro da fila).
+    setTimeout(showNextAvisoPopup, AVISO_ESPACAMENTO_FILA);
     return;
   }
 
@@ -13090,7 +13109,8 @@ async function dismissAvisoPopup(confirmou) {
   } catch(e) { /* ignora erro de rede, não trava o fluxo */ }
   document.getElementById('popup-aviso').classList.remove('open');
   currentAvisoPopup = null;
-  setTimeout(showNextAvisoPopup, 400);
+  // Mesmo espaçamento de ~10min entre avisos da fila (ver comentário acima).
+  setTimeout(showNextAvisoPopup, AVISO_ESPACAMENTO_FILA);
 }
 
 // ============================================================
