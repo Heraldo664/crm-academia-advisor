@@ -7028,7 +7028,7 @@ window.__initGuiaMentor = init;
     </div>
     
     <div class="field" id="l-data-compra-wrap" style="display:none">
-      <label>Data prevista de compra / prosseguimento</label>
+      <label id="l-data-compra-label">Data prevista de compra / prosseguimento</label>
       <input id="l-data-compra" type="date">
     </div>
     <div id="l-aluno-wrap" style="display:none">
@@ -10450,7 +10450,25 @@ function calcularEncerramentoCurso() {
 
 function onStatusChange() {
   const status = document.getElementById('l-status').value;
-  document.getElementById('l-data-compra-wrap').style.display = status === 'Compra Agendada' ? 'block' : 'none';
+  // Data de compra: aparece tanto em "Compra Agendada" (data prevista) quanto
+  // em "Fechado" (data real da compra) — isso garante que o faturamento seja
+  // contabilizado no mês certo, já que os relatórios de "vendas do mês" usam
+  // essa data como referência principal.
+  const mostrarDataCompra = status === 'Compra Agendada' || status === 'Fechado';
+  document.getElementById('l-data-compra-wrap').style.display = mostrarDataCompra ? 'block' : 'none';
+  const dataCompraLabel = document.getElementById('l-data-compra-label');
+  if (dataCompraLabel) {
+    dataCompraLabel.textContent = status === 'Fechado'
+      ? 'Data da compra (define o mês do faturamento) *'
+      : 'Data prevista de compra / prosseguimento';
+  }
+  // Se o lead está sendo marcado como Fechado e ainda não tem data de compra
+  // preenchida, sugere a data de hoje — evita fechar sem essa data e cair no
+  // fallback (última interação), que pode jogar a venda pro mês errado.
+  if (status === 'Fechado') {
+    const dataCompraInput = document.getElementById('l-data-compra');
+    if (dataCompraInput && !dataCompraInput.value) dataCompraInput.value = todayStr();
+  }
   document.getElementById('l-motivo-perda-wrap').style.display = status === 'Perdido' ? 'block' : 'none';
   // Campos de aluno aparecem apenas para leads Fechados
   const alunoWrap = document.getElementById('l-aluno-wrap');
