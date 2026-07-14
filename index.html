@@ -702,6 +702,42 @@ async function enviarPedidoEsqueciSenha() {
   <div class="page" id="page-dashboard">
     <div class="page-header">
       <div class="page-title">Dashboard</div>
+      <div style="position:relative;display:inline-flex;align-items:center">
+        <button id="dash-picker-btn" onclick="toggleDashPicker()"
+          style="display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:10px;background:var(--surface3);border:1.5px solid var(--border);color:var(--text);cursor:pointer;font-size:14px;font-weight:600;transition:all .15s" 
+          onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--surface2)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface3)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span id="dash-picker-label">Este mês</span>
+        </button>
+        <div id="dash-picker-popup"
+          style="display:none;position:fixed;top:0;left:0;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;z-index:9999;min-width:300px;box-shadow:0 12px 40px rgba(0,0,0,.8)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span style="font-size:15px;font-weight:700;color:var(--text)">Selecionar Período</span>
+          </div>
+          <div style="font-size:15px;color:var(--muted);margin-bottom:12px">Escolha uma data ou intervalo — afeta os números de Leads, Diagnósticos, Comparecimentos e No-show abaixo. Faturamento, % da Meta e Nota de Eficiência continuam sempre referentes ao mês atual.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div class="field" style="margin:0">
+              <label style="font-size:15px">De</label>
+              <input type="date" id="dash-date-from" onchange="applyDashDatePicker()" style="width:100%;color-scheme:dark;background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px">
+            </div>
+            <div class="field" style="margin:0">
+              <label style="font-size:15px">Até</label>
+              <input type="date" id="dash-date-to" onchange="applyDashDatePicker()" style="width:100%;color-scheme:dark;background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('hoje')">Hoje</button>
+            <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('semana')">Últimos 7 dias</button>
+            <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('mes')" style="grid-column:1/-1">Este mês</button>
+          </div>
+        </div>
+      </div>
       <div class="view-toggle" id="dash-view-toggle" style="display:none">
         <button class="view-btn active" id="dvt-geral" onclick="setDashView('geral')">Visão Geral</button>
         <button class="view-btn" id="dvt-individual" onclick="setDashView('individual')">Por Colaborador</button>
@@ -712,8 +748,8 @@ async function enviarPedidoEsqueciSenha() {
 
       <!-- ─── KPIs MACRO: 4 números que importam ─────────────────────── -->
       <div id="dash-kpis-macro" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
-        <div id="kpi-leads-mes" onclick="irParaLeadsPorStatus('', mesAtualStr())" title="Ver os leads cadastrados este mês" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center">
-          <div style="font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Leads este mês</div>
+        <div id="kpi-leads-mes" onclick="irParaLeadsPorStatus('', mesAtualStr())" title="Ver os leads cadastrados no período selecionado" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center">
+          <div id="kpi-leads-label" style="font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Leads (Este mês)</div>
           <div id="kpi-leads-num" style="font-size:52px;font-weight:900;color:var(--accent);line-height:1;letter-spacing:-2px">—</div>
           <div id="kpi-leads-sub" style="font-size:14px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
@@ -737,49 +773,11 @@ async function enviarPedidoEsqueciSenha() {
 
       <div class="stats-grid" style="grid-template-columns: 1fr 1fr">
         <div class="panel" style="margin-bottom:0">
-          <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-            <span style="display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700">
+          <div class="panel-title">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            Período
-          </span>
-            <div style="position:relative;display:inline-flex;align-items:center">
-              <button id="dash-picker-btn" onclick="toggleDashPicker()"
-                style="display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:10px;background:var(--surface3);border:1.5px solid var(--border);color:var(--text);cursor:pointer;font-size:14px;font-weight:600;transition:all .15s" 
-                onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--surface2)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface3)'">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <span id="dash-picker-label">Escolher data</span>
-              </button>
-              <div id="dash-picker-popup"
-                style="display:none;position:fixed;top:0;left:0;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;z-index:9999;min-width:300px;box-shadow:0 12px 40px rgba(0,0,0,.8)">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                  </svg>
-                  <span style="font-size:15px;font-weight:700;color:var(--text)">Selecionar Período</span>
-                </div>
-                <div style="font-size:15px;color:var(--muted);margin-bottom:12px">Escolha uma data ou intervalo para filtrar os dados</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-                  <div class="field" style="margin:0">
-                    <label style="font-size:15px">De</label>
-                    <input type="date" id="dash-date-from" onchange="applyDashDatePicker()" style="width:100%;color-scheme:dark;background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px">
-                  </div>
-                  <div class="field" style="margin:0">
-                    <label style="font-size:15px">Até</label>
-                    <input type="date" id="dash-date-to" onchange="applyDashDatePicker()" style="width:100%;color-scheme:dark;background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px">
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-                  <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('hoje')">Hoje</button>
-                  <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('semana')">Últimos 7 dias</button>
-                  <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('mes')" style="grid-column:1/-1">Este mês</button>
-                </div>
-              </div>
-            </div>
+            Atividade no Período
           </div>
           <div id="dash-hoje-stats" class="stats-grid" style="margin-bottom:0"></div>
         </div>
@@ -8620,7 +8618,7 @@ function renderDashboardExecutivo() {
 
   el.innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px">
-      <div class="stat-card"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Faturamento Mês</div><div class="stat-value gold">${formatBRL(faturamento)}</div></div>
+      <div class="stat-card" onclick="irParaLeadsPorStatus('Fechado', mesAtual)" title="Ver os leads fechados que compõem este número" style="cursor:pointer"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Faturamento Mês</div><div class="stat-value gold">${formatBRL(faturamento)}</div></div>
       <div class="stat-card"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> CAC (Custo por Venda)</div><div class="stat-value accent">${formatBRL(cac)}</div><div class="stat-sub">Inv. R$${formatBRL(INV_TOTAL)} / ${vendasMes.length} vendas</div></div>
       <div class="stat-card"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> ROI</div><div class="stat-value ${roi>=0?'green':'red'}">${roi.toFixed(0)}%</div><div class="stat-sub">${roi>=0?'Positivo':'Negativo'}</div></div>
     </div>
@@ -8975,13 +8973,13 @@ function renderCycleTime() {
   el.innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px">
       <div class="stat-card"><div class="stat-label">⏱ Cadastro → Diagnóstico</div><div class="stat-value accent">${mediaDiag ? mediaDiag + ' dias' : '—'}</div><div class="stat-sub">${leadsComDiag.length} leads</div></div>
-      <div class="stat-card gold-border"><div class="stat-label">⏱ Cadastro → Venda</div><div class="stat-value gold">${mediaVend ? mediaVend + ' dias' : '—'}</div><div class="stat-sub">${leadsVend.length} vendas</div></div>
+      <div class="stat-card gold-border" onclick="irParaLeadsPorStatus('Fechado', '')" title="Ver os leads fechados que compõem essa média" style="cursor:pointer"><div class="stat-label">⏱ Cadastro → Venda</div><div class="stat-value gold">${mediaVend ? mediaVend + ' dias' : '—'}</div><div class="stat-sub">${leadsVend.length} vendas</div></div>
     </div>
     <div style="font-size:15px;font-weight:800;letter-spacing:.4px;color:var(--muted);margin-bottom:14px">VOLUME POR ETAPA</div>
     ${counts.map(({s, n}) => {
       const pct = Math.round(n / maxN * 100);
       const cor = corMap[s] || 'var(--muted)';
-      return `<div style="display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:12px;margin-bottom:10px">
+      return `<div onclick="irParaLeadsPorStatus('${s}', '')" title="Ver os leads em '${s}'" style="cursor:pointer;display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:12px;margin-bottom:10px">
         <div style="font-size:15px;font-weight:600">${s}</div>
         <div style="background:var(--surface3);border-radius:5px;height:14px">
           <div style="height:14px;border-radius:5px;background:${cor};width:${pct}%"></div>
@@ -9244,7 +9242,6 @@ function mesAtualStr() {
 function renderKPIsMacro() {
   const hoje = new Date();
   const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
-  const leadsDoMes = leads.filter(l => (l.criado_em||'').startsWith(mesAtual));
   const vendasMes  = leads.filter(l => l.status === 'Fechado' && ((l.data_compra_prevista||l.ultima_interacao||'')).startsWith(mesAtual));
   const fat = vendasMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivosKpi = colaboradores.filter(cx => cx.papel==='closer').length || 1;
@@ -9252,17 +9249,15 @@ function renderKPIsMacro() {
   const pct = meta > 0 ? Math.round(fat/meta*100) : 0;
   const cor = pct >= 100 ? 'var(--green)' : pct >= 70 ? 'var(--yellow)' : 'var(--red)';
 
-  // Leads
-  const leadsEl = document.getElementById('kpi-leads-num');
-  const leadsSub = document.getElementById('kpi-leads-sub');
-  if (leadsEl) { leadsEl.textContent = leadsDoMes.length; }
-  if (leadsSub) { leadsSub.textContent = vendasMes.length + ' fechamentos · ' + (leadsDoMes.length - vendasMes.length) + ' em aberto'; }
+  // Leads: o card "Leads (período)" do topo é preenchido por renderDashHojeEMes(),
+  // que roda antes desta função — assim ele fica sempre coerente com o mesmo
+  // seletor de período usado no painel "Atividade no Período" logo abaixo.
 
   // Faturamento
   const fatEl  = document.getElementById('kpi-fat-num');
   const fatSub = document.getElementById('kpi-fat-sub');
   if (fatEl) { fatEl.textContent  = formatBRL(fat); }
-  if (fatSub) { fatSub.textContent = 'meta: ' + formatBRL(meta) + ' · faltam ' + formatBRL(Math.max(0,meta-fat)); }
+  if (fatSub) { fatSub.textContent = vendasMes.length + ' vendas · meta: ' + formatBRL(meta) + ' · faltam ' + formatBRL(Math.max(0,meta-fat)); }
 
   // % Meta
   const metaEl  = document.getElementById('kpi-meta-num');
@@ -9338,12 +9333,12 @@ function renderDashGeral() {
   const emRisco = leads.filter(l => followupAlerta(l)).length;
 
   document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Total de Leads</div><div class="stat-value accent">${total}</div></div>
-    <div class="stat-card"><div class="stat-label">Fechados</div><div class="stat-value green">${fechados}</div></div>
+    <div class="stat-card" onclick="irParaLeadsPorStatus('', '')" title="Ver todos os leads" style="cursor:pointer"><div class="stat-label">Total de Leads</div><div class="stat-value accent">${total}</div></div>
+    <div class="stat-card" onclick="irParaLeadsPorStatus('Fechado', '')" title="Ver os leads fechados" style="cursor:pointer"><div class="stat-label">Fechados</div><div class="stat-value green">${fechados}</div></div>
     <div class="stat-card"><div class="stat-label">Diagnósticos</div><div class="stat-value yellow">${diags}</div></div>
     <div class="stat-card"><div class="stat-label">Taxa de Fechamento</div><div class="stat-value">${taxa}%</div></div>
     <div class="stat-card gold-border"><div class="stat-label">Pipeline Total</div><div class="stat-value gold">${formatBRL(valorTotal)}</div></div>
-    <div class="stat-card"><div class="stat-label">Leads em Risco</div><div class="stat-value red">${emRisco}</div><div class="stat-sub">sem interação há 2+ dias</div></div>
+    <div class="stat-card" onclick="document.getElementById('dash-leads-risco')?.scrollIntoView({behavior:'smooth',block:'center'})" title="Ver a lista desses leads, logo abaixo" style="cursor:pointer"><div class="stat-label">Leads em Risco</div><div class="stat-value red">${emRisco}</div><div class="stat-sub">sem interação há 2+ dias</div></div>
   `;
 
   renderFunnel();
@@ -9364,34 +9359,38 @@ function renderDashGeral() {
   if (typeof renderMetaSemanalSDR === 'function') renderMetaSemanalSDR();
 }
 
-// Painéis "Hoje" e "Mês" pedidos para visão geral do Admin: leads novos,
-// diagnósticos e comparecimentos do dia; e meta x realizado x projeção
-// do mês corrente (meta = soma das metas individuais dos colaboradores).
-let currentDashPeriodo = 'hoje';
-function setDashPeriodo(p) {
-  currentDashPeriodo = p;
-  ['hoje','semana','mes'].forEach(id => {
-    const btn = document.getElementById('dp-' + id);
-    if (btn) btn.classList.toggle('active', id === p);
-  });
-  renderDashHojeEMes();
+// Painéis "Atividade no Período" e "Mês Atual" da visão geral do Admin.
+// O seletor único no cabeçalho do Dashboard controla tanto o card "Leads" do
+// topo quanto este painel — Faturamento/% da Meta/Nota de Eficiência ficam
+// sempre fixos no mês atual de propósito (são os indicadores estratégicos
+// que não devem mudar conforme alguém navega por outros períodos).
+function primeiroDiaMesStr() {
+  const d = new Date(); d.setDate(1);
+  return d.toISOString().slice(0,10);
+}
+let dashPeriodoAtual = { inicio: primeiroDiaMesStr(), fim: todayStr(), label: 'Este mês' };
+
+// A tela de Leads só sabe filtrar por mês inteiro (não por um intervalo de
+// dias qualquer). Então, ao clicar no card "Leads" do topo, só levamos o
+// filtro de mês junto quando o período selecionado for de fato "este mês"
+// inteiro — pros outros períodos (hoje, 7 dias, intervalo customizado),
+// vamos sem filtro de mês pra não mostrar um recorte que não bate com o
+// número que a pessoa acabou de ver.
+function irParaLeadsDoPeriodoAtual() {
+  const ehMesInteiro = dashPeriodoAtual.inicio === primeiroDiaMesStr();
+  irParaLeadsPorStatus('', ehMesInteiro ? mesAtualStr() : '');
 }
 
 function renderDashHojeEMes() {
   const agora = new Date();
-  const hojeStr = todayStr();
   const mesAtual = agora.getMonth() + 1;
   const anoAtual = agora.getFullYear();
   const mesStr = `${anoAtual}-${String(mesAtual).padStart(2,'0')}`;
   const TICKET = 2997;
   const isAdm = user && user.papel === 'admin';
-  const p = (typeof currentDashPeriodo !== 'undefined' ? currentDashPeriodo : null) || 'hoje';
-  let dataInicio;
-  if (p === 'hoje') { dataInicio = hojeStr; }
-  else if (p === 'semana') { const d = new Date(); d.setDate(d.getDate()-7); dataInicio = d.toISOString().slice(0,10); }
-  else { dataInicio = mesStr + '-01'; }
-  const labelPeriodo = p==='hoje' ? 'Hoje' : p==='semana' ? 'Últimos 7 dias' : 'Este mês';
-  const inP = str => { const d = isoToLocalDate(str); return d && d >= dataInicio; };
+
+  const { inicio: dataInicio, fim: dataFim, label: labelPeriodo } = dashPeriodoAtual;
+  const inP = str => { const d = isoToLocalDate(str); return d && d >= dataInicio && d <= dataFim; };
 
   const leadsP = leads.filter(l => inP(l.criado_em)).length;
   const diagsP = leads.filter(l => l.data_diagnostico && inP(l.data_diagnostico)).length;
@@ -9400,9 +9399,22 @@ function renderDashHojeEMes() {
   const nsP = tarefas.filter(t => inP(t.data) && t.status_reuniao==='nao_compareceu').length;
   const taxaNSP = agendP > 0 ? Math.round(nsP/agendP*100) : 0;
 
+  // Card "Leads" do topo (kpi-leads-mes) — mesmo período do painel abaixo,
+  // pra não ter dois números de leads diferentes na mesma tela.
+  const leadsLabelEl = document.getElementById('kpi-leads-label');
+  const leadsNumEl = document.getElementById('kpi-leads-num');
+  const leadsSubEl = document.getElementById('kpi-leads-sub');
+  if (leadsLabelEl) leadsLabelEl.textContent = `Leads (${labelPeriodo})`;
+  if (leadsNumEl) leadsNumEl.textContent = leadsP;
+  if (leadsSubEl) {
+    const fechadosNoPeriodo = leads.filter(l => l.status === 'Fechado' && inP(l.data_compra_prevista || l.ultima_interacao || l.criado_em)).length;
+    leadsSubEl.textContent = `${fechadosNoPeriodo} fechamentos · ${leadsP - fechadosNoPeriodo} em aberto`;
+  }
+  const picoLabel = document.getElementById('dash-picker-label');
+  if (picoLabel) picoLabel.textContent = labelPeriodo;
+
   document.getElementById('dash-hoje-stats').innerHTML = `
     <div style="font-size:15px;color:var(--muted);grid-column:1/-1">${labelPeriodo}</div>
-    <div class="stat-card"><div class="stat-label">Leads Novos</div><div class="stat-value accent">${leadsP}</div></div>
     <div class="stat-card"><div class="stat-label">Diagnósticos Agendados</div><div class="stat-value yellow">${diagsP}</div></div>
     <div class="stat-card"><div class="stat-label">Compareceram</div><div class="stat-value green">${compP}</div></div>
     <div class="stat-card ${nsP>0?'red-border':''}"><div class="stat-label">No-Show</div><div class="stat-value ${nsP>0?'red':'muted'}">${nsP}${agendP>0?` <span style="font-size:14px">(${taxaNSP}%)</span>`:''}</div></div>
@@ -9417,22 +9429,17 @@ function renderDashHojeEMes() {
   const diaDoMes = agora.getDate();
   const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
   const projecao = diaDoMes > 0 ? Math.round(realizadoMes/diaDoMes*diasNoMes) : realizadoMes;
-  const pctMeta = metaValor > 0 ? Math.min(100, Math.round(realizadoMes/metaValor*100)) : 0;
   const nsMes = tarefas.filter(t => t.data.slice(0,7)===mesStr && t.status_reuniao==='nao_compareceu').length;
   const agendMes = tarefas.filter(t => t.data.slice(0,7)===mesStr).length;
   const taxaNSM = agendMes > 0 ? Math.round(nsMes/agendMes*100) : 0;
   const reagMes = tarefas.filter(t => t.data.slice(0,7)===mesStr && t.status_reuniao==='reagendou').length;
 
   document.getElementById('dash-mes-stats').innerHTML = `
-    <div class="stat-card gold-border">
+    <div class="stat-card gold-border" onclick="irParaLeadsPorStatus('Fechado', '${mesStr}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer">
       <div class="stat-label">Meta — ${META_TOTAL} vendas</div>
       <div class="stat-value gold">${isAdm ? formatBRL(metaValor) : `${META_TOTAL} vendas`}</div>
-    </div>
-    <div class="stat-card" onclick="irParaLeadsPorStatus('Fechado', '${mesStr}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer">
-      <div class="stat-label">Realizado — ${vendasMes} vendas</div>
-      <div class="stat-value green">${isAdm ? formatBRL(realizadoMes) : `${vendasMes} vendas`}</div>
-      <div style="margin-top:6px;background:var(--surface3);border-radius:4px;height:6px"><div style="height:6px;border-radius:4px;background:var(--green);width:${pctMeta}%"></div></div>
-      <div style="font-size:14px;color:var(--muted);margin-top:3px">${pctMeta}% da meta</div>
+      <div style="margin-top:6px;background:var(--surface3);border-radius:4px;height:6px"><div style="height:6px;border-radius:4px;background:var(--green);width:${metaValor>0?Math.min(100,Math.round(realizadoMes/metaValor*100)):0}%"></div></div>
+      <div style="font-size:14px;color:var(--muted);margin-top:3px">${vendasMes} vendas realizadas · ${metaValor>0?Math.min(100,Math.round(realizadoMes/metaValor*100)):0}% da meta</div>
     </div>
     <div class="stat-card"><div class="stat-label">Projeção</div><div class="stat-value accent">${isAdm ? formatBRL(projecao) : `~${Math.round(projecao/TICKET)} vendas`}</div></div>
     <div class="stat-card ${taxaNSM>20?'red-border':''}"><div class="stat-label">No-Show mês</div><div class="stat-value ${taxaNSM>20?'red':'muted'}">${nsMes} (${taxaNSM}%)</div><div class="stat-sub">Reagendados: ${reagMes}</div></div>
@@ -12717,18 +12724,18 @@ function toggleDashPicker() {
   // Calcular posição relativa à viewport
   const rect = btn.getBoundingClientRect();
   popup.style.display = 'block';
-  // Posicionar abaixo e alinhado à direita do botão
-  const pw = popup.offsetWidth || 280;
-  let left = rect.right - pw;
+  // Posicionar abaixo e alinhado à esquerda do botão (fica no topo da página agora)
+  const pw = popup.offsetWidth || 300;
+  let left = rect.left;
+  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
   if (left < 8) left = 8;
   popup.style.top = (rect.bottom + 6 + window.scrollY) + 'px';
   popup.style.left = left + 'px';
-  // Pre-fill com hoje
-  const hoje = todayStr();
+  // Pre-fill com o período atualmente selecionado
   const f = document.getElementById('dash-date-from');
   const t = document.getElementById('dash-date-to');
-  if (f && !f.value) f.value = hoje;
-  if (t && !t.value) t.value = hoje;
+  if (f) f.value = dashPeriodoAtual.inicio;
+  if (t) t.value = dashPeriodoAtual.fim;
 }
 
 function closeDashPicker() {
@@ -12744,15 +12751,13 @@ function applyDashPreset(preset) {
     inicio = d.toISOString().slice(0, 10);
     label = 'Últimos 7 dias';
   } else if (preset === 'mes') {
-    const d = new Date(); d.setDate(1);
-    inicio = d.toISOString().slice(0, 10);
+    inicio = primeiroDiaMesStr();
     label = 'Este mês';
   }
   const f = document.getElementById('dash-date-from');
   const t = document.getElementById('dash-date-to');
   if (f) f.value = inicio;
   if (t) t.value = fim;
-  // Não altera o label do botão — mantém sempre "Escolher data"
   closeDashPicker();
   applyDashCustomRange(inicio, fim, label);
 }
@@ -12763,31 +12768,16 @@ function applyDashDatePicker() {
   if (!from && !to) return;
   const inicio = from || to, fim = to || from;
   const label = inicio === fim ? formatDate(inicio) : formatDate(inicio) + ' → ' + formatDate(fim);
-  const lbl = document.getElementById('dash-picker-label');
-  if (lbl) lbl.textContent = label;
   applyDashCustomRange(inicio, fim, label);
 }
 
+// Único ponto que atualiza o período do Dashboard — grava o estado compartilhado
+// e deixa renderDashHojeEMes() (fonte única de verdade) recalcular tanto o card
+// "Leads" do topo quanto o painel "Atividade no Período".
 function applyDashCustomRange(inicio, fim, label) {
   label = label || (inicio === fim ? formatDate(inicio) : formatDate(inicio) + ' → ' + formatDate(fim));
-  const inP = str => { const d = isoToLocalDate(str); return d && d >= inicio && d <= fim; };
-  const leadsP  = leads.filter(l => inP(l.criado_em)).length;
-  const diagsP  = leads.filter(l => l.data_diagnostico && inP(l.data_diagnostico)).length;
-  const compP   = leads.filter(l => l.status === 'Diagnóstico Realizado' && inP(l.ultima_interacao)).length;
-  const agendP  = tarefas.filter(t => inP(t.data)).length;
-  const nsP     = tarefas.filter(t => inP(t.data) && t.status_reuniao === 'nao_compareceu').length;
-  const taxaNSP = agendP > 0 ? Math.round(nsP / agendP * 100) : 0;
-  const el = document.getElementById('dash-hoje-stats');
-  if (!el) return;
-  el.innerHTML = `
-    <div style="font-size:15px;color:var(--muted);grid-column:1/-1;margin-bottom:4px">${label}</div>
-    <div class="stat-card"><div class="stat-label">Leads Novos</div><div class="stat-value accent">${leadsP}</div></div>
-    <div class="stat-card"><div class="stat-label">Diagnósticos Agendados</div><div class="stat-value yellow">${diagsP}</div></div>
-    <div class="stat-card"><div class="stat-label">Compareceram</div><div class="stat-value green">${compP}</div></div>
-    <div class="stat-card ${nsP > 0 ? 'red-border' : ''}">
-      <div class="stat-label">No-Show</div>
-      <div class="stat-value ${nsP > 0 ? 'red' : 'muted'}">${nsP}${agendP > 0 ? ` <span style="font-size:14px">(${taxaNSP}%)</span>` : ''}</div>
-    </div>`;
+  dashPeriodoAtual = { inicio, fim, label };
+  renderDashHojeEMes();
 }
 
 // ── Daily Report Date Picker ───────────────────────────────────────────────
