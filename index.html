@@ -701,6 +701,7 @@ async function enviarPedidoEsqueciSenha() {
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
     <div class="page-header">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div class="page-title">Dashboard</div>
       <div style="position:relative;display:inline-flex;align-items:center">
         <button id="dash-picker-btn" onclick="toggleDashPicker()"
@@ -737,6 +738,7 @@ async function enviarPedidoEsqueciSenha() {
             <button class="btn btn-ghost btn-sm" onclick="applyDashPreset('mes')" style="grid-column:1/-1">Este mês</button>
           </div>
         </div>
+      </div>
       </div>
       <div class="view-toggle" id="dash-view-toggle" style="display:none">
         <button class="view-btn active" id="dvt-geral" onclick="setDashView('geral')">Visão Geral</button>
