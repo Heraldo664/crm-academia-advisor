@@ -8184,7 +8184,7 @@ async function recarregarDados() {
       d.setMinutes(0,0,0);
       return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d.toISOString();
     })()).catch(() => historicoStatus),
-      getCached('guias', '?select=*&order=titulo.asc').catch(() => guias.length ? guias : _loadGuiasLocal()),
+      getCached('guias', '?select=id,titulo,descricao,link&order=titulo.asc').catch(() => guias.length ? guias : _loadGuiasLocal()),
     ]);
 
     // Re-renderiza apenas a página atual
@@ -8450,6 +8450,24 @@ function mostrarErrosAdmin(falhas) {
     + falhas.map(f => `<li>${f}</li>`).join('') + '</ul>';
 }
 
+// Zera a posição de rolagem horizontal de qualquer tabela/painel com scroll
+// lateral (ex: lista de leads, tabelas de relatório, kanban). Evita que o
+// usuário volte pra uma aba e encontre a barra de rolagem no meio/direita,
+// já que as páginas do sistema não são recriadas ao trocar de aba — só
+// escondidas via CSS — então o scrollLeft antigo ficaria "preso".
+function resetHorizontalScrollBars() {
+  document.querySelectorAll('*').forEach(el => {
+    if (el.scrollLeft > 0) {
+      const cs = getComputedStyle(el);
+      if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') {
+        el.scrollLeft = 0;
+      }
+    }
+  });
+}
+window.addEventListener('load', resetHorizontalScrollBars);
+window.addEventListener('pageshow', resetHorizontalScrollBars);
+
 function navigateTo(pageId) {
   // Botão do menu a destacar (pode diferir da página real exibida): o Guia
   // do Mentor agora vive dentro de Treinamento, então destaca essa aba.
@@ -8494,6 +8512,9 @@ function navigateTo(pageId) {
   }
   if (targetPageId === 'playbook') { if (typeof pbRenderMetasVigentes === 'function') pbRenderMetasVigentes(); }
   if (targetPageId === 'admin') { renderAdminSeguro(); }
+  // Garante que nenhuma tabela/painel fique com scroll horizontal "preso"
+  // de uma visita anterior à mesma aba.
+  setTimeout(resetHorizontalScrollBars, 0);
 }
 
 
@@ -8938,12 +8959,12 @@ async function loadData() {
       getAllCached('leads', '?select=*&order=criado_em.desc', _cache.ttl.leads),
       get('daily_reports', '?select=*&order=data.desc'),
       get('tarefas', '?select=*&order=data.asc').catch(() => []),
-      get('metas', '?select=*').catch(() => []),
+      get('metas', '?select=id,colaborador_id,mes,ano,meta_diagnosticos,meta_vendas,meta_contatos_diarios').catch(() => []),
       get('historico_status', (() => {
       const d30 = new Date(Date.now() - 30*24*60*60*1000).toISOString();
       return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d30;
     })()).catch(() => []),
-      get('guias', '?select=*&order=titulo.asc').catch(() => _loadGuiasLocal())
+      get('guias', '?select=id,titulo,descricao,link&order=titulo.asc').catch(() => _loadGuiasLocal())
     ]);
     if (user.papel === 'admin') {
       solicitacoesSenha = await get('solicitacoes_senha', '?select=*&order=criado_em.desc').catch(() => []);
@@ -13119,7 +13140,7 @@ let avisosAutomaticos = [];
 
 async function loadAvisosAutomaticos() {
   try {
-    avisosAutomaticos = await get('avisos_automaticos', '?ativo=eq.true&select=*&order=ordem.asc');
+    avisosAutomaticos = await get('avisos_automaticos', '?ativo=eq.true&select=id,texto,cor,ordem,ativo&order=ordem.asc');
   } catch(e) { avisosAutomaticos = []; }
 }
 
