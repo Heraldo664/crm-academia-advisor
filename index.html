@@ -68,10 +68,10 @@
   .topbar-icon-badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
   .notif-panel { position: absolute; top: 56px; right: 16px; width: 340px; max-height: 480px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.4); z-index: 200; display: none; }
   .notif-panel.open { display: block; }
-  .notif-item { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .notif-item { padding: 13px 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
   .notif-item:last-child { border-bottom: none; }
-  .notif-item-title { font-weight: 700; margin-bottom: 2px; }
-  .notif-item-sub { color: var(--muted); font-size: 12px; }
+  .notif-item-title { font-weight: 700; margin-bottom: 3px; }
+  .notif-item-sub { color: var(--muted); font-size: 12.5px; }
   .wa-bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.4; }
   .wa-bubble.lead { align-self: flex-start; background: var(--surface2); border: 1px solid var(--border); }
   .wa-bubble.automacao { align-self: flex-end; background: var(--accent); color: #fff; }
@@ -115,7 +115,7 @@
   .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; overflow: hidden; flex-shrink: 0; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
   .user-info { font-size: 13px; line-height: 1.3; }
-  .user-role { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: .5px; }
+  .user-role { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: .4px; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
   .status-online { background: var(--green); box-shadow: 0 0 6px var(--green); }
   .status-away { background: var(--yellow); }
@@ -129,31 +129,31 @@
   .page { display: none; padding: 22px; max-width: 1500px; margin: 0 auto; }
   .page.active { display: block; }
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
-  .page-title { font-size: 24px; font-weight: 900; letter-spacing: -.3px; }
+  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -.3px; }
   .page-title .gold { color: var(--gold-light); }
 
   /* CARDS / STATS */
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; 
-    transition: border-color .2s, transform .2s;
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; box-shadow: var(--card-shadow);
+    transition: border-color .2s, transform .2s, box-shadow .2s;
   }
-  .stat-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 22px rgba(0,0,0,.5); }
   .stat-card.gold-border { border-color: rgba(212,175,55,.35); }
-    .stat-label { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-  .stat-value { font-size: 30px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-size: 32px; font-weight: 900; line-height: 1.1; }
   .stat-value.green { color: var(--green); }
   .stat-value.accent { color: var(--accent); }
   .stat-value.yellow { color: var(--yellow); }
   .stat-value.red { color: var(--red); }
   .stat-value.gold { color: var(--gold-light); }
-  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .stat-sub { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
 
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 20px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 26px 28px; margin-bottom: 24px; box-shadow: var(--card-shadow); }
   .panel-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 900;
-    letter-spacing: .4px;
-    margin-bottom: 18px;
+    letter-spacing: .3px;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -164,16 +164,16 @@
   .panel-title svg { flex-shrink: 0; stroke: var(--accent); opacity: 1; }
 
   /* TABLE */
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); }
   .table-toolbar { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .search-input { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 7px 12px; color: var(--text); font-size: 13px; outline: none; width: 200px; font-family: inherit; }
   .search-input:focus { border-color: var(--accent); }
   table { width: 100%; border-collapse: collapse; }
-  thead th { background: var(--surface2); padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+  thead th { background: var(--surface2); padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
   tbody tr { border-top: 1px solid var(--border); transition: background .1s; }
   tbody tr:hover { background: var(--surface2); }
-  tbody td { padding: 11px 14px; font-size: 13px; }
-  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  tbody td { padding: 13px 16px; font-size: 14px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; white-space: nowrap; }
   .badge-green { background: rgba(34,201,123,.15); color: var(--green); }
   .badge-blue { background: rgba(79,138,255,.15); color: var(--accent); }
   .badge-yellow { background: rgba(245,166,35,.15); color: var(--yellow); }
@@ -191,7 +191,7 @@
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
-  .modal-section { font-size: 12px; font-weight: 800; color: var(--gold-light); text-transform: uppercase; letter-spacing: .5px; margin: 22px 0 12px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .modal-section { font-size: 13px; font-weight: 800; color: var(--gold-light); text-transform: uppercase; letter-spacing: .4px; margin: 22px 0 14px; border-top: 1px solid var(--border); padding-top: 18px; }
   .modal-section:first-of-type { margin-top: 0; border-top: none; padding-top: 0; }
   #modal-lead .modal { width: 1240px; max-width: 94vw; }
   .modal-lead-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 36px; align-items: start; }
@@ -199,10 +199,11 @@
   @media (max-width: 900px) {
     #modal-lead .modal { width: 620px; }
     .modal-lead-cols { grid-template-columns: 1fr; column-gap: 0; }
+    .check-grid { grid-template-columns: 1fr; }
   }
 
   /* checkboxes for objetivos */
-  .check-grid { display: flex; flex-direction: column; gap: 8px; }
+  .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .check-item { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: all .15s; font-size: 13px; }
   .check-item:hover { border-color: var(--accent); }
   .check-item.checked { border-color: var(--green); background: rgba(34,201,123,.08); }
@@ -211,10 +212,10 @@
 
   /* KANBAN */
   .kanban { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 16px; }
-  .kanban-col { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 270px; min-width: 270px; max-width: 270px; flex-shrink: 0; }
+  .kanban-col { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 270px; min-width: 270px; max-width: 270px; flex-shrink: 0; box-shadow: var(--card-shadow); }
   .kanban-col.gold-col { border: 1px solid rgba(212,175,55,.4); background: linear-gradient(180deg, rgba(212,175,55,.07), var(--surface) 40%); }
-  .kanban-header { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-  .kanban-count { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 1px 8px; font-size: 11px; font-weight: 700; }
+  .kanban-header { padding: 13px 15px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+  .kanban-count { background: var(--surface2); color: var(--muted); border-radius: 20px; padding: 2px 9px; font-size: 12px; font-weight: 800; }
   .gold-col .kanban-count { background: rgba(212,175,55,.2); color: var(--gold-light); }
   .kanban-cards { padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 160px; max-height: 480px; overflow-y: auto; }
   .kanban-card {
@@ -233,32 +234,32 @@
   }
   .kanban-card:hover { border-color: var(--accent); }
   .gold-col .kanban-card { border-color: rgba(212,175,55,.25); }
-  .kanban-card-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; overflow-wrap: anywhere; word-break: break-word; }
-  .kanban-card-sub { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; word-break: break-word; }
-  .kanban-card-val { font-size: 11px; color: var(--green); font-weight: 700; margin-top: 4px; }
+  .kanban-card-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; overflow-wrap: anywhere; word-break: break-word; }
+  .kanban-card-sub { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; word-break: break-word; }
+  .kanban-card-val { font-size: 12px; color: var(--green); font-weight: 700; margin-top: 5px; }
 
   /* EVENTS BOARD */
   .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
   .event-col { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .event-col-list { max-height: 480px; overflow-y: auto; padding-right: 4px; }
   .event-col-title { font-size: 13px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-  .event-item { background: var(--surface2); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid var(--accent); }
+  .event-item { background: var(--surface2); border-radius: 8px; padding: 11px 13px; margin-bottom: 8px; border-left: 3px solid var(--accent); }
   .event-item.aquecer { border-left-color: #6bd1ff; }
   .event-item.quente { border-left-color: var(--red); }
   .event-item.call_fechamento { border-left-color: var(--gold); }
-  .event-lead { font-size: 13px; font-weight: 700; }
-  .event-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .event-lead { font-size: 14px; font-weight: 700; }
+  .event-meta { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
   .event-meet { color: var(--accent); text-decoration: none; font-weight: 700; }
 
   /* DAILY REPORT */
   .report-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-  .report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .report-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-  .report-date { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
-  .report-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .report-stat { background: var(--surface2); border-radius: 8px; padding: 10px; }
-  .report-stat-label { font-size: 11px; color: var(--muted); }
-  .report-stat-val { font-size: 22px; font-weight: 800; }
+  .report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; box-shadow: var(--card-shadow); }
+  .report-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .report-date { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+  .report-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .report-stat { background: var(--surface2); border-radius: 8px; padding: 11px 12px; }
+  .report-stat-label { font-size: 12px; color: var(--muted); }
+  .report-stat-val { font-size: 23px; font-weight: 800; }
 
   /* PROGRESS BAR */
   .progress-block { margin-bottom: 18px; }
@@ -270,18 +271,18 @@
 
   /* RANKING */
   .ranking-list { display: flex; flex-direction: column; gap: 10px; }
-  .ranking-item { display: flex; align-items: center; gap: 14px; background: var(--surface2); border-radius: 10px; padding: 12px 16px; }
+  .ranking-item { display: flex; align-items: center; gap: 14px; background: var(--surface2); border-radius: 10px; padding: 13px 17px; }
   .ranking-item.gold { background: linear-gradient(90deg, rgba(212,175,55,.15), var(--surface2)); border: 1px solid rgba(212,175,55,.3); }
   .ranking-medal { font-size: 24px; width: 32px; text-align: center; }
-  .ranking-name { font-weight: 700; font-size: 14px; flex: 1; }
-  .ranking-val { font-weight: 800; font-size: 15px; color: var(--gold-light); }
-  .ranking-sub { font-size: 11px; color: var(--muted); }
+  .ranking-name { font-weight: 700; font-size: 15px; flex: 1; }
+  .ranking-val { font-weight: 800; font-size: 16px; color: var(--gold-light); }
+  .ranking-sub { font-size: 12px; color: var(--muted); }
 
   /* FUNNEL */
-  .funnel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .funnel-label { width: 160px; font-size: 12px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
-  .funnel-bar-bg { flex: 1; background: var(--bg); border-radius: 8px; height: 32px; position: relative; overflow: hidden; border: 1px solid var(--border); }
-  .funnel-bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 12px; font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
+  .funnel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .funnel-label { width: 160px; font-size: 13px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+  .funnel-bar-bg { flex: 1; background: var(--bg); border-radius: 8px; height: 34px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+  .funnel-bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 12px; font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; }
 
   /* ADMIN */
   .section-title { font-size: 16px; font-weight: 800; margin-bottom: 14px; margin-top: 28px; }
@@ -6987,6 +6988,81 @@ window.__initGuiaMentor = init;
       <div class="field"><label>Cidade</label><input id="l-cidade" placeholder="Cidade"></div>
     </div>
 
+    <div class="modal-section">Funil &amp; Status</div>
+    <div class="form-row">
+      <div class="field"><label>Origem do Lead <span style="color:var(--red)">*</span></label>
+        <select id="l-origem">
+          <option value="">Selecione…</option>
+          <option value="formulario">Formulário (Landing Page)</option>
+          <option value="instagram">Instagram</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="indicacao">Indicação</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="trafego_pago">Tráfego Pago (Anúncio)</option>
+          <option value="evento">Evento / Palestra</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="l-status" onchange="onStatusChange()">
+          <option>Contatar</option><option>Contatado</option><option>Respondeu</option><option>Diagnóstico Agendado</option>
+          <option>Diagnóstico Realizado</option><option>Proposta Enviada</option>
+          <option>Compra Agendada</option><option>Fechado</option><option>Perdido</option>
+        </select>
+      </div>
+      <div class="field" id="status-contrato-wrap" style="display:none">
+        <label>Status do Contrato</label>
+        <select id="l-status-contrato">
+          <option value="carencia">⏳ Em carência (7 dias)</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Data do Diagnóstico</label><input id="l-data-diag" type="date"></div>
+      <div class="field"><label>Closer Responsável</label>
+        <select id="l-closer"></select>
+      </div>
+    </div>
+    
+    <div class="field" id="l-data-compra-wrap" style="display:none">
+      <label>Data prevista de compra / prosseguimento</label>
+      <input id="l-data-compra" type="date">
+    </div>
+    <div id="l-aluno-wrap" style="display:none">
+      <div class="modal-section"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Dados do Aluno</div>
+      <div class="form-row">
+        <div class="field"><label>Turma / Edição</label><input id="l-turma" placeholder="Ex: Turma Julho/2026"></div>
+        <div class="field">
+          <label>Data de Início</label>
+          <input id="l-inicio-curso" type="date" onchange="calcularEncerramentoCurso()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Data de Encerramento</label>
+          <input id="l-encerramento-curso" type="date">
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">Calculado automaticamente: Formação = 12 meses · MBA = 18 meses</div>
+        </div>
+        <div class="field"></div>
+      </div>
+    </div>
+    <div class="field" id="l-motivo-perda-wrap" style="display:none">
+      <label>Motivo da Perda *</label>
+      <select id="l-motivo-perda">
+        <option value="">Selecione o motivo *</option>
+        <option value="sem_dinheiro">Sem dinheiro (não viu valor)</option>
+        <option value="sem_tempo">Sem tempo (não é prioridade agora)</option>
+        <option value="escolheu_concorrente">Escolheu concorrente</option>
+        <option value="nao_respondeu">Não respondeu</option>
+        <option value="momento_inadequado">Momento inadequado</option>
+      </select>
+    </div>
+    <div class="field"><label>Observações</label><textarea id="l-obs" placeholder="Notas adicionais…"></textarea></div>
+    </div>
+
+    <div class="modal-lead-col">
     <div class="modal-section">Perfil &amp; Objetivo</div>
     <div class="form-row">
       <div class="field"><label>Certificações</label>
@@ -7074,81 +7150,6 @@ window.__initGuiaMentor = init;
       </select>
     </div>
     <div class="field"><label>Observação sobre objetivo</label><textarea id="l-objetivo" placeholder="O que o lead busca alcançar…"></textarea></div>
-    </div>
-
-    <div class="modal-lead-col">
-    <div class="modal-section">Funil &amp; Status</div>
-    <div class="form-row">
-      <div class="field"><label>Origem do Lead <span style="color:var(--red)">*</span></label>
-        <select id="l-origem">
-          <option value="">Selecione…</option>
-          <option value="formulario">Formulário (Landing Page)</option>
-          <option value="instagram">Instagram</option>
-          <option value="linkedin">LinkedIn</option>
-          <option value="indicacao">Indicação</option>
-          <option value="whatsapp">WhatsApp</option>
-          <option value="trafego_pago">Tráfego Pago (Anúncio)</option>
-          <option value="evento">Evento / Palestra</option>
-          <option value="outro">Outro</option>
-        </select>
-      </div>
-      <div class="field"><label>Status</label>
-        <select id="l-status" onchange="onStatusChange()">
-          <option>Contatar</option><option>Contatado</option><option>Respondeu</option><option>Diagnóstico Agendado</option>
-          <option>Diagnóstico Realizado</option><option>Proposta Enviada</option>
-          <option>Compra Agendada</option><option>Fechado</option><option>Perdido</option>
-        </select>
-      </div>
-      <div class="field" id="status-contrato-wrap" style="display:none">
-        <label>Status do Contrato</label>
-        <select id="l-status-contrato">
-          <option value="carencia">⏳ Em carência (7 dias)</option>
-          <option value="confirmada">Confirmada</option>
-          <option value="cancelada">Cancelada</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="field"><label>Data do Diagnóstico</label><input id="l-data-diag" type="date"></div>
-      <div class="field"><label>Closer Responsável</label>
-        <select id="l-closer"></select>
-      </div>
-    </div>
-    
-    <div class="field" id="l-data-compra-wrap" style="display:none">
-      <label>Data prevista de compra / prosseguimento</label>
-      <input id="l-data-compra" type="date">
-    </div>
-    <div id="l-aluno-wrap" style="display:none">
-      <div class="modal-section"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Dados do Aluno</div>
-      <div class="form-row">
-        <div class="field"><label>Turma / Edição</label><input id="l-turma" placeholder="Ex: Turma Julho/2026"></div>
-        <div class="field">
-          <label>Data de Início</label>
-          <input id="l-inicio-curso" type="date" onchange="calcularEncerramentoCurso()">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Data de Encerramento</label>
-          <input id="l-encerramento-curso" type="date">
-          <div style="font-size:11px;color:var(--muted);margin-top:3px">Calculado automaticamente: Formação = 12 meses · MBA = 18 meses</div>
-        </div>
-        <div class="field"></div>
-      </div>
-    </div>
-    <div class="field" id="l-motivo-perda-wrap" style="display:none">
-      <label>Motivo da Perda *</label>
-      <select id="l-motivo-perda">
-        <option value="">Selecione o motivo *</option>
-        <option value="sem_dinheiro">Sem dinheiro (não viu valor)</option>
-        <option value="sem_tempo">Sem tempo (não é prioridade agora)</option>
-        <option value="escolheu_concorrente">Escolheu concorrente</option>
-        <option value="nao_respondeu">Não respondeu</option>
-        <option value="momento_inadequado">Momento inadequado</option>
-      </select>
-    </div>
-    <div class="field"><label>Observações</label><textarea id="l-obs" placeholder="Notas adicionais…"></textarea></div>
 
     <div class="modal-section" id="l-historico-section" style="display:none">Histórico de Interações</div>
     <div id="l-historico-list" style="display:none;margin-bottom:14px;max-height:220px;overflow-y:auto"></div>
@@ -8909,16 +8910,16 @@ function renderCycleTime() {
       <div class="stat-card"><div class="stat-label">⏱ Cadastro → Diagnóstico</div><div class="stat-value accent">${mediaDiag ? mediaDiag + ' dias' : '—'}</div><div class="stat-sub">${leadsComDiag.length} leads</div></div>
       <div class="stat-card gold-border"><div class="stat-label">⏱ Cadastro → Venda</div><div class="stat-value gold">${mediaVend ? mediaVend + ' dias' : '—'}</div><div class="stat-sub">${leadsVend.length} vendas</div></div>
     </div>
-    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">VOLUME POR ETAPA</div>
+    <div style="font-size:13px;font-weight:800;letter-spacing:.4px;color:var(--muted);margin-bottom:14px">VOLUME POR ETAPA</div>
     ${counts.map(({s, n}) => {
       const pct = Math.round(n / maxN * 100);
       const cor = corMap[s] || 'var(--muted)';
-      return `<div style="display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:10px;margin-bottom:7px">
-        <div style="font-size:12px">${s}</div>
-        <div style="background:var(--surface3);border-radius:4px;height:10px">
-          <div style="height:10px;border-radius:4px;background:${cor};width:${pct}%"></div>
+      return `<div style="display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600">${s}</div>
+        <div style="background:var(--surface3);border-radius:5px;height:14px">
+          <div style="height:14px;border-radius:5px;background:${cor};width:${pct}%"></div>
         </div>
-        <div style="font-size:13px;font-weight:700;color:${cor};min-width:30px;text-align:right">${n}</div>
+        <div style="font-size:14px;font-weight:800;color:${cor};min-width:30px;text-align:right">${n}</div>
       </div>`;
     }).join('')}`;
 }
