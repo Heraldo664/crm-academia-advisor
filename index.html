@@ -8887,7 +8887,7 @@ function renderConversaoFormulario() {
 let _carenciaItemsFull = [];
 let _carenciaRenderedCount = 0;
 let _carenciaObserver = null;
-const CARENCIA_PRIMEIRA_LEVA = 6;   // primeiros nomes visíveis sem rolar
+const CARENCIA_PRIMEIRA_LEVA = 5;   // primeiros nomes visíveis sem rolar
 const CARENCIA_LEVA_SEGUINTE = 10;  // quantos a mais a cada rolagem
 
 function _carenciaLabelMaps() {
@@ -8906,7 +8906,7 @@ function _carenciaRowHtml({ l, sc, dias, restam }) {
     <td style="font-size:14px">${ref2 ? formatDate(ref2) : '—'}</td>
     <td style="font-size:14px">${dias !== null ? dias + 'd' : '—'}${sc==='carencia' ? ` <span style="color:var(--yellow)">(${restam}d restam)</span>` : ''}</td>
     <td><span class="badge ${bMap[sc]||'badge-gray'}">${lMap[sc]||'—'}</span></td>
-    <td><button class="btn btn-primary btn-sm" onclick="editLead('${l.id}')">Cadastro</button></td>
+    <td><button class="btn btn-primary btn-sm" onclick="editLead('${l.id}')">Detalhes</button></td>
   </tr>`;
 }
 
@@ -8920,6 +8920,21 @@ function _carenciaAppendRows(qtd) {
   if (_carenciaRenderedCount >= _carenciaItemsFull.length && _carenciaObserver) {
     _carenciaObserver.disconnect();
     _carenciaObserver = null;
+  }
+}
+
+// Trava a altura da caixa no tamanho REAL que o cabeçalho + as 5 primeiras
+// linhas ocupam na tela, medido depois de desenhar (não um valor "chutado"
+// em px). Assim a 6ª linha em diante SEMPRE fica de fora e força a barra
+// de rolagem a aparecer, não importa fonte, zoom ou navegador.
+function _carenciaTravarAlturaCaixa() {
+  const box = document.getElementById('carencia-scrollbox');
+  const table = document.getElementById('carencia-table');
+  if (!box || !table) return;
+  if (_carenciaItemsFull.length > CARENCIA_PRIMEIRA_LEVA) {
+    box.style.maxHeight = table.offsetHeight + 'px';
+  } else {
+    box.style.maxHeight = 'none'; // tudo já cabe, não precisa de rolagem
   }
 }
 
@@ -8961,12 +8976,13 @@ function renderCarenciaContratos() {
       <div class="stat-card"><div class="stat-label">✅ Confirmadas</div><div class="stat-value green">${conf}</div></div>
       <div class="stat-card"><div class="stat-label">❌ Canceladas</div><div class="stat-value red">${canc}</div></div>
     </div>
-    <div class="table-wrap"><div style="max-height:380px;overflow-y:auto;overflow-x:auto" id="carencia-scrollbox"><table>
+    <div class="table-wrap"><div style="overflow-y:auto;overflow-x:auto" id="carencia-scrollbox"><table id="carencia-table">
     <thead><tr><th>Lead</th><th>Programa</th><th>Data Venda</th><th>Dias</th><th>Contrato</th><th></th></tr></thead>
     <tbody id="carencia-tbody"></tbody></table>
     <div id="carencia-sentinel" style="height:1px"></div></div></div>`;
 
   _carenciaAppendRows(CARENCIA_PRIMEIRA_LEVA);
+  _carenciaTravarAlturaCaixa();
   _carenciaSetupScrollObserver();
 }
 
@@ -10162,7 +10178,7 @@ function renderLeadsEmRisco() {
         <td>${lead.sdr_nome || '—'}</td>
         <td><span style="color:${cor};font-weight:700">${alerta.dias}d</span></td>
         <td style="font-size:15px;color:var(--muted)">${alerta.label}</td>
-        <td><button class="btn btn-primary btn-sm" onclick="editLead('${lead.id}')">Cadastro</button></td>
+        <td><button class="btn btn-primary btn-sm" onclick="editLead('${lead.id}')">Detalhes</button></td>
       </tr>`;
     }).join('') + '</tbody></table></div></div>';
 }
@@ -10294,7 +10310,7 @@ function renderLeadsTable() {
         <td>${l.valor_oportunidade ? formatBRL(l.valor_oportunidade) : '—'}</td>
         <td>
           <div style="display:flex;flex-wrap:wrap;gap:6px">
-            <button class="btn btn-primary btn-sm" onclick="editLead('${l.id}')">Cadastro</button>
+            <button class="btn btn-primary btn-sm" onclick="editLead('${l.id}')">Detalhes</button>
             <button class="btn btn-ghost btn-sm" onclick="openTarefaModal('${l.id}','${l.nome.replace(/'/g,"\\'")}')">+ Tarefa</button>
             ${user.papel === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">✕</button>` : ''}
           </div>
@@ -10453,7 +10469,7 @@ function renderCloserAgenda() {
           </div>
           <div style="display:flex;gap:6px">
             ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
-            ${item.leadId ? `<button class="btn btn-primary btn-sm" onclick="editLead('${item.leadId}')">Cadastro</button>` : ''}
+            ${item.leadId ? `<button class="btn btn-primary btn-sm" onclick="editLead('${item.leadId}')">Detalhes</button>` : ''}
             ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
           </div>
         </div>
