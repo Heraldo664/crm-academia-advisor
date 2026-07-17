@@ -947,8 +947,8 @@ async function enviarPedidoEsqueciSenha() {
         <div style="overflow-x:auto;overflow-y:auto;max-height:340px;direction:rtl">
           <table style="direction:ltr">
             <thead><tr>
-              <th>Nome</th><th>Empresa Desejada</th><th>Status</th>
-              <th>SDR / Closer</th><th>Programa</th><th>Valor</th><th>Cadastro</th><th>Tarefa</th><th></th>
+              <th>Nome</th><th>WhatsApp</th><th>Cadastro</th><th>Tarefa</th>
+              <th>Status</th><th>SDR / Closer</th><th>Programa</th><th>Valor</th><th></th>
             </tr></thead>
             <tbody id="leads-tbody"></tbody>
           </table>
@@ -7636,7 +7636,21 @@ const _origDel   = (t, q='')    => { _cache.invalidate(t); return supa(t, 'DELET
 // real, as chamadas passam a usar o token daquela pessoa automaticamente.
 let authSession = null; // { access_token, refresh_token, expires_at, user }
 
+// Garante que o access_token da sessão real (Supabase Auth) nunca seja usado
+// já vencido. Antes, o token era salvo com expires_at mas NUNCA verificado —
+// depois de ~1h (validade padrão do Supabase) toda chamada passava a levar
+// "JWT expired" do PostgREST. Aqui, com 60s de margem, renovamos via
+// refresh_token automaticamente antes de qualquer requisição.
+async function garantirSessaoValida() {
+  if (!authSession || !authSession.access_token) return; // login antigo (chave anon) — nada a fazer
+  const margem = 60 * 1000;
+  if (authSession.expires_at && (authSession.expires_at - Date.now()) < margem) {
+    await authRestoreSession();
+  }
+}
+
 async function supa(path, method = 'GET', body = null, extra = '') {
+  await garantirSessaoValida();
   const url = `${SUPA_URL}/rest/v1/${path}${extra}`;
   const tokenAtivo = (authSession && authSession.access_token) ? authSession.access_token : SUPA_KEY;
   const opts = {
@@ -7770,6 +7784,7 @@ async function chamarEdgeFunction(nome, action, payload) {
   if (!authSession || !authSession.access_token) {
     throw new Error('Sua sessão expirou. Saia e entre novamente.');
   }
+  await garantirSessaoValida();
   const r = await fetch(`${SUPA_URL}/functions/v1/${nome}`, {
     method: 'POST',
     headers: {
@@ -8400,6 +8415,7 @@ function startActivityTracking() {
   ping();
   activityTimer = setInterval(ping, 300000); // otimizado: 5min ao invés de 1min
   setInterval(verificarSessao, 5 * 60 * 1000); // OTIMIZADO: verificar sessão a cada 5min (era 2min)
+  setInterval(garantirSessaoValida, 4 * 60 * 1000); // renova o token do Supabase Auth antes de vencer, evitando "JWT expired"
 
   ['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
     document.addEventListener(ev, () => { resetInactivityTimer(); debounce(ping, 30000)(); }, { passive: true });
@@ -8851,6 +8867,56 @@ function renderConversaoFormulario() {
 // ════════════════════════════════════════════════════════════
 // 3. CARÊNCIA DE CONTRATOS
 // ════════════════════════════════════════════════════════════
+// Estado da paginação por scroll da lista de compradores/contratos.
+let _carenciaItemsFull = [];
+let _carenciaRenderedCount = 0;
+let _carenciaObserver = null;
+const CARENCIA_PRIMEIRA_LEVA = 6;   // primeiros nomes visíveis sem rolar
+const CARENCIA_LEVA_SEGUINTE = 10;  // quantos a mais a cada rolagem
+
+function _carenciaLabelMaps() {
+  return {
+    lMap: { carencia: '⏳ Em carência', confirmada: '✅ Confirmada', cancelada: '❌ Cancelada' },
+    bMap: { carencia: 'badge-yellow', confirmada: 'badge-green', cancelada: 'badge-red' },
+  };
+}
+
+function _carenciaRowHtml({ l, sc, dias, restam }) {
+  const { lMap, bMap } = _carenciaLabelMaps();
+  const ref2 = l.data_compra_prevista || l.ultima_interacao;
+  return `<tr>
+    <td><strong>${l.nome}</strong></td>
+    <td style="font-size:14px">${l.programa||'—'}</td>
+    <td style="font-size:14px">${ref2 ? formatDate(ref2) : '—'}</td>
+    <td style="font-size:14px">${dias !== null ? dias + 'd' : '—'}${sc==='carencia' ? ` <span style="color:var(--yellow)">(${restam}d restam)</span>` : ''}</td>
+    <td><span class="badge ${bMap[sc]||'badge-gray'}">${lMap[sc]||'—'}</span></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Ver</button></td>
+  </tr>`;
+}
+
+function _carenciaAppendRows(qtd) {
+  const tbody = document.getElementById('carencia-tbody');
+  if (!tbody) return;
+  const proximos = _carenciaItemsFull.slice(_carenciaRenderedCount, _carenciaRenderedCount + qtd);
+  if (!proximos.length) return;
+  tbody.insertAdjacentHTML('beforeend', proximos.map(_carenciaRowHtml).join(''));
+  _carenciaRenderedCount += proximos.length;
+  if (_carenciaRenderedCount >= _carenciaItemsFull.length && _carenciaObserver) {
+    _carenciaObserver.disconnect();
+    _carenciaObserver = null;
+  }
+}
+
+function _carenciaSetupScrollObserver() {
+  if (_carenciaObserver) { _carenciaObserver.disconnect(); _carenciaObserver = null; }
+  const sentinel = document.getElementById('carencia-sentinel');
+  if (!sentinel || _carenciaRenderedCount >= _carenciaItemsFull.length) return;
+  _carenciaObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) _carenciaAppendRows(CARENCIA_LEVA_SEGUINTE);
+  }, { rootMargin: '250px' });
+  _carenciaObserver.observe(sentinel);
+}
+
 function renderCarenciaContratos() {
   const el = document.getElementById('dash-carencia');
   if (!el) return;
@@ -8867,6 +8933,12 @@ function renderCarenciaContratos() {
   const emC = items.filter(i => i.sc === 'carencia').length;
   const conf = items.filter(i => i.sc === 'confirmada').length;
   const canc = items.filter(i => i.sc === 'cancelada').length;
+
+  // Guarda a lista completa e renderiza só os primeiros 6; o resto entra
+  // conforme o colaborador rola a tela (via IntersectionObserver na sentinela).
+  _carenciaItemsFull = items;
+  _carenciaRenderedCount = 0;
+
   el.innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px">
       <div class="stat-card"><div class="stat-label">⏳ Em Carência</div><div class="stat-value yellow">${emC}</div></div>
@@ -8875,19 +8947,11 @@ function renderCarenciaContratos() {
     </div>
     <div class="table-wrap"><div style="overflow-x:auto"><table>
     <thead><tr><th>Lead</th><th>Programa</th><th>Data Venda</th><th>Dias</th><th>Contrato</th><th></th></tr></thead>
-    <tbody>${items.slice(0,20).map(({l, sc, dias, restam}) => {
-      const lMap = { carencia: '⏳ Em carência', confirmada: '✅ Confirmada', cancelada: '❌ Cancelada' };
-      const bMap = { carencia: 'badge-yellow', confirmada: 'badge-green', cancelada: 'badge-red' };
-      const ref2 = l.data_compra_prevista || l.ultima_interacao;
-      return `<tr>
-        <td><strong>${l.nome}</strong></td>
-        <td style="font-size:14px">${l.programa||'—'}</td>
-        <td style="font-size:14px">${ref2 ? formatDate(ref2) : '—'}</td>
-        <td style="font-size:14px">${dias !== null ? dias + 'd' : '—'}${sc==='carencia' ? ` <span style="color:var(--yellow)">(${restam}d restam)</span>` : ''}</td>
-        <td><span class="badge ${bMap[sc]||'badge-gray'}">${lMap[sc]||'—'}</span></td>
-        <td><button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Ver</button></td>
-      </tr>`;
-    }).join('')}</tbody></table></div></div>`;
+    <tbody id="carencia-tbody"></tbody></table></div></div>
+    <div id="carencia-sentinel" style="height:1px"></div>`;
+
+  _carenciaAppendRows(CARENCIA_PRIMEIRA_LEVA);
+  _carenciaSetupScrollObserver();
 }
 
 function atualizarStatusContratoWrap() {
@@ -10203,17 +10267,17 @@ function renderLeadsTable() {
       <tr>
         <td><strong>${l.nome}</strong> ${origemBadge(l)} ${slaBadge(l)} ${followupBadgeHtml(l)}
           <div style="margin-top:2px">${faixaSalarialBadgeHtml(l)}</div>
+          ${l.empresa ? `<div style="margin-top:2px;color:var(--muted);font-size:14px">🏢 ${l.empresa}</div>` : ''}
         </td>
-        <td>${l.empresa}</td>
+        <td style="white-space:nowrap">${whatsappBtnHtml(l)}</td>
+        <td style="white-space:nowrap;font-size:14px;color:var(--muted)">${formatDateTime(l.criado_em)}</td>
+        <td>${leadTaskInfo(l.id)}</td>
         <td>${statusBadge(l.status)}</td>
         <td style="white-space:nowrap">${sdrCloserCell(l)}</td>
         <td>${l.programa || '—'}</td>
         <td>${l.valor_oportunidade ? formatBRL(l.valor_oportunidade) : '—'}</td>
-        <td style="white-space:nowrap;font-size:14px;color:var(--muted)">${formatDateTime(l.criado_em)}</td>
-        <td>${leadTaskInfo(l.id)}</td>
         <td style="white-space:nowrap">
-          ${whatsappBtnHtml(l)}
-          <button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Cadastro</button>
+          <button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Abrir Cadastro</button>
           <button class="btn btn-ghost btn-sm" onclick="openTarefaModal('${l.id}','${l.nome.replace(/'/g,"\\'")}')">+ Tarefa</button>
           ${user.papel === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">✕</button>` : ''}
         </td>
@@ -11839,6 +11903,12 @@ function toggleDiagStep(el) {
   el.closest('.diag-collapsible').classList.toggle('open');
 }
 
+function toggleAllDiagSteps(expandir) {
+  document.querySelectorAll('#diag-script .diag-collapsible').forEach(el => {
+    el.classList.toggle('open', expandir);
+  });
+}
+
 function renderDiagScript() {
   const steps = [
     { num:1, title:'1. Rapport e Permissão', dur:'3–5 min', color:'var(--accent)', body:`
@@ -11991,7 +12061,13 @@ function renderDiagScript() {
   ];
 
   document.getElementById('diag-script').innerHTML =
-    '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">Clique em qualquer passo para expandir ou recolher o roteiro.</p>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">' +
+      '<p style="font-size:14px;color:var(--muted);margin:0">Clique em qualquer passo para expandir ou recolher o roteiro.</p>' +
+      '<div style="display:flex;gap:8px;flex-shrink:0">' +
+        '<button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllDiagSteps(true)">▾ Expandir tudo</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" onclick="toggleAllDiagSteps(false)">▴ Recolher tudo</button>' +
+      '</div>' +
+    '</div>' +
     steps.map(s => `
     <div class="diag-collapsible open" style="border-left:3px solid ${s.color}">
       <div class="diag-collapsible-header" onclick="toggleDiagStep(this)">
@@ -13561,17 +13637,31 @@ function comissaoVariavelDaVenda(lead) {
   return { valor: 100, detalhe: 'Valor de referência (R$100/venda, faixa SDR)' };
 }
 
+// Antes o aviso só disparava 1x por dia por lead (sessionStorage), então se o
+// colaborador ficasse com o status "Compra Agendada" parado, o sistema nunca
+// mais lembrava. Agora guarda em localStorage o horário do último aviso por
+// lead e reexibe a cada 3h — só para de avisar quando o status sair de
+// "Compra Agendada" (aí o lead simplesmente deixa de entrar nos candidatos).
+const COMPRA_HOJE_INTERVALO_AVISO = 3 * 60 * 60 * 1000; // 3 horas
+
+function chaveUltimoAvisoCompraHoje(leadId) {
+  return `compra_hoje_ultimo_aviso_${leadId}_${user.id}`;
+}
+
 function checkComprasAgendadasHoje() {
   if (!user) return;
   const hoje = todayStr();
+  const agora = Date.now();
   const candidatos = leads.filter(l =>
     l.status === 'Compra Agendada' &&
     l.data_compra_prevista === hoje &&
     (user.papel === 'admin' || l.sdr_id === user.id || l.closer_nome === user.nome)
   );
   for (const lead of candidatos) {
-    const key = `compra_hoje_shown_${lead.id}_${hoje}_${user.id}`;
-    if (sessionStorage.getItem(key)) continue;
+    const jaNaFila = comprasHojeQueue.some(l => l.id === lead.id) || (currentCompraHojePopup && currentCompraHojePopup.id === lead.id);
+    if (jaNaFila) continue;
+    const ultimoAviso = Number(localStorage.getItem(chaveUltimoAvisoCompraHoje(lead.id)) || 0);
+    if (agora - ultimoAviso < COMPRA_HOJE_INTERVALO_AVISO) continue; // avisado há menos de 3h
     comprasHojeQueue.push(lead);
   }
   showNextCompraHojePopup();
@@ -13581,7 +13671,7 @@ function showNextCompraHojePopup() {
   if (currentCompraHojePopup || comprasHojeQueue.length === 0) return;
   const lead = comprasHojeQueue.shift();
   currentCompraHojePopup = lead;
-  sessionStorage.setItem(`compra_hoje_shown_${lead.id}_${todayStr()}_${user.id}`, '1');
+  localStorage.setItem(chaveUltimoAvisoCompraHoje(lead.id), String(Date.now()));
 
   document.getElementById('ch-nome').textContent = lead.nome;
   document.getElementById('ch-empresa').textContent = lead.empresa || '—';
@@ -13645,7 +13735,13 @@ async function initNotificationSystems() {
   setTimeout(() => checkAvisosParaExibir(), 12000);
   setTimeout(() => checkAvisosAutomaticos(), 25000);
   setTimeout(() => checkConexoesPopup(), 40000);
-  setTimeout(() => checkComprasAgendadasHoje(), 55000);
+  // "Compra Agendada": avisa logo ao abrir o sistema (pequeno delay só pra
+  // não brigar com a tela de boas-vindas) e depois reforça a cada 15min —
+  // o reaviso de fato (a cada 3h por lead) é controlado dentro da própria
+  // checkComprasAgendadasHoje via localStorage, e só para quando o status
+  // do lead sair de "Compra Agendada".
+  setTimeout(() => checkComprasAgendadasHoje(), 4000);
+  setInterval(() => checkComprasAgendadasHoje(), 15 * 60 * 1000);
 }
 
 // ─── Aviso de boas-vindas ao colaborador ────────────────────────────────────
@@ -15486,8 +15582,7 @@ function renderLeadsSkeleton() {
   if (!tbody) return;
   var rows = '';
   for (var i = 0; i < 8; i++) {
-    rows += '<tr style="opacity:' + (1 - i*0.1) + '">' +
-      '<td colspan="8"><div style="height:38px;background:var(--surface2);' +
+    rows += '<tr style="opacity:' + (1 - i*0.1) + '"><td colspan="9"><div style="height:38px;background:var(--surface2);' +
       'border-radius:6px;animation:pulse 1.2s ease infinite"></div></td></tr>';
   }
   tbody.innerHTML = rows;
