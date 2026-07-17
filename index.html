@@ -7104,15 +7104,6 @@ window.__initGuiaMentor = init;
         <div id="l-programa-preco-badge" style="font-size:14px;color:var(--gold);font-weight:700;margin-top:4px;min-height:16px"></div>
       </div>
     </div>
-    <div class="field">
-      <label>Objetivos (selecione quantos quiser)</label>
-      <div class="check-grid" id="l-objetivos-grid">
-        <div class="check-item" data-val="Especialista de Investimentos" onclick="toggleObjetivo(this)"><div class="check-mark">✓</div>Especialista de Investimentos</div>
-        <div class="check-item" data-val="Banker (Gerente)" onclick="toggleObjetivo(this)"><div class="check-mark">✓</div>Banker (Gerente)</div>
-        <div class="check-item" data-val="Quer migrar de instituição" onclick="toggleObjetivo(this)"><div class="check-mark">✓</div>Quer migrar de instituição</div>
-        <div class="check-item" data-val="Quer promoção interna" onclick="toggleObjetivo(this)"><div class="check-mark">✓</div>Quer promoção interna</div>
-      </div>
-    </div>
     <div class="form-row">
       <div class="field"><label>Principal Objetivo (formulário)</label>
         <select id="l-principal-objetivo" onchange="atualizarObservacaoObjetivo()">
@@ -9860,21 +9851,48 @@ function pontuarCompletudeLead(l) {
   return pontos;
 }
 
-function deduplicarLeadsPorTelefone(lista) {
-  const porTelefone = new Map();
-  const semTelefone = [];
+function normalizarEmailChave(email) {
+  return (email || '').trim().toLowerCase();
+}
+
+function deduplicarLeads(lista) {
+  // Cada lead pode ter até 2 chaves (telefone e/ou e-mail). Um registro
+  // que compartilha QUALQUER uma delas com outro é considerado o mesmo
+  // lead — isso cobre o caso em que a duplicata A tem telefone+e-mail e
+  // a duplicata B só tem o e-mail (sem essa lógica de "grupo", elas
+  // ficariam em clusters separados por engano).
+  const chaveParaCluster = new Map();
+  const clusters = [];
+  const semChave = [];
+
   for (const l of lista) {
-    const chave = normalizarTelefoneChave(l.telefone);
-    if (!chave) { semTelefone.push(l); continue; } // sem telefone: não há como comparar com segurança
-    const atual = porTelefone.get(chave);
-    if (!atual) { porTelefone.set(chave, l); continue; }
-    const pontosNovo = pontuarCompletudeLead(l);
-    const pontosAtual = pontuarCompletudeLead(atual);
-    const novoGanha = pontosNovo > pontosAtual ||
-      (pontosNovo === pontosAtual && new Date(l.criado_em || 0) > new Date(atual.criado_em || 0));
-    if (novoGanha) porTelefone.set(chave, l);
+    const chaveTel = normalizarTelefoneChave(l.telefone);
+    const chaveEmail = normalizarEmailChave(l.email);
+    const chaves = [];
+    if (chaveTel) chaves.push('tel:' + chaveTel);
+    if (chaveEmail) chaves.push('email:' + chaveEmail);
+    if (!chaves.length) { semChave.push(l); continue; }
+
+    let idxCluster = null;
+    for (const k of chaves) {
+      if (chaveParaCluster.has(k)) { idxCluster = chaveParaCluster.get(k); break; }
+    }
+
+    if (idxCluster === null) {
+      idxCluster = clusters.length;
+      clusters.push(l);
+    } else {
+      const atual = clusters[idxCluster];
+      const pontosNovo = pontuarCompletudeLead(l);
+      const pontosAtual = pontuarCompletudeLead(atual);
+      const novoGanha = pontosNovo > pontosAtual ||
+        (pontosNovo === pontosAtual && new Date(l.criado_em || 0) > new Date(atual.criado_em || 0));
+      if (novoGanha) clusters[idxCluster] = l;
+    }
+    for (const k of chaves) chaveParaCluster.set(k, idxCluster);
   }
-  return [...porTelefone.values(), ...semTelefone];
+
+  return [...clusters, ...semChave];
 }
 
 function getFilteredLeads() {
@@ -9883,7 +9901,11 @@ function getFilteredLeads() {
   const sdr = document.getElementById('lead-filter-sdr').value;
   const mesEl = document.getElementById('lead-filter-mes');
   const mes = mesEl ? mesEl.value : '';
-  const base = deduplicarLeadsPorTelefone(leads);
+  // `leads` já chega deduplicado (a deduplicação agora acontece de forma
+  // central em initLeadsPagination/loadMoreLeads/busca no servidor), então
+  // todo o sistema — dashboards, Kanban, rankings, não só esta lista — já
+  // enxerga os leads sem duplicidade.
+  const base = leads;
   return base.filter(l => {
     // Visibilidade por papel
     if (user.papel === 'sdr' && l.sdr_id !== user.id) return false;
@@ -11080,6 +11102,36 @@ function atualizarObservacaoObjetivo() {
   document.getElementById('l-objetivo').value = textoGerado;
 }
 
+// ── Verificação preventiva de duplicidade ao criar um lead novo ─────────
+// Como o sistema carrega os leads em páginas de 50, um cadastro antigo
+// pode não estar na memória ainda — por isso, além de checar localmente,
+// também consulta o Supabase ao vivo antes de deixar criar um lead novo.
+async function verificarLeadDuplicado(telefone, email) {
+  const chaveTel = normalizarTelefoneChave(telefone);
+  const chaveEmail = normalizarEmailChave(email);
+  if (!chaveTel && !chaveEmail) return null;
+
+  const localTel = chaveTel ? leads.find(l => normalizarTelefoneChave(l.telefone) === chaveTel) : null;
+  if (localTel) return { nome: localTel.nome, status: localTel.status, motivo: 'telefone' };
+  const localEmail = chaveEmail ? leads.find(l => normalizarEmailChave(l.email) === chaveEmail) : null;
+  if (localEmail) return { nome: localEmail.nome, status: localEmail.status, motivo: 'e-mail' };
+
+  try {
+    if (chaveEmail) {
+      const r = await get('leads', `?email=ilike.${encodeURIComponent(chaveEmail)}&select=nome,status&limit=1`);
+      if (Array.isArray(r) && r.length) return { nome: r[0].nome, status: r[0].status, motivo: 'e-mail' };
+    }
+    if (chaveTel) {
+      const ultimosDigitos = chaveTel.slice(-8); // ignora DDI/DDD/formatação divergente
+      const r = await get('leads', `?telefone=ilike.*${encodeURIComponent(ultimosDigitos)}*&select=nome,status&limit=1`);
+      if (Array.isArray(r) && r.length) return { nome: r[0].nome, status: r[0].status, motivo: 'telefone' };
+    }
+  } catch (e) {
+    console.warn('Não foi possível checar duplicidade no servidor (seguindo em frente):', e);
+  }
+  return null;
+}
+
 async function saveLead() {
   const id = document.getElementById('l-id').value;
   const nome = document.getElementById('l-nome').value.trim();
@@ -11088,6 +11140,19 @@ async function saveLead() {
   if (!nome || !empresa) { document.getElementById('l-err').textContent = 'Nome e empresa são obrigatórios.'; return; }
   if (status === 'Perdido' && !document.getElementById('l-motivo-perda').value) {
     document.getElementById('l-err').textContent = 'Motivo da perda é obrigatório para leads perdidos.'; return;
+  }
+
+  if (!id) {
+    const telefoneNovo = document.getElementById('l-telefone').value.trim();
+    const emailNovo = document.getElementById('l-email').value.trim();
+    const duplicado = await verificarLeadDuplicado(telefoneNovo, emailNovo);
+    if (duplicado) {
+      const seguir = confirm(
+        `Já existe um lead cadastrado com esse ${duplicado.motivo}: "${duplicado.nome}" (status: ${duplicado.status}).\n\n` +
+        `Deseja mesmo assim criar um cadastro novo e separado?`
+      );
+      if (!seguir) return;
+    }
   }
 
   const programa = document.getElementById('l-programa').value || null;
@@ -15516,7 +15581,7 @@ async function initLeadsPagination() {
   var firstPage = results[0];
   var total     = results[1];
 
-  leads         = firstPage;
+  leads         = deduplicarLeads(firstPage);
   _leadsTotal   = total || firstPage.length;
   _leadsPage    = 1;
   _leadsAllLoaded = firstPage.length < LEADS_PAGE_SIZE;
@@ -15542,7 +15607,7 @@ async function loadMoreLeads() {
     // Merge avoiding duplicates
     var existingIds = new Set(leads.map(function(l) { return l.id; }));
     var newLeads    = page.filter(function(l) { return !existingIds.has(l.id); });
-    leads = leads.concat(newLeads);
+    leads = deduplicarLeads(leads.concat(newLeads));
     _leadsPage++;
     _leadsAllLoaded = page.length < LEADS_PAGE_SIZE;
   } else {
@@ -15694,7 +15759,7 @@ async function serverSearchLeads(query) {
       var existingIds = new Set(leads.map(function(l) { return l.id; }));
       var newLeads    = results.filter(function(l) { return !existingIds.has(l.id); });
       if (newLeads.length > 0) {
-        leads = leads.concat(newLeads);
+        leads = deduplicarLeads(leads.concat(newLeads));
         // Save to IDB
         idbSet('leads::server_search_' + enc, results, 30000).catch(function(){});
       }
