@@ -189,6 +189,7 @@
   #leads-table { table-layout: fixed; }
   #leads-table th, #leads-table td { padding: 10px 10px; word-wrap: break-word; }
   #leads-table td.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #leads-table td:nth-child(5) .badge { white-space: normal; text-align: center; }
 
   /* MODAL */
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px; }
@@ -954,8 +955,8 @@ async function enviarPedidoEsqueciSenha() {
         <div style="overflow-x:auto;overflow-y:auto;max-height:340px;direction:rtl">
           <table id="leads-table" style="direction:ltr">
             <colgroup>
-              <col style="width:22%"><col style="width:9%"><col style="width:9%"><col style="width:10%">
-              <col style="width:9%"><col style="width:12%"><col style="width:12%"><col style="width:7%"><col style="width:10%">
+              <col style="width:17%"><col style="width:8%"><col style="width:9%"><col style="width:8%">
+              <col style="width:11%"><col style="width:10%"><col style="width:8%"><col style="width:7%"><col style="width:22%">
             </colgroup>
             <thead><tr>
               <th>Nome</th><th>WhatsApp</th><th>Cadastro</th><th>Tarefa</th>
@@ -9921,7 +9922,7 @@ function faixaSalarialBadgeHtml(lead) {
 function origemBadge(lead) {
   if (lead.origem !== 'formulario') return '';
   const label = lead.form_nome || 'Formulário';
-  return `<span class="badge badge-purple" style="margin-left:4px" title="${label}">📋 ${label}</span>`;
+  return `<span class="badge badge-purple" style="margin-left:4px;font-size:12px;padding:2px 8px;font-weight:700" title="${label}">📋 ${label}</span>`;
 }
 
 function slaBadge(lead) {
@@ -10280,17 +10281,19 @@ function renderLeadsTable() {
           <div style="margin-top:2px">${faixaSalarialBadgeHtml(l)}</div>
           ${l.empresa ? `<div style="margin-top:2px;color:var(--muted);font-size:14px">🏢 ${l.empresa}</div>` : ''}
         </td>
-        <td style="white-space:nowrap">${whatsappBtnHtml(l)}</td>
-        <td style="white-space:nowrap;font-size:14px;color:var(--muted)">${formatDateTime(l.criado_em)}</td>
+        <td>${whatsappBtnHtml(l)}</td>
+        <td style="font-size:14px;color:var(--muted)">${formatDateTime(l.criado_em)}</td>
         <td>${leadTaskInfo(l.id)}</td>
         <td>${statusBadge(l.status)}</td>
-        <td style="white-space:nowrap">${sdrCloserCell(l)}</td>
+        <td>${sdrCloserCell(l)}</td>
         <td class="truncate" title="${l.programa || ''}">${l.programa || '—'}</td>
         <td>${l.valor_oportunidade ? formatBRL(l.valor_oportunidade) : '—'}</td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Detalhes</button>
-          <button class="btn btn-ghost btn-sm" onclick="openTarefaModal('${l.id}','${l.nome.replace(/'/g,"\\'")}')">+ Tarefa</button>
-          ${user.papel === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">✕</button>` : ''}
+        <td>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Detalhes</button>
+            <button class="btn btn-ghost btn-sm" onclick="openTarefaModal('${l.id}','${l.nome.replace(/'/g,"\\'")}')">+ Tarefa</button>
+            ${user.papel === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">✕</button>` : ''}
+          </div>
         </td>
       </tr>
     `).join('');
