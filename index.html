@@ -187,9 +187,13 @@
      espaço das outras. Padding mais enxuto que o padrão pra caber tudo sem
      depender da barra de rolagem horizontal em telas de notebook/desktop. */
   #leads-table { table-layout: fixed; }
-  #leads-table th, #leads-table td { padding: 10px 10px; word-wrap: break-word; }
+  #leads-table th, #leads-table td { padding: 12px 12px; word-wrap: break-word; }
   #leads-table td.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #leads-table td:nth-child(5) .badge { white-space: normal; text-align: center; }
+  /* Respiro extra: afasta o nome do canto esquerdo e separa visualmente
+     o botão de WhatsApp da data de cadastro, que ficavam colados. */
+  #leads-table th:first-child, #leads-table td:first-child { padding-left: 20px; }
+  #leads-table th:nth-child(3), #leads-table td:nth-child(3) { padding-left: 22px; }
 
   /* MODAL */
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px; }
@@ -955,8 +959,8 @@ async function enviarPedidoEsqueciSenha() {
         <div style="overflow-x:auto;overflow-y:auto;max-height:340px;direction:rtl">
           <table id="leads-table" style="direction:ltr">
             <colgroup>
-              <col style="width:17%"><col style="width:8%"><col style="width:9%"><col style="width:8%">
-              <col style="width:11%"><col style="width:10%"><col style="width:8%"><col style="width:7%"><col style="width:22%">
+              <col style="width:18%"><col style="width:8%"><col style="width:10%"><col style="width:8%">
+              <col style="width:11%"><col style="width:10%"><col style="width:8%"><col style="width:7%"><col style="width:20%">
             </colgroup>
             <thead><tr>
               <th>Nome</th><th>WhatsApp</th><th>Cadastro</th><th>Tarefa</th>
