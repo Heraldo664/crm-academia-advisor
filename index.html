@@ -8961,10 +8961,10 @@ function renderCarenciaContratos() {
       <div class="stat-card"><div class="stat-label">✅ Confirmadas</div><div class="stat-value green">${conf}</div></div>
       <div class="stat-card"><div class="stat-label">❌ Canceladas</div><div class="stat-value red">${canc}</div></div>
     </div>
-    <div class="table-wrap"><div style="overflow-x:auto"><table>
+    <div class="table-wrap"><div style="max-height:380px;overflow-y:auto;overflow-x:auto" id="carencia-scrollbox"><table>
     <thead><tr><th>Lead</th><th>Programa</th><th>Data Venda</th><th>Dias</th><th>Contrato</th><th></th></tr></thead>
-    <tbody id="carencia-tbody"></tbody></table></div></div>
-    <div id="carencia-sentinel" style="height:1px"></div>`;
+    <tbody id="carencia-tbody"></tbody></table>
+    <div id="carencia-sentinel" style="height:1px"></div></div></div>`;
 
   _carenciaAppendRows(CARENCIA_PRIMEIRA_LEVA);
   _carenciaSetupScrollObserver();
