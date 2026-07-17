@@ -183,6 +183,13 @@
   .badge-gold { background: rgba(212,175,55,.18); color: var(--gold-light); }
   .badge-orange { background: rgba(255,122,26,.18); color: #ff9148; }
 
+  /* Tabela de Leads — layout fixo por %, não deixa nenhuma coluna "roubar"
+     espaço das outras. Padding mais enxuto que o padrão pra caber tudo sem
+     depender da barra de rolagem horizontal em telas de notebook/desktop. */
+  #leads-table { table-layout: fixed; }
+  #leads-table th, #leads-table td { padding: 10px 10px; word-wrap: break-word; }
+  #leads-table td.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   /* MODAL */
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 16px; }
   .modal-bg.open { display: flex; }
@@ -945,7 +952,11 @@ async function enviarPedidoEsqueciSenha() {
           </a>
         </div>
         <div style="overflow-x:auto;overflow-y:auto;max-height:340px;direction:rtl">
-          <table style="direction:ltr">
+          <table id="leads-table" style="direction:ltr">
+            <colgroup>
+              <col style="width:22%"><col style="width:9%"><col style="width:9%"><col style="width:10%">
+              <col style="width:9%"><col style="width:12%"><col style="width:12%"><col style="width:7%"><col style="width:10%">
+            </colgroup>
             <thead><tr>
               <th>Nome</th><th>WhatsApp</th><th>Cadastro</th><th>Tarefa</th>
               <th>Status</th><th>SDR / Closer</th><th>Programa</th><th>Valor</th><th></th>
@@ -8890,7 +8901,7 @@ function _carenciaRowHtml({ l, sc, dias, restam }) {
     <td style="font-size:14px">${ref2 ? formatDate(ref2) : '—'}</td>
     <td style="font-size:14px">${dias !== null ? dias + 'd' : '—'}${sc==='carencia' ? ` <span style="color:var(--yellow)">(${restam}d restam)</span>` : ''}</td>
     <td><span class="badge ${bMap[sc]||'badge-gray'}">${lMap[sc]||'—'}</span></td>
-    <td><button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Ver</button></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Detalhes</button></td>
   </tr>`;
 }
 
@@ -10146,7 +10157,7 @@ function renderLeadsEmRisco() {
         <td>${lead.sdr_nome || '—'}</td>
         <td><span style="color:${cor};font-weight:700">${alerta.dias}d</span></td>
         <td style="font-size:15px;color:var(--muted)">${alerta.label}</td>
-        <td><button class="btn btn-ghost btn-sm" onclick="editLead('${lead.id}')">Abrir</button></td>
+        <td><button class="btn btn-ghost btn-sm" onclick="editLead('${lead.id}')">Detalhes</button></td>
       </tr>`;
     }).join('') + '</tbody></table></div></div>';
 }
@@ -10274,10 +10285,10 @@ function renderLeadsTable() {
         <td>${leadTaskInfo(l.id)}</td>
         <td>${statusBadge(l.status)}</td>
         <td style="white-space:nowrap">${sdrCloserCell(l)}</td>
-        <td>${l.programa || '—'}</td>
+        <td class="truncate" title="${l.programa || ''}">${l.programa || '—'}</td>
         <td>${l.valor_oportunidade ? formatBRL(l.valor_oportunidade) : '—'}</td>
         <td style="white-space:nowrap">
-          <button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Abrir Cadastro</button>
+          <button class="btn btn-ghost btn-sm" onclick="editLead('${l.id}')">Detalhes</button>
           <button class="btn btn-ghost btn-sm" onclick="openTarefaModal('${l.id}','${l.nome.replace(/'/g,"\\'")}')">+ Tarefa</button>
           ${user.papel === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">✕</button>` : ''}
         </td>
@@ -10435,7 +10446,7 @@ function renderCloserAgenda() {
           </div>
           <div style="display:flex;gap:6px">
             ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
-            ${item.leadId ? `<button class="btn btn-ghost btn-sm" onclick="editLead('${item.leadId}')">Ver Lead</button>` : ''}
+            ${item.leadId ? `<button class="btn btn-ghost btn-sm" onclick="editLead('${item.leadId}')">Detalhes</button>` : ''}
             ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
           </div>
         </div>
