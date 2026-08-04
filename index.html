@@ -11277,6 +11277,13 @@ async function saveLead() {
     closeModal('modal-lead');
     renderLeadsTable();
     renderNextActions();
+    // Venda fechada precisa refletir na hora nos cards do Dashboard
+    // (faturamento, meta, eficiência etc.) — não espera o próximo ciclo
+    // de cache/atualização, que continua no mesmo intervalo de sempre
+    // para o restante dos dados (economia de consumo de saída).
+    if (status === 'Fechado' && typeof renderDashboard === 'function') {
+      try { renderDashboard(); } catch(e3) {}
+    }
   } catch(e) {
     document.getElementById('l-err').textContent = 'Erro: ' + e.message;
   }
