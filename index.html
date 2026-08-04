@@ -8613,7 +8613,7 @@ function renderDashboardExecutivo() {
   const mesAtual = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
   const vendasMes = leads.filter(l => {
     if (l.status !== 'Fechado') return false;
-    const ref = l.data_compra_prevista || l.ultima_interacao;
+    const ref = l.data_compra_prevista || l.criado_em;
     return ref && ref.startsWith(mesAtual);
   });
 
@@ -8890,7 +8890,7 @@ function _carenciaLabelMaps() {
 
 function _carenciaRowHtml({ l, sc, dias, restam }) {
   const { lMap, bMap } = _carenciaLabelMaps();
-  const ref2 = l.data_compra_prevista || l.ultima_interacao;
+  const ref2 = l.data_compra_prevista || l.criado_em;
   return `<tr>
     <td><strong>${l.nome}</strong></td>
     <td style="font-size:14px">${l.programa||'—'}</td>
@@ -8946,7 +8946,7 @@ function renderCarenciaContratos() {
   const fechados = leads.filter(l => l.status === 'Fechado');
   if (!fechados.length) { el.innerHTML = '<p class="empty">Nenhuma venda fechada ainda.</p>'; return; }
   const items = fechados.map(l => {
-    const ref = l.data_compra_prevista || l.ultima_interacao || l.criado_em;
+    const ref = l.data_compra_prevista || l.criado_em;
     const dt = ref ? new Date(ref) : null;
     const dias = dt ? Math.round((hoje - dt) / 86400000) : null;
     const sc = l.status_contrato || (dias !== null ? (dias < 7 ? 'carencia' : 'confirmada') : null);
@@ -9051,7 +9051,7 @@ function renderCycleTime() {
   const diasDiag = leadsComDiag.map(l => Math.max(0, (new Date(l.data_diagnostico) - new Date(l.criado_em)) / 86400000)).filter(d => d > 0);
   const mediaDiag = diasDiag.length ? (diasDiag.reduce((s,d)=>s+d,0)/diasDiag.length).toFixed(1) : null;
   const leadsVend = leads.filter(l => l.status === 'Fechado' && l.criado_em);
-  const diasVend = leadsVend.map(l => { const r = l.data_compra_prevista||l.ultima_interacao; return r ? Math.max(0,(new Date(r)-new Date(l.criado_em))/86400000) : null; }).filter(Boolean);
+  const diasVend = leadsVend.map(l => { const r = l.data_compra_prevista||l.criado_em; return r ? Math.max(0,(new Date(r)-new Date(l.criado_em))/86400000) : null; }).filter(Boolean);
   const mediaVend = diasVend.length ? (diasVend.reduce((s,d)=>s+d,0)/diasVend.length).toFixed(1) : null;
 
   const statusOrder = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Perdido'];
@@ -9235,7 +9235,7 @@ function renderForecast() {
   const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
   const diasRestantes = diasNoMes - diaDoMes;
   const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
-  const vendasMes = leads.filter(l => { if (l.status !== 'Fechado') return false; const ref = l.data_compra_prevista || l.ultima_interacao; return ref && ref.startsWith(mesAtual); });
+  const vendasMes = leads.filter(l => { if (l.status !== 'Fechado') return false; const ref = l.data_compra_prevista || l.criado_em; return ref && ref.startsWith(mesAtual); });
   const faturado = vendasMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivosFc = colaboradores.filter(cx => cx.papel==='closer').length || 1;
   const precoFc = programas[0]?.preco || 2997;
@@ -9246,7 +9246,7 @@ function renderForecast() {
   // menos de 7 dias corridos ainda, usa a média do que já se passou.
   const seteDiasAtras = new Date(hoje); seteDiasAtras.setDate(hoje.getDate() - 7);
   const vendasUltimos7d = vendasMes.filter(l => {
-    const ref = new Date(l.data_compra_prevista || l.ultima_interacao);
+    const ref = new Date(l.data_compra_prevista || l.criado_em);
     return ref >= seteDiasAtras;
   });
   const janelaDias = Math.min(7, diaDoMes);
@@ -9331,7 +9331,7 @@ function mesAtualStr() {
 function renderKPIsMacro() {
   const hoje = new Date();
   const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
-  const vendasMes  = leads.filter(l => l.status === 'Fechado' && ((l.data_compra_prevista||l.ultima_interacao||'')).startsWith(mesAtual));
+  const vendasMes  = leads.filter(l => l.status === 'Fechado' && ((l.data_compra_prevista||l.criado_em||'')).startsWith(mesAtual));
   const fat = vendasMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivosKpi = colaboradores.filter(cx => cx.papel==='closer').length || 1;
   const meta = 7 * closersAtivosKpi * (programas[0]?.preco || 2997);
@@ -9496,7 +9496,7 @@ function renderDashHojeEMes() {
   if (leadsLabelEl) leadsLabelEl.textContent = `Leads (${labelPeriodo})`;
   if (leadsNumEl) leadsNumEl.textContent = leadsP;
   if (leadsSubEl) {
-    const fechadosNoPeriodo = leads.filter(l => l.status === 'Fechado' && inP(l.data_compra_prevista || l.ultima_interacao || l.criado_em)).length;
+    const fechadosNoPeriodo = leads.filter(l => l.status === 'Fechado' && inP(l.data_compra_prevista || l.criado_em)).length;
     leadsSubEl.textContent = `${fechadosNoPeriodo} fechamentos · ${leadsP - fechadosNoPeriodo} em aberto`;
   }
   const picoLabel = document.getElementById('dash-picker-label');
@@ -9509,7 +9509,7 @@ function renderDashHojeEMes() {
     <div class="stat-card ${nsP>0?'red-border':''}"><div class="stat-label">No-Show</div><div class="stat-value ${nsP>0?'red':'muted'}">${nsP}${agendP>0?` <span style="font-size:14px">(${taxaNSP}%)</span>`:''}</div></div>
   `;
 
-  const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.data_compra_prevista||l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr);
+  const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr);
   const vendasMes = fechadosMes.length;
   const realizadoMes = fechadosMes.reduce((s,l) => s+(l.valor_oportunidade||TICKET), 0);
   const closersAtivos = colaboradores.filter(cx => cx.papel==='closer').length || 1;
@@ -9698,7 +9698,7 @@ function renderMetaProgress(containerId, colab) {
   if (colab.papel === 'sdr') {
     const realizado = leads.filter(l => l.sdr_id === colab.id && l.data_diagnostico && l.data_diagnostico.slice(0,7)===mesStr).length;
     const pct = Math.min(100, Math.round(realizado / META_DIAGS_SDR * 100));
-    const vendasSDR = leads.filter(l => l.sdr_id === colab.id && l.status==='Fechado' && (l.data_compra_prevista||l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr).length;
+    const vendasSDR = leads.filter(l => l.sdr_id === colab.id && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr).length;
     html = `
       <div class="progress-block">
         <div class="progress-top"><span>Diagnósticos no Mês — Meta: ${META_DIAGS_SDR}</span><span class="progress-pct">${realizado}/${META_DIAGS_SDR} · ${pct}%</span></div>
@@ -9719,7 +9719,7 @@ function renderMetaProgress(containerId, colab) {
   }
 
   if (colab.papel === 'closer') {
-    const realizadoVendas = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.data_compra_prevista||l.ultima_interacao||l.criado_em||'').slice(0,7)===mesStr).length;
+    const realizadoVendas = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr).length;
     const pctVendas = Math.min(100, Math.round(realizadoVendas / META_VENDAS * 100));
     const reunioesMes = tarefas.filter(t => t.colaborador_id===colab.id && t.status_reuniao==='compareceu' && t.data.slice(0,7)===mesStr).length;
     const pctReun = Math.min(100, Math.round(reunioesMes / META_VENDAS * 100));
@@ -9921,7 +9921,7 @@ function getFilteredLeads() {
       // usa a data de cadastro (não faz sentido usar "data da compra" pra quem
       // ainda não comprou).
       const ref = l.status === 'Fechado'
-        ? (l.data_compra_prevista || l.ultima_interacao || l.criado_em)
+        ? (l.data_compra_prevista || l.criado_em)
         : l.criado_em;
       if (!ref || ref.slice(0,7) !== mes) return false;
     }
@@ -11140,6 +11140,13 @@ async function saveLead() {
   if (!nome || !empresa) { document.getElementById('l-err').textContent = 'Nome e empresa são obrigatórios.'; return; }
   if (status === 'Perdido' && !document.getElementById('l-motivo-perda').value) {
     document.getElementById('l-err').textContent = 'Motivo da perda é obrigatório para leads perdidos.'; return;
+  }
+  if (status === 'Fechado' && !document.getElementById('l-data-compra').value) {
+    // Sem essa data, o faturamento cai no mês errado caso o lead seja
+    // editado depois (a data de cadastro seria usada como referência,
+    // o que pode não ser o mês real da venda). Por isso é obrigatória
+    // ao fechar.
+    document.getElementById('l-err').textContent = 'Data da compra é obrigatória para marcar um lead como Fechado (ela define o mês do faturamento).'; return;
   }
 
   if (!id) {
@@ -12370,7 +12377,7 @@ function renderPerformanceComercial() {
         const bateuMeta = contatosHoje >= metaContatos;
 
         const diagsMes = leads.filter(l => l.sdr_id === c.id && l.data_diagnostico && l.data_diagnostico.slice(0,7) === hoje.slice(0,7)).length;
-        const vendasMes = leads.filter(l => l.closer_nome === c.nome && l.status === 'Fechado' && (l.data_compra_prevista || l.ultima_interacao || l.criado_em || '').slice(0,7) === hoje.slice(0,7)).length;
+        const vendasMes = leads.filter(l => l.closer_nome === c.nome && l.status === 'Fechado' && (l.data_compra_prevista || l.criado_em || '').slice(0,7) === hoje.slice(0,7)).length;
 
         return `
           <tr>
@@ -13727,7 +13734,7 @@ function comissaoVariavelDaVenda(lead) {
   if (user.papel === 'closer' && lead.closer_nome === user.nome) {
     // Quantas vendas esse closer já tem fechadas este mês — essa entra como a próxima.
     const jaFechadas = leads.filter(l => l.closer_nome === user.nome && l.status === 'Fechado'
-      && (l.data_compra_prevista || l.ultima_interacao || l.criado_em || '').slice(0,7) === mesStr).length;
+      && (l.data_compra_prevista || l.criado_em || '').slice(0,7) === mesStr).length;
     const ordemDestaVenda = jaFechadas + 1;
     const marginal = totalComissaoCloserPorVendas(ordemDestaVenda) - totalComissaoCloserPorVendas(ordemDestaVenda - 1);
     return { valor: marginal, detalhe: `Closer — ${ordemDestaVenda}ª venda do mês, pela tabela de faixas` };
