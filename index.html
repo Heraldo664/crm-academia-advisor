@@ -9895,6 +9895,13 @@ function deduplicarLeads(lista) {
   return [...clusters, ...semChave];
 }
 
+// Exceção de visibilidade: a SDR Karine também dá apoio a leads de outros
+// SDRs, então ela precisa ver e editar a lista inteira, não só os leads
+// distribuídos a ela. Os demais SDRs continuam vendo só os seus.
+function sdrVeTodosLeads(u) {
+  return !!(u && u.papel === 'sdr' && (u.nome || '').trim().toLowerCase().startsWith('karine'));
+}
+
 function getFilteredLeads() {
   const q = document.getElementById('lead-search').value.toLowerCase();
   const st = document.getElementById('lead-filter-status').value;
@@ -9908,7 +9915,7 @@ function getFilteredLeads() {
   const base = leads;
   return base.filter(l => {
     // Visibilidade por papel
-    if (user.papel === 'sdr' && l.sdr_id !== user.id) return false;
+    if (user.papel === 'sdr' && !sdrVeTodosLeads(user) && l.sdr_id !== user.id) return false;
     if (user.papel === 'closer' && l.closer_nome !== user.nome) return false;
     // Leads parciais de formulário não aparecem na tabela principal
     if (l.origem === 'formulario' && l.completude === 'parcial') return false;
