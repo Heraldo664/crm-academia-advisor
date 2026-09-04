@@ -12546,6 +12546,7 @@ function openColabModal() {
   document.getElementById('c-papel').value = 'sdr';
   document.getElementById('c-meta-diag').value = 0;
   document.getElementById('c-meta-vendas').value = 0;
+  document.getElementById('c-cota-leads').value = COTA_PADRAO_SDR;
   document.getElementById('c-err').textContent = '';
   document.querySelector('#modal-colab .modal-title').textContent = 'Novo Colaborador';
   onPapelChange();
@@ -12562,6 +12563,7 @@ function editColab(id) {
   document.getElementById('c-senha').value = c.senha;
   document.getElementById('c-linkedin').value = c.linkedin_url || '';
   document.getElementById('c-instagram').value = c.instagram_url || '';
+  document.getElementById('c-cota-leads').value = c.cota_leads || COTA_PADRAO_SDR;
   const meta = getMeta(c.id);
   document.getElementById('c-meta-diag').value = meta ? meta.meta_diagnosticos : 0;
   document.getElementById('c-meta-vendas').value = meta ? meta.meta_vendas : 0;
@@ -12580,16 +12582,17 @@ async function saveColab() {
   const senha = document.getElementById('c-senha').value;
   const linkedin_url = document.getElementById('c-linkedin').value.trim() || null;
   const instagram_url = document.getElementById('c-instagram').value.trim() || null;
+  const cota_leads = papel === 'sdr' ? (parseInt(document.getElementById('c-cota-leads').value) || COTA_PADRAO_SDR) : null;
   if (!nome || !iniciais || !senha) { document.getElementById('c-err').textContent = 'Preencha todos os campos obrigatórios.'; return; }
 
   try {
     let colabId = id;
     if (id) {
-      const res = await patch('colaboradores', { nome, iniciais, papel, senha, linkedin_url, instagram_url }, `id=eq.${id}`);
+      const res = await patch('colaboradores', { nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads }, `id=eq.${id}`);
       const idx = colaboradores.findIndex(c => c.id === id);
       if (res && res[0]) colaboradores[idx] = res[0];
     } else {
-      const res = await post('colaboradores', { nome, iniciais, papel, senha, linkedin_url, instagram_url });
+      const res = await post('colaboradores', { nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads });
       if (res && res[0]) { colaboradores.push(res[0]); colabId = res[0].id; }
     }
     colaboradores.sort((a, b) => a.nome.localeCompare(b.nome));
