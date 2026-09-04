@@ -6947,7 +6947,7 @@ window.__initGuiaMentor = init;
 
     <div class="panel">
       <div class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Distribuição Automática de Leads (Formulário)</div>
-      <p style="font-size:18px;color:var(--muted);margin-bottom:14px">Leads "Completa" do formulário são distribuídos automaticamente entre os SDRs por rodízio ponderado (peso recalculado pela taxa de conversão das últimas 2 semanas). Leads "Parcial" entram direto na fila → Leads pra aquecer.</p>
+      <p style="font-size:18px;color:var(--muted);margin-bottom:14px">Cada SDR mantém sempre até 20 leads ativos na fila (do mais antigo pro mais novo). Um SDR novo já recebe os 20 na hora do cadastro; assim que um lead sai da fila dele (Fechado/Perdido), o próximo lead pendente entra automaticamente. Leads "Parcial" entram direto em Leads pra aquecer, sem passar por essa fila.</p>
       <div id="distribuicao-fila-list"></div>
     </div>
 
@@ -8494,7 +8494,7 @@ function renderAdminSeguro() {
   seguro('renderAvisosAdminList', renderAvisosAdminList);
   seguro('renderAvisosTemplates', renderAvisosTemplates);
   seguro('renderAvisosAutoList', renderAvisosAutoList);
-  seguro('renderDistribuicaoFila', renderDistribuicaoFila);
+  seguro('distribuirLeadsPendentes', function(){ return distribuirLeadsPendentes().then(renderDistribuicaoFila); });
   seguro('renderWhatsappInteracoes', renderWhatsappInteracoes);
   seguro('renderPerformanceComercial', renderPerformanceComercial);
   seguro('loadRespostasAvisoAuto', function(){ return loadRespostasAvisoAuto().then(renderRespostasAvisoAuto); });
@@ -8598,7 +8598,7 @@ function navigateTo(pageId) {
 // ════════════════════════════════════════════════════════════
 // 1. CAPACIDADE SDR — Cota máxima de leads por SDR
 // ════════════════════════════════════════════════════════════
-const COTA_PADRAO_SDR = 30;
+const COTA_PADRAO_SDR = 20;
 function getCotaSDR(colab) { return colab.cota_leads || COTA_PADRAO_SDR; }
 function getLeadsAtivosPorSDR(sdrId) {
   const ativos = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada'];
@@ -11280,6 +11280,12 @@ async function saveLead() {
         if (status === 'Fechado') {
           dispararIntegracaoGuiaMentor(leads.find(l => l.id === id) || payload);
         }
+        // Gatilho 2 da distribuição automática: o lead saiu da fila
+        // (Fechado ou Perdido) → libera 1 vaga no SDR dele, que é
+        // reposta na hora com o próximo lead pendente mais antigo.
+        if ((status === 'Fechado' || status === 'Perdido') && leadAnterior.sdr_id) {
+          preencherSDR(leadAnterior.sdr_id).then(() => { if (typeof renderDistribuicaoFila === 'function') renderDistribuicaoFila(); }).catch(e => console.error('Erro ao repor fila do SDR:', e));
+        }
       }
     } else {
       payload.sdr_nome = user.nome;
@@ -12280,6 +12286,97 @@ async function marcarSenhaVisualizada(id) {
 }
 
 // ============================================================
+// DISTRIBUIÇÃO AUTOMÁTICA DE LEADS — fila sempre cheia (20/SDR)
+// ============================================================
+// Modelo: cada SDR mantém até `cota_leads` (padrão 20) leads ATIVOS
+// (getLeadsAtivosPorSDR já define "ativo" = todo status que não é
+// Fechado nem Perdido). A fila de cada SDR é reabastecida sozinha,
+// sem precisar de ninguém clicar em nada, em 3 gatilhos:
+//   1) Um SDR é cadastrado          → preencherSDR() dá os 20 na hora.
+//   2) Um lead sai da fila dele     → preencherSDR() repõe 1 na hora
+//      (marcado Fechado ou Perdido, dentro de saveLead()).
+//   3) A página Admin carrega/atualiza → distribuirLeadsPendentes()
+//      roda como rede de segurança, cobrindo qualquer lead novo que
+//      tenha chegado direto no banco (ex: via formulário público).
+// A ordem de atribuição é sempre do lead mais antigo pro mais novo
+// (por `criado_em`).
+let distribuindoLeadsAgora = false;
+
+// Preenche UM SDR até a cota dele, puxando os leads pendentes mais
+// antigos primeiro. Pode ser chamada isoladamente (cadastro novo,
+// lead liberado) ou dentro do loop de distribuirLeadsPendentes().
+async function preencherSDR(sdrId) {
+  const sdrArr = await get('colaboradores', `?id=eq.${sdrId}&select=id,nome,cota_leads,papel`);
+  const sdr = sdrArr && sdrArr[0];
+  if (!sdr || sdr.papel !== 'sdr') return;
+
+  // Garante que existe uma linha de telemetria em `distribuicao_fila`
+  // pra esse SDR (não define mais limite nenhum, é só histórico/painel).
+  let filaRow = null;
+  try {
+    const filaExistente = await get('distribuicao_fila', `?colaborador_id=eq.${sdr.id}&select=*`);
+    filaRow = filaExistente && filaExistente[0];
+    if (!filaRow) {
+      const criado = await post('distribuicao_fila', { colaborador_id: sdr.id, peso: 1, total_recebidos_periodo: 0, ultimo_recebido_em: null });
+      filaRow = criado && criado[0];
+    }
+  } catch (e) { /* não bloqueia a distribuição por causa da telemetria */ }
+
+  const cota = sdr.cota_leads || COTA_PADRAO_SDR;
+  const ativos = getLeadsAtivosPorSDR(sdr.id);
+  const deficit = cota - ativos;
+  if (deficit <= 0) return;
+
+  // Pool de leads elegíveis, ainda sem SDR, do mais antigo pro mais novo.
+  const pendentes = (leads || [])
+    .filter(l => l.origem === 'formulario' && l.completude === 'completa' && !l.sdr_id)
+    .sort((a, b) => (a.criado_em || '').localeCompare(b.criado_em || ''));
+
+  const aAtribuir = pendentes.slice(0, deficit);
+  if (!aAtribuir.length) return;
+
+  const agora = new Date().toISOString();
+  for (const lead of aAtribuir) {
+    try {
+      await patch('leads', { sdr_id: sdr.id, distribuido_em: agora }, `id=eq.${lead.id}`);
+      lead.sdr_id = sdr.id;       // reflete na hora pro resto do loop já ver o pool menor
+      lead.distribuido_em = agora;
+    } catch (e) {
+      console.error('Erro ao atribuir lead', lead.id, 'pro SDR', sdr.nome, e);
+    }
+  }
+  try {
+    const totalAnterior = (filaRow && filaRow.total_recebidos_periodo) || 0;
+    await patch(
+      'distribuicao_fila',
+      { total_recebidos_periodo: totalAnterior + aAtribuir.length, ultimo_recebido_em: agora },
+      `colaborador_id=eq.${sdr.id}`,
+    );
+  } catch (e) { /* telemetria não bloqueia */ }
+}
+
+// Rede de segurança: passa por todos os SDRs (ordem alfabética, a
+// mesma da lista de colaboradores) e completa a fila de quem estiver
+// com déficit. Roda sozinha sempre que a tela Admin é aberta/atualiza.
+async function distribuirLeadsPendentes() {
+  if (distribuindoLeadsAgora) return; // evita rodar duas vezes ao mesmo tempo
+  distribuindoLeadsAgora = true;
+  const btn = document.getElementById('distribuir-agora-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Distribuindo...'; }
+  try {
+    const sdrs = await get('colaboradores', '?papel=eq.sdr&select=id,nome');
+    for (const sdr of (sdrs || [])) {
+      await preencherSDR(sdr.id);
+    }
+  } catch (e) {
+    console.error('Erro ao distribuir leads:', e);
+  } finally {
+    distribuindoLeadsAgora = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Distribuir agora'; }
+  }
+}
+
+// ============================================================
 // DISTRIBUIÇÃO AUTOMÁTICA DE LEADS — painel de transparência (Admin)
 // ============================================================
 async function renderDistribuicaoFila() {
@@ -12308,20 +12405,23 @@ async function renderDistribuicaoFila() {
 
     for (const sdr of sdrs) {
       const f = fila.find(x => x.colaborador_id === sdr.id);
-      const peso = f ? Number(f.peso).toFixed(2) : '1.00';
-      const recebidos = f ? f.total_recebidos_periodo || 0 : 0;
+      const ativos = getLeadsAtivosPorSDR(sdr.id);
+      const cota = getCotaSDR(sdr);
       const ultimo = f && f.ultimo_recebido_em ? new Date(f.ultimo_recebido_em).toLocaleString('pt-BR') : 'Nenhum ainda';
+      const pct = Math.min(100, Math.round((ativos / cota) * 100));
       html += `
         <div class="ranking-item">
           <div class="ranking-medal">⚖️</div>
           <div style="flex:1">
             <div class="ranking-name">${sdr.nome}</div>
-            <div class="ranking-sub">Peso atual: ${peso}x · ${recebidos} leads recebidos · Último: ${ultimo}</div>
+            <div class="ranking-sub">${ativos}/${cota} leads ativos na fila (${pct}%) · Último recebido: ${ultimo}</div>
           </div>
         </div>
       `;
     }
-    html += '</div>';
+    html += `</div>
+      <button class="btn btn-primary btn-sm" id="distribuir-agora-btn" style="margin-top:14px" onclick="distribuirLeadsPendentes().then(renderDistribuicaoFila)">Distribuir agora</button>
+    `;
     el.innerHTML = html;
   } catch(e) {
     el.innerHTML = '<p class="empty">Distribuição automática ainda não configurada (rode a migração e publique a Edge Function).</p>';
@@ -12632,6 +12732,13 @@ async function saveColab() {
       if (res && res[0]) { colaboradores.push(res[0]); colabId = res[0].id; }
     }
     colaboradores.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    // Gatilho 1 da distribuição automática: SDR recém-cadastrado já
+    // recebe os leads pendentes até a cota dele (20 por padrão) na hora,
+    // sem precisar de nenhuma ação manual.
+    if (!id && papel === 'sdr' && colabId) {
+      preencherSDR(colabId).then(() => { if (typeof renderDistribuicaoFila === 'function') renderDistribuicaoFila(); }).catch(e => console.error('Erro ao preencher fila do novo SDR:', e));
+    }
 
     let metaErro = null;
     if (papel !== 'admin') {
