@@ -6947,7 +6947,7 @@ window.__initGuiaMentor = init;
 
     <div class="panel">
       <div class="panel-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Distribuição Automática de Leads (Formulário)</div>
-      <p style="font-size:18px;color:var(--muted);margin-bottom:14px">Cada SDR mantém sempre até 20 leads ativos na fila (do mais antigo pro mais novo). Um SDR novo já recebe os 20 na hora do cadastro; assim que um lead sai da fila dele (Fechado/Perdido), o próximo lead pendente entra automaticamente. Leads "Parcial" entram direto em Leads pra aquecer, sem passar por essa fila.</p>
+      <p style="font-size:18px;color:var(--muted);margin-bottom:14px">Cada SDR mantém sempre até 20 leads ativos na fila (do mais antigo pro mais novo). Um SDR novo já recebe os 20 na hora do cadastro — primeiro com leads sem dono; se não houver leads sem dono suficientes, remaneja de SDRs acima da própria cota (só leads ainda no status "Contatar", pra não mexer em conversa andando). Assim que um lead sai da fila (Fechado/Perdido), o próximo entra automaticamente. Leads "Parcial" entram direto em Leads pra aquecer, sem passar por essa fila.</p>
       <div id="distribuicao-fila-list"></div>
     </div>
 
@@ -12302,9 +12302,19 @@ async function marcarSenhaVisualizada(id) {
 // (por `criado_em`).
 let distribuindoLeadsAgora = false;
 
-// Preenche UM SDR até a cota dele, puxando os leads pendentes mais
-// antigos primeiro. Pode ser chamada isoladamente (cadastro novo,
-// lead liberado) ou dentro do loop de distribuirLeadsPendentes().
+// Preenche UM SDR até a cota dele, puxando os leads mais antigos
+// primeiro. Duas fontes, nessa ordem:
+//   1) Leads "sem dono" (nunca foram distribuídos pra ninguém).
+//   2) Se isso não for suficiente, REMANEJA de SDRs que estão ACIMA
+//      da própria cota — só leads no status "Contatar" (ainda não
+//      contatados), pra nunca tirar de alguém uma conversa que já
+//      está andando. Sem essa segunda fonte, um SDR novo fica
+//      travado pra sempre se o backlog de leads sem dono já tiver
+//      sido todo consumido por quem entrou antes dele — que é
+//      exatamente o que estava acontecendo com a Maxinny: os 1706
+//      leads do formulário já estavam quase todos com dono (Karine
+//      sozinha com 1293), então não sobrava nada "livre" pra ela
+//      receber, mesmo com a fila automática funcionando certinho.
 async function preencherSDR(sdrId) {
   const sdrArr = await get('colaboradores', `?id=eq.${sdrId}&select=id,nome,cota_leads,papel`);
   const sdr = sdrArr && sdrArr[0];
@@ -12324,19 +12334,47 @@ async function preencherSDR(sdrId) {
 
   const cota = sdr.cota_leads || COTA_PADRAO_SDR;
   const ativos = getLeadsAtivosPorSDR(sdr.id);
-  const deficit = cota - ativos;
-  if (deficit <= 0) return;
+  const deficitOriginal = cota - ativos;
+  if (deficitOriginal <= 0) return;
 
-  // Pool de leads elegíveis, ainda sem SDR, do mais antigo pro mais novo.
-  const pendentes = (leads || [])
+  const atribuidos = [];
+
+  // 1) Leads sem dono — mais antigos primeiro.
+  const semDono = (leads || [])
     .filter(l => l.origem === 'formulario' && l.completude === 'completa' && !l.sdr_id)
     .sort((a, b) => (a.criado_em || '').localeCompare(b.criado_em || ''));
+  atribuidos.push(...semDono.slice(0, deficitOriginal));
 
-  const aAtribuir = pendentes.slice(0, deficit);
-  if (!aAtribuir.length) return;
+  // 2) Ainda falta? Remaneja de quem está acima da própria cota.
+  if (atribuidos.length < deficitOriginal) {
+    const todosSdrs = await get('colaboradores', '?papel=eq.sdr&select=id,cota_leads');
+    const excedentePorSdr = new Map();
+    for (const outro of (todosSdrs || [])) {
+      if (outro.id === sdr.id) continue;
+      const outraCota = outro.cota_leads || COTA_PADRAO_SDR;
+      const excedente = getLeadsAtivosPorSDR(outro.id) - outraCota;
+      if (excedente > 0) excedentePorSdr.set(outro.id, excedente);
+    }
+    if (excedentePorSdr.size) {
+      const idsJaPegos = new Set(atribuidos.map(l => l.id));
+      const redistribuiveis = (leads || [])
+        .filter(l => l.sdr_id && excedentePorSdr.has(l.sdr_id) && l.status === 'Contatar' && !idsJaPegos.has(l.id))
+        .sort((a, b) => (a.criado_em || '').localeCompare(b.criado_em || ''));
+      const tirado = new Map();
+      for (const lead of redistribuiveis) {
+        if (atribuidos.length >= deficitOriginal) break;
+        const jaTirado = tirado.get(lead.sdr_id) || 0;
+        if (jaTirado >= excedentePorSdr.get(lead.sdr_id)) continue; // não drena o doador abaixo da cota dele
+        tirado.set(lead.sdr_id, jaTirado + 1);
+        atribuidos.push(lead);
+      }
+    }
+  }
+
+  if (!atribuidos.length) return;
 
   const agora = new Date().toISOString();
-  for (const lead of aAtribuir) {
+  for (const lead of atribuidos) {
     try {
       await patch('leads', { sdr_id: sdr.id, distribuido_em: agora }, `id=eq.${lead.id}`);
       lead.sdr_id = sdr.id;       // reflete na hora pro resto do loop já ver o pool menor
@@ -12349,7 +12387,7 @@ async function preencherSDR(sdrId) {
     const totalAnterior = (filaRow && filaRow.total_recebidos_periodo) || 0;
     await patch(
       'distribuicao_fila',
-      { total_recebidos_periodo: totalAnterior + aAtribuir.length, ultimo_recebido_em: agora },
+      { total_recebidos_periodo: totalAnterior + atribuidos.length, ultimo_recebido_em: agora },
       `colaborador_id=eq.${sdr.id}`,
     );
   } catch (e) { /* telemetria não bloqueia */ }
