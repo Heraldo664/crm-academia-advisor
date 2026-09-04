@@ -12585,14 +12585,41 @@ async function saveColab() {
   const cota_leads = papel === 'sdr' ? (parseInt(document.getElementById('c-cota-leads').value) || COTA_PADRAO_SDR) : null;
   if (!nome || !iniciais || !senha) { document.getElementById('c-err').textContent = 'Preencha todos os campos obrigatórios.'; return; }
 
+  // As colunas `cota_leads` e `ativo` ainda não existem na tabela `colaboradores`
+  // do banco (a migração nunca foi aplicada no Supabase). Enquanto isso não for
+  // corrigido lá, o Postgrest rejeita a escrita inteira se essas colunas forem
+  // enviadas. Pra não travar o cadastro/edição de colaboradores por causa disso,
+  // tentamos salvar com esses campos e, se o banco reclamar especificamente
+  // dessas colunas, tentamos de novo sem elas — o resto do cadastro é salvo
+  // normalmente, e avisamos que a cota/ativo não persistiram.
+  let cotaAtivoIgnorados = false;
+  async function salvarColaborador(payloadCompleto) {
+    try {
+      return id
+        ? await patch('colaboradores', payloadCompleto, `id=eq.${id}`)
+        : await post('colaboradores', payloadCompleto);
+    } catch (e) {
+      const msg = (e && e.message) || '';
+      const colunaFaltando = /cota_leads/i.test(msg) || (/\bativo\b/i.test(msg) && /column/i.test(msg));
+      if (colunaFaltando) {
+        cotaAtivoIgnorados = true;
+        const { cota_leads: _c, ativo: _a, ...payloadReduzido } = payloadCompleto;
+        return id
+          ? await patch('colaboradores', payloadReduzido, `id=eq.${id}`)
+          : await post('colaboradores', payloadReduzido);
+      }
+      throw e;
+    }
+  }
+
   try {
     let colabId = id;
     if (id) {
-      const res = await patch('colaboradores', { nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads }, `id=eq.${id}`);
+      const res = await salvarColaborador({ nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads });
       const idx = colaboradores.findIndex(c => c.id === id);
       if (res && res[0]) colaboradores[idx] = res[0];
     } else {
-      const res = await post('colaboradores', { nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads, ativo: true });
+      const res = await salvarColaborador({ nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads, ativo: true });
       if (res && res[0]) { colaboradores.push(res[0]); colabId = res[0].id; }
     }
     colaboradores.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -12628,6 +12655,9 @@ async function saveColab() {
     closeModal('modal-colab');
     renderAdmin();
     populateFilters();
+    if (cotaAtivoIgnorados) {
+      alert('Colaborador salvo, mas a cota de leads e o status "ativo" NÃO foram gravados — as colunas "cota_leads" e "ativo" ainda não existem na tabela "colaboradores" do banco. Peça pra alguém com acesso ao Supabase rodar a migração que cria essas colunas; até lá, esses dois campos não têm efeito.');
+    }
     if (metaErro) {
       alert('Colaborador salvo, mas a meta não pôde ser salva: ' + metaErro + '\n\nIsso geralmente significa que a migração mais recente do banco ainda não foi rodada no Supabase.');
     }
