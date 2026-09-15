@@ -10523,10 +10523,23 @@ function renderCloserAgenda() {
     if (!grupos.has(chave)) grupos.set(chave, { nome: item.nome, empresa: item.empresa, eventos: [] });
     grupos.get(chave).eventos.push(item);
   }
-  const pessoas = [...grupos.values()].map(g => ({
-    ...g,
-    eventos: g.eventos.sort((a, b) => (a.hora || '99:99').localeCompare(b.hora || '99:99'))
-  })).sort((a, b) => (a.eventos[0].hora || '99:99').localeCompare(b.eventos[0].hora || '99:99'));
+  const pessoas = [...grupos.values()].map(g => {
+    const ordenados = g.eventos.sort((a, b) => (a.hora || '99:99').localeCompare(b.hora || '99:99'));
+    // ── Sem duplicidade de evento ────────────────────────────────────
+    // A mesma pessoa pode ter 2 tarefas de "Call Fechamento" cadastradas
+    // por engano (ex: reenvio duplicado, igual ao caso de lead duplicado
+    // já visto no CRM). Mostrar as duas na agenda é confuso e não reflete
+    // a realidade — mantém só a primeira ocorrência de cada combinação
+    // tipo+hora, e some com as repetidas.
+    const vistos = new Set();
+    const semDuplicata = ordenados.filter(item => {
+      const chaveEvento = `${item.tipo}|${item.hora || ''}`;
+      if (vistos.has(chaveEvento)) return false;
+      vistos.add(chaveEvento);
+      return true;
+    });
+    return { ...g, eventos: semDuplicata };
+  }).sort((a, b) => (a.eventos[0].hora || '99:99').localeCompare(b.eventos[0].hora || '99:99'));
 
   list.innerHTML = pessoas.map((p, i) => `
     <div style="padding:10px 0;border-top:${i > 0 ? '1px solid var(--border)' : 'none'}">
