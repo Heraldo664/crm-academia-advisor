@@ -1117,7 +1117,10 @@ async function enviarPedidoEsqueciSenha() {
       <div class="script-text">As vagas para diagnóstico desta semana estão quase encerradas...</div>
     </div>
 
-    <div class="section-title">Roteiro de Diagnóstico para o Closer</div>
+    <div class="section-title" id="sdr-script-title" style="display:none">Script do SDR — Primeiro Contato</div>
+    <div id="sdr-script-wrap" style="display:none"></div>
+
+    <div class="section-title" id="closer-script-title">Roteiro de Diagnóstico para o Closer</div>
     <div class="diagnostic-script" id="diag-script"></div>
 
     <!-- GUIAS / CURSOS (ISCAS) -->
@@ -8401,7 +8404,18 @@ function startActivityTracking() {
       // Verificar sessão — graceful se colunas novas não existirem
       try {
         const res = await get('colaboradores', `?id=eq.${user.id}&select=session_token,suspenso,senha`);
-        if (!res || !res[0]) return;
+        if (!res || !res[0]) {
+          // Colaborador não existe mais — foi removido pelo admin.
+          // Derruba a sessão na hora, sem esperar timeout de inatividade.
+          authSignOut();
+          localStorage.removeItem('crm_session');
+          user = null;
+          document.getElementById('app').style.display = 'none';
+          document.getElementById('login-screen').style.display = 'flex';
+          const errEl = document.getElementById('login-auth-err');
+          if (errEl) { errEl.textContent = '⛔ Seu acesso foi removido pelo administrador.'; errEl.style.color = 'var(--red)'; }
+          return;
+        }
         const colab = res[0];
         // Conta suspensa pelo admin
         if (colab.suspenso) {
@@ -8430,7 +8444,7 @@ function startActivityTracking() {
 
   ping();
   activityTimer = setInterval(ping, 300000); // otimizado: 5min ao invés de 1min
-  setInterval(verificarSessao, 5 * 60 * 1000); // OTIMIZADO: verificar sessão a cada 5min (era 2min)
+  setInterval(verificarSessao, 60 * 1000); // checa a cada 1min — reage rápido quando o admin remove/suspende alguém
   setInterval(garantirSessaoValida, 4 * 60 * 1000); // renova o token do Supabase Auth antes de vencer, evitando "JWT expired"
 
   ['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
@@ -8570,7 +8584,21 @@ function navigateTo(pageId) {
     if (typeof renderCloserAgenda === 'function') renderCloserAgenda();
   }
   if (targetPageId === 'daily') { renderDaily(); renderAvisosColabList(); }
-  if (targetPageId === 'scripts') { renderDiagScript(); renderGuiasList(); }
+  if (targetPageId === 'scripts') {
+    const ehSdr = user && (user.papel === 'sdr' || user.papel === 'admin');
+    const ehCloser = user && (user.papel === 'closer' || user.papel === 'admin');
+    const sdrTitle = document.getElementById('sdr-script-title');
+    const sdrWrap = document.getElementById('sdr-script-wrap');
+    const closerTitle = document.getElementById('closer-script-title');
+    const closerScript = document.getElementById('diag-script');
+    if (sdrTitle) sdrTitle.style.display = ehSdr ? '' : 'none';
+    if (sdrWrap) sdrWrap.style.display = ehSdr ? '' : 'none';
+    if (closerTitle) closerTitle.style.display = ehCloser ? '' : 'none';
+    if (closerScript) closerScript.style.display = ehCloser ? '' : 'none';
+    if (ehSdr) renderSdrScript();
+    if (ehCloser) renderDiagScript();
+    renderGuiasList();
+  }
   if (targetPageId === 'guia-mentor') { if (!window.__guiaMentorIniciado && typeof window.__initGuiaMentor === 'function') { window.__guiaMentorIniciado = true; window.__initGuiaMentor(); } }
   if (targetPageId === 'treinamento') {
     // Card "Guia do Mentor" dentro de Treinamento só aparece para admin
@@ -10481,11 +10509,17 @@ function renderCloserAgenda() {
   // ── Agrupar por pessoa ─────────────────────────────────────────────
   // A mesma pessoa pode ter um diagnóstico (cadastro do lead) E uma call
   // de fechamento (tarefa) marcados pra hoje. Em vez de mostrar 2 cards
-  // iguais com o mesmo nome, agrupamos pelo lead_id (ou nome+empresa,
-  // quando a tarefa não tem o vínculo) e listamos os eventos dela juntos.
+  // iguais com o mesmo nome, agrupamos pela identidade real da pessoa —
+  // telefone/e-mail normalizados quando o lead existe, senão leadId,
+  // senão nome+empresa. Isso também evita 2 cards separados quando há
+  // um cadastro duplicado do mesmo lead (ex: "João Pedro" cadastrado
+  // duas vezes com pequenas diferenças de nome).
   const grupos = new Map();
   for (const item of agendaItems) {
-    const chave = item.leadId || `${(item.nome||'').toLowerCase().trim()}|${(item.empresa||'').toLowerCase().trim()}`;
+    const leadRef = item.leadId ? leads.find(l => l.id === item.leadId) : null;
+    const chaveTel = leadRef ? normalizarTelefoneChave(leadRef.telefone) : '';
+    const chaveEmail = leadRef ? normalizarEmailChave(leadRef.email) : '';
+    const chave = chaveTel || chaveEmail || item.leadId || `${(item.nome||'').toLowerCase().trim()}|${(item.empresa||'').toLowerCase().trim()}`;
     if (!grupos.has(chave)) grupos.set(chave, { nome: item.nome, empresa: item.empresa, eventos: [] });
     grupos.get(chave).eventos.push(item);
   }
@@ -10514,6 +10548,22 @@ function renderCloserAgenda() {
       `).join('')}
     </div>
   `).join('');
+
+  // ── Só mostra os 5 primeiros — os demais ficam disponíveis rolando a
+  // lista (evita a agenda de hoje virando uma parede infinita quando tem
+  // muito agendamento no dia).
+  if (pessoas.length > 5) {
+    requestAnimationFrame(() => {
+      const blocos = list.children;
+      if (blocos.length > 5) {
+        list.style.maxHeight = blocos[5].offsetTop + 'px';
+        list.style.overflowY = 'auto';
+      }
+    });
+  } else {
+    list.style.maxHeight = '';
+    list.style.overflowY = '';
+  }
 }
 
 function renderKanban() {
@@ -11170,11 +11220,15 @@ async function saveLead() {
     const emailNovo = document.getElementById('l-email').value.trim();
     const duplicado = await verificarLeadDuplicado(telefoneNovo, emailNovo);
     if (duplicado) {
-      const seguir = confirm(
-        `Já existe um lead cadastrado com esse ${duplicado.motivo}: "${duplicado.nome}" (status: ${duplicado.status}).\n\n` +
-        `Deseja mesmo assim criar um cadastro novo e separado?`
-      );
-      if (!seguir) return;
+      // Bloqueio rígido — não dá mais pra ignorar e criar um cadastro
+      // separado. Duplicidade de lead infla contagens de vendas/leads
+      // e some com histórico (ex: um "Fechado" duplicado dobrando o
+      // faturamento do mês). Quem precisa mexer nesse lead deve editar
+      // o cadastro já existente, não criar um novo.
+      document.getElementById('l-err').textContent =
+        `Já existe um lead cadastrado com esse ${duplicado.motivo}: "${duplicado.nome}" (status: ${duplicado.status}). ` +
+        `Edite o cadastro existente em vez de criar um novo.`;
+      return;
     }
   }
 
@@ -11232,7 +11286,7 @@ async function saveLead() {
       const statusMudou = leadAnterior && leadAnterior.status !== status;
       const res = await patch('leads', payload, `id=eq.${id}`);
       // ── Auditoria: edição de lead ─────────────────────────────────
-      try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_edit', detalhe: `Lead editado: ${payload.nome || id}`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
+      try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_edit', detalhe: `Lead editado: ${payload.nome || id} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
       const idx = leads.findIndex(l => l.id === id);
       if (res && res[0]) leads[idx] = res[0];
       if (statusMudou) {
@@ -12042,6 +12096,162 @@ function toggleAllDiagSteps(expandir) {
   document.querySelectorAll('#diag-script .diag-collapsible').forEach(el => {
     el.classList.toggle('open', expandir);
   });
+}
+
+// ── Script do SDR (visível só pra quem é sdr/admin) ──────────────────
+// Alinhado ao Playbook Comercial: BANT + agendamento, sem preço/ancoragem
+// completa (isso é papel do Closer no diagnóstico).
+function renderSdrScript() {
+  const wrap = document.getElementById('sdr-script-wrap');
+  if (!wrap) return;
+
+  wrap.innerHTML = `
+    <div class="diagnostic-script">
+      <div class="diag-step" style="margin-bottom:16px">
+        <div class="diag-step-text"><strong>Princípio-guia:</strong> o papel do SDR é qualificar com BANT e agendar o diagnóstico com alta qualidade de entrega ao Closer. Preço, ancoragem completa e tratamento de objeções de valor pertencem à reunião de diagnóstico (Closer). Isso evita objeção de preço prematura e preserva o "gancho" que o Closer usa para fechar.</div>
+      </div>
+
+      <div class="diag-collapsible" style="margin-bottom:8px">
+        <div class="diag-collapsible-header" onclick="toggleDiagStep(this)" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 16px;background:var(--surface2);border-radius:10px">
+          <div><span style="font-weight:700;color:var(--accent)">Etapa 1 — Abertura</span><span style="margin-left:10px;color:var(--text)">Atenção em 0,3s</span></div>
+          <span style="color:var(--muted)">▼</span>
+        </div>
+        <div class="diag-collapsible-body" style="padding:16px;background:var(--surface3);border-radius:0 0 10px 10px">
+          <p style="font-size:18px;color:var(--muted);margin-bottom:10px">Use ligação, WhatsApp ou canal social conforme a origem do lead. Energia, tom de voz e postura já vendem ou não vendem antes de qualquer argumento.</p>
+          <div class="diag-q">"[Nome]? Oi, aqui é [seu nome] da Academia Advisor. Você tem 2 minutinhos? Não vou tomar mais que isso." (pausa — espere a resposta, não continue sem ela)</div>
+          <div class="diag-q">"Perfeito. Estou entrando em contato porque vi que você tem [cargo/certificação] no [banco], e a gente tem ajudado profissionais exatamente com esse perfil a migrarem para [cargo desejado] em menos de 6 meses."</div>
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:18px;color:var(--muted)"><strong style="color:var(--accent)">💡 Gatilho de neurovendas:</strong> citar cargo + banco específico ativa reconhecimento e identidade — o lead sente que foi visto, não que recebeu abordagem em massa.</div>
+        </div>
+      </div>
+
+      <div class="diag-collapsible" style="margin-bottom:8px">
+        <div class="diag-collapsible-header" onclick="toggleDiagStep(this)" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 16px;background:var(--surface2);border-radius:10px">
+          <div><span style="font-weight:700;color:var(--accent)">Etapa 2 — Qualificação BANT</span><span style="margin-left:10px;color:var(--text)">Dor → Orçamento → Autoridade → Prazo</span></div>
+          <span style="color:var(--muted)">▼</span>
+        </div>
+        <div class="diag-collapsible-body" style="padding:16px;background:var(--surface3);border-radius:0 0 10px 10px">
+          <p style="font-size:18px;color:var(--muted);margin-bottom:12px">Nunca aceite dor genérica. O objetivo aqui não é vender — é diagnosticar rápido se vale a pena agendar.</p>
+          <div class="table-wrap"><div style="overflow-x:auto"><table>
+            <tr><th>Critério</th><th>Pergunta do SDR</th><th>Sinal de qualificação</th></tr>
+            <tr><td>Need (dor)</td><td>"Qual vaga ou cargo você busca hoje? E qual sua maior dificuldade para chegar lá?"</td><td>Dor específica e concreta — não vaga</td></tr>
+            <tr><td>Situação</td><td>"Quantas entrevistas ou processos você já fez para essa área?"</td><td>Histórico real de tentativas</td></tr>
+            <tr><td>Budget</td><td>"Você costuma investir na sua carreira — cursos, certificações, mentoria?"</td><td>Já investiu antes</td></tr>
+            <tr><td>Authority</td><td>"Você decide sozinho sobre esse tipo de investimento?"</td><td>Decide sozinho ou alinha com cônjuge (pode ser incluído depois)</td></tr>
+            <tr><td>Timeline</td><td>"Tem algum prazo em mente para essa transição?"</td><td>Quer resolver em até 90 dias</td></tr>
+          </table></div></div>
+          <p style="font-size:18px;color:var(--muted);margin:12px 0 6px"><strong>Aprofunde antes de avançar:</strong></p>
+          <div class="diag-q">"Há quanto tempo você vem tentando isso? Se nada mudar nos próximos 12 meses, onde você imagina que vai estar?"</div>
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:18px;color:var(--muted)">Deixe o lead verbalizar o próprio custo — não diga por ele. É essa frase, nas palavras dele, que vai para a ficha de passagem e que o Closer usa na implicação.</div>
+        </div>
+      </div>
+
+      <div class="diag-collapsible" style="margin-bottom:8px">
+        <div class="diag-collapsible-header" onclick="toggleDiagStep(this)" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 16px;background:var(--surface2);border-radius:10px">
+          <div><span style="font-weight:700;color:var(--accent)">Etapa 3 — Prova Social Leve</span><span style="margin-left:10px;color:var(--text)">Antes de qualquer pitch</span></div>
+          <span style="color:var(--muted)">▼</span>
+        </div>
+        <div class="diag-collapsible-body" style="padding:16px;background:var(--surface3);border-radius:0 0 10px 10px">
+          <p style="font-size:18px;color:var(--muted);margin-bottom:10px">Nunca apresente o produto antes da prova social — o cérebro em modo social busca confirmação de que "gente como eu" já conseguiu.</p>
+          <div class="diag-q">"Faz sentido o que você me conta — isso é bem parecido com o que o [nome/cargo/banco similar] também vivia. Ele reprovou [X] vezes e, com a preparação certa, conseguiu a aprovação em [X semanas/meses]. O que muda não é o quanto a pessoa estuda sozinha — é a forma como se prepara."</div>
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(255,145,72,.08);border-radius:8px;border:1px solid rgba(255,145,72,.2);font-size:18px;color:var(--muted)"><strong style="color:#ff9148">⚠️</strong> Não entre em detalhe de produto, metodologia ou preço aqui. É gancho, não pitch.</div>
+        </div>
+      </div>
+
+      <div class="diag-collapsible" style="margin-bottom:8px">
+        <div class="diag-collapsible-header" onclick="toggleDiagStep(this)" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 16px;background:var(--surface2);border-radius:10px">
+          <div><span style="font-weight:700;color:var(--accent)">Etapa 4 — Convite ao Diagnóstico</span><span style="margin-left:10px;color:var(--text)">Eleição forçada</span></div>
+          <span style="color:var(--muted)">▼</span>
+        </div>
+        <div class="diag-collapsible-body" style="padding:16px;background:var(--surface3);border-radius:0 0 10px 10px">
+          <div class="diag-q">"Quero te convidar para uma conversa de diagnóstico — 40 minutos para entender se a gente realmente consegue fazer diferença na sua trajetória, sem compromisso nenhum. Eu tenho [dia] às [hora] ou [dia] às [hora] — qual funciona melhor pra você?"</div>
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(79,138,255,.08);border-radius:8px;border:1px solid rgba(79,138,255,.18);font-size:18px;color:var(--muted)"><strong style="color:var(--accent)">Regra:</strong> nunca pergunte "você tem tempo essa semana?". Ofereça sempre 2 horários específicos — o cérebro escolhe entre as opções dadas, não questiona se vai ou não.</div>
+          <p style="font-size:18px;color:var(--muted);margin:14px 0 6px"><strong>Se demonstrar interesse:</strong> confirme dia e horário na hora, envie confirmação por WhatsApp, registre tudo no CRM.</p>
+          <p style="font-size:18px;color:var(--muted);margin:10px 0 6px"><strong>Se demonstrar pouco ou nenhum interesse:</strong></p>
+          <div class="diag-q">"Entendo. Me faz uma pergunta: você está satisfeito com sua posição atual ou tem vontade de evoluir mas ainda não encontrou o caminho?" (Se houver vontade) "Então vale a pena. 40 minutos que podem mudar o rumo da sua carreira. Qual o melhor dia pra você?"</div>
+        </div>
+      </div>
+
+      <div class="diag-collapsible" style="margin-bottom:8px">
+        <div class="diag-collapsible-header" onclick="toggleDiagStep(this)" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 16px;background:var(--surface2);border-radius:10px">
+          <div><span style="font-weight:700;color:var(--accent)">Etapa 5 — Ficha de Passagem</span><span style="margin-left:10px;color:var(--text)">Preencher no CRM antes da reunião</span></div>
+          <span style="color:var(--muted)">▼</span>
+        </div>
+        <div class="diag-collapsible-body" style="padding:16px;background:var(--surface3);border-radius:0 0 10px 10px">
+          <ul style="font-size:18px;color:var(--muted);margin:0 0 12px 18px;line-height:1.9">
+            <li>Nome completo e banco (ou situação atual)</li>
+            <li>Cargo atual e há quanto tempo / primeiro emprego-recolocação</li>
+            <li>Cargo desejado e prazo em mente</li>
+            <li>Certificações que possui (CPA / C-PRO R / C-PRO I / CFP / ANCORD-AAI)</li>
+            <li>Dor principal — nas palavras exatas do lead</li>
+            <li>Tentativas anteriores (cursos, estudo sozinho etc.)</li>
+            <li>Urgência percebida (1 a 5)</li>
+            <li>Perfil DISC estimado</li>
+            <li>Observações de tom (cético, animado, neutro, resistente)</li>
+            <li>Canal de origem</li>
+            <li>Horário confirmado</li>
+          </ul>
+          <div style="padding:10px 12px;background:rgba(255,145,72,.08);border-radius:8px;border:1px solid rgba(255,145,72,.2);font-size:18px;color:var(--muted)">Um lead mal contextualizado chega frio para o Closer, que perde os minutos mais valiosos da reunião reconstruindo o que o SDR já sabia.</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:22px">Quadro de Objeções — Primeiro Contato (SDR resolve na hora)</div>
+      <div class="table-wrap"><div style="overflow-x:auto"><table>
+        <tr><th>Objeção</th><th>O que o lead realmente quer dizer</th><th>Resposta</th></tr>
+        <tr><td>"Não tenho interesse"</td><td>"Não vi ainda por que isso importa pra mim"</td><td>"Entendo. Me faz uma pergunta: você está satisfeito com sua posição atual ou tem vontade de evoluir mas ainda não encontrou o caminho?"</td></tr>
+        <tr><td>"Não conheço vocês / quem são?"</td><td>"Preciso de um mínimo de confiança antes de continuar ouvindo"</td><td>"Faz total sentido perguntar. A gente forma profissionais para cargos como Especialista de Investimentos e Advisor, com professores que atuam hoje nesses cargos — não é curso teórico. Te mando um material gratuito com o que os bancos avaliam de verdade, sem compromisso?"</td></tr>
+        <tr><td>"Manda por mensagem"</td><td>"Não quero conversar agora, quer decidir sozinho no seu tempo"</td><td>"Consigo te mandar sim — mas o que faz diferença mesmo é entender seu caso específico em 2 minutos agora. Você tá no [cargo] no [banco], certo? Me conta rapidinho o que mais te trava hoje."</td></tr>
+        <tr><td>"Agora não é um bom momento"</td><td>"Pode ser desinteresse ou pode ser realmente falta de tempo"</td><td>"Sem problema. Prefere que eu te chame em qual horário hoje ou amanhã? Só preciso de 2 minutos quando encaixar."</td></tr>
+        <tr><td>"Já tenho certificação, não preciso disso"</td><td>"Acha que o problema já está resolvido"</td><td>"Entendo — certificação é a base. O que a maioria não percebe é que o banco avalia muito mais do que o certificado: avalia como você pensa em situações reais, com cliente, com pressão. Foi isso que travou em alguma entrevista até agora?"</td></tr>
+        <tr><td>"Não tenho dinheiro pra isso agora"</td><td>"Está antecipando uma objeção de preço que ainda não foi apresentado"</td><td>"Ainda nem cheguei a falar de valores — essa conversa de 40 minutos é justamente pra entender se faz sentido pro seu momento, sem nenhum compromisso. Vale a pena pelo menos entender as opções?"</td></tr>
+      </table></div></div>
+      <div style="margin-top:10px;padding:10px 12px;background:rgba(255,145,72,.08);border-radius:8px;border:1px solid rgba(255,145,72,.2);font-size:18px;color:var(--muted)"><strong style="color:#ff9148">🔒 Regra de ouro do SDR:</strong> nunca "descontar" ou negociar preço — o SDR não apresenta preço. Se o lead insistir em saber valores antes da reunião, redirecione: "Os valores variam conforme o programa mais adequado ao seu perfil — é exatamente isso que a gente define juntos no diagnóstico, sem compromisso."</div>
+
+      <div class="section-title" style="margin-top:22px">Objeções de Fechamento — domínio do Closer (contextualize na ficha de passagem)</div>
+      <div class="table-wrap"><div style="overflow-x:auto"><table>
+        <tr><th>Objeção</th><th>O que o lead realmente está dizendo</th><th>Resposta do Closer</th></tr>
+        <tr><td>"Vou pensar"</td><td>"Ainda tenho uma dúvida não resolvida e não sei articulá-la"</td><td>"Faz sentido. Me ajuda a entender — o que especificamente você ainda quer refletir? É a formação em si, o momento ou o investimento?"</td></tr>
+        <tr><td>"Está caro"</td><td>"Não estou enxergando o retorno com clareza suficiente"</td><td>"Caro em relação a quê? Você me disse que a diferença de salário é R$ [X]/mês. Em [Y] meses o investimento está pago só com o aumento de fixo."</td></tr>
+        <tr><td>"Medo de não ter retorno"</td><td>"Já investi antes e não tive resultado — tenho medo de repetir"</td><td>"Essa preocupação é legítima. Você ganha R$ [X]; como Especialista chegaria a R$ [Y]. Em quantos meses você recupera o investimento?"</td></tr>
+        <tr><td>"Preciso falar com esposa/marido"</td><td>"Preciso de aprovação social ou não estou convicto o bastante para decidir sozinho"</td><td>"Faz sentido. Você mesmo acredita que faz sentido? O que você precisaria apresentar para facilitar essa conversa?"</td></tr>
+        <tr><td>"Não tenho tempo"</td><td>"Não enxerguei como encaixar isso na rotina"</td><td>"O programa foi desenhado para quem trabalha em banco com jornada intensa — poucas horas por semana. Qual parte da rotina seria o maior desafio?"</td></tr>
+        <tr><td>"Já fiz curso e não funcionou"</td><td>"Tenho medo de repetir uma experiência ruim"</td><td>"O que você fez antes era certificação ou conteúdo teórico. Aqui é qualificação prática, com professores que atuam hoje nos cargos que você quer."</td></tr>
+        <tr><td>"Já vi cursos mais baratos"</td><td>Está comparando preço sem comparar entrega</td><td>"Pode me dizer quais? Quero te ajudar a comparar com clareza — professores atuantes vs. teóricos, cases reais vs. conteúdo genérico, resultado rastreável vs. promessa."</td></tr>
+      </table></div></div>
+
+      <div class="section-title" style="margin-top:22px">Tabela de Referência Rápida — Remuneração (usar só no Closer, nunca antecipar no SDR)</div>
+      <div class="table-wrap"><div style="overflow-x:auto"><table>
+        <tr><th>Cargo</th><th>Salário fixo</th><th>Variável semestral</th></tr>
+        <tr><td>Assistente / Caixa</td><td>R$ 3.000 – R$ 5.000</td><td>—</td></tr>
+        <tr><td>Gerente de Relacionamento</td><td>R$ 5.000 – R$ 9.000</td><td>R$ 15k – R$ 40k</td></tr>
+        <tr><td>Gerente Alta Renda</td><td>R$ 7.000 – R$ 18.000</td><td>R$ 30k – R$ 80k</td></tr>
+        <tr><td>Especialista de Investimentos</td><td>R$ 7.000 – R$ 15.000</td><td>R$ 30k – R$ 150k+</td></tr>
+        <tr><td>Advisor / Private Banker</td><td>R$ 30.000 – R$ 50.000+</td><td>R$ 500k – R$ 1M+/semestre</td></tr>
+      </table></div></div>
+
+      <div class="section-title" style="margin-top:22px">Checklist do SDR antes de encerrar a chamada</div>
+      <ul style="font-size:18px;color:var(--muted);margin:0 0 20px 18px;line-height:1.9">
+        <li>☐ Dor principal registrada nas palavras exatas do lead</li>
+        <li>☐ BANT completo (dor, orçamento, autoridade, prazo)</li>
+        <li>☐ Horário do diagnóstico confirmado (eleição forçada, não pergunta aberta)</li>
+        <li>☐ Ficha de passagem preenchida no CRM</li>
+        <li>☐ Nenhum preço ou ancoragem completa foi antecipado</li>
+        <li>☐ Confirmação enviada por WhatsApp</li>
+      </ul>
+
+      <div class="panel" style="border:1.5px solid rgba(255,199,0,.35);background:rgba(255,199,0,.05)">
+        <div class="panel-title" style="color:var(--yellow)">📋 Script Resumido — Primeiro Contato</div>
+        <p style="font-size:18px;color:var(--text);line-height:1.9;margin:0 0 12px">Perguntar qual vaga busca, qual banco, dificuldades, quantas entrevistas já fez?</p>
+        <p style="font-size:18px;color:var(--muted);margin:0 0 6px"><strong style="color:var(--text)">Após entender as dores e desejos:</strong></p>
+        <ul style="font-size:18px;color:var(--text);line-height:1.9;margin:0 0 12px 18px">
+          <li><strong>Nossas entregas</strong> — Nível MBA de 20k</li>
+          <li><strong>Ancoragem de preço</strong> — Somente de VA e VR passam de 2k. Salários de 7k a 14k, variáveis semestrais de 30k a mais de 100k</li>
+          <li><strong>Provas sociais</strong> — alunos aprovando com 3 semanas, 1, 2, 3 meses</li>
+        </ul>
+        <p style="font-size:18px;color:var(--text);line-height:1.9;margin:0 0 12px">"Você gostaria de orientação profissional para ser contratado na vaga desejada até quando?"</p>
+        <p style="font-size:18px;color:var(--muted);margin:0"><strong style="color:var(--text)">Urgência:</strong> Milhares de candidatos, gestores escolhem quem demonstra conhecimento prático...</p>
+      </div>
+    </div>
+  `;
 }
 
 function renderDiagScript() {
@@ -15262,14 +15472,46 @@ function renderAuditoria() {
 
   tbody.innerHTML = logs.length === 0
     ? `<tr><td colspan="${isAdmin ? 6 : 5}" class="empty">Nenhum registro encontrado.</td></tr>`
-    : logs.map(l => `<tr onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+    : logs.map(l => {
+        const leadIdMatch = (l.acao === 'lead_edit' || l.acao === 'lead_status') && l.detalhe ? l.detalhe.match(/\(Lead:\s*([0-9a-fA-F-]+)\)/) : null;
+        const leadId = leadIdMatch ? leadIdMatch[1] : null;
+        const clicavel = isAdmin && leadId;
+        const detalheAttrs = clicavel
+          ? `onclick="abrirLeadDoAuditLog('${leadId}')" style="padding:8px 12px;font-size:18px;color:var(--accent);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline" title="${(l.detalhe || '').replace(/"/g,'&quot;')} — clique para abrir o lead"`
+          : `style="padding:8px 12px;font-size:18px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(l.detalhe || '').replace(/"/g,'&quot;')}"`;
+        return `<tr onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
         <td style="padding:8px 12px;font-size:18px;color:var(--muted);white-space:nowrap">${new Date(l.criado_em).toLocaleString('pt-BR')}</td>
         <td style="padding:8px 12px;font-weight:600;font-size:18px">${l.colaborador_nome || '—'}</td>
         <td style="padding:8px 12px">${acaoLabel[l.acao] || `<span style="font-size:18px">${l.acao}</span>`}</td>
-        <td style="padding:8px 12px;font-size:18px;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.detalhe || ''}">${l.detalhe || '—'}</td>
+        <td ${detalheAttrs}>${l.detalhe || '—'}</td>
         <td style="padding:8px 12px;font-size:18px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.device_info || ''}">${l.device_info || '—'}</td>
         ${isAdmin ? `<td style="padding:8px 12px;text-align:center"><button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:18px" onclick="excluirRegistroAuditoria('${l.id}')">✕</button></td>` : ''}
-      </tr>`).join('');
+      </tr>`;
+      }).join('');
+}
+
+// ── Admin: abrir direto o cadastro de um lead a partir de uma linha do
+// Log de Auditoria (ex: "Lead editado: André Militão"). Busca primeiro
+// na lista já carregada em memória; se não achar (lead pode ter sido
+// carregado fora da página atual), busca direto no banco.
+async function abrirLeadDoAuditLog(leadId) {
+  if (!leadId) return;
+  let lead = (leads || []).find(l => l.id === leadId);
+  if (!lead) {
+    try {
+      const r = await get('leads', `?id=eq.${leadId}&select=*`);
+      lead = r && r[0];
+    } catch (e) {
+      console.error('Erro ao buscar lead do log de auditoria:', e);
+    }
+  }
+  if (!lead) {
+    alert('Esse lead não foi encontrado — pode ter sido excluído.');
+    return;
+  }
+  navigateTo('leads');
+  setView('list');
+  openLeadModal(lead);
 }
 
 // ── Admin: excluir um registro individual do histórico de auditoria ──────
