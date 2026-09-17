@@ -7351,6 +7351,13 @@ window.__initGuiaMentor = init;
       <input id="c-cota-leads" type="number" min="1" max="200" value="30" placeholder="30">
       <div style="font-size:18px;color:var(--muted);margin-top:4px">Leads redistribuídos automaticamente quando o SDR atingir a cota.</div>
     </div>
+    <div class="field" id="c-ve-todos-wrap" style="display:none">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input id="c-ve-todos-leads" type="checkbox" style="width:auto">
+        Enxerga todos os leads (não só os próprios)
+      </label>
+      <div style="font-size:18px;color:var(--muted);margin-top:4px">Uso raro — normalmente só pra quem lidera o time de SDR. Essa permissão é imposta no banco (RLS), não só escondida na tela.</div>
+    </div>
     <div class="form-row">
       <div class="field"><label>Senha *</label><input id="c-senha" type="password" placeholder="Senha de acesso"></div>
     </div>
@@ -9937,7 +9944,12 @@ function deduplicarLeads(lista) {
 // SDRs, então ela precisa ver e editar a lista inteira, não só os leads
 // distribuídos a ela. Os demais SDRs continuam vendo só os seus.
 function sdrVeTodosLeads(u) {
-  return !!(u && u.papel === 'sdr' && (u.nome || '').trim().toLowerCase().startsWith('karine'));
+  // A permissão de ver todos os leads agora vem de um campo real no
+  // banco (colaboradores.ve_todos_leads) — não mais de checar o nome
+  // "karine" no texto. Isso é mais seguro (não depende de string
+  // hardcoded) e permite ligar/desligar essa permissão pra qualquer
+  // colaborador direto no cadastro dele, sem precisar mexer em código.
+  return !!(u && u.papel === 'sdr' && u.ve_todos_leads);
 }
 
 function getFilteredLeads() {
@@ -10461,6 +10473,78 @@ function applyAgendaPanelVisibility() {
   panel.style.display = (shouldShow && currentView === 'list') ? 'block' : 'none';
 }
 
+// ── Ações rápidas de um item da Agenda de Hoje (sem precisar abrir o
+// cadastro completo do lead). Funciona tanto pra Call de Fechamento
+// (tarefa em `tarefas`) quanto pra Diagnóstico (agendado direto no
+// lead, sem linha em `tarefas`) — por isso sempre recebe os dois ids
+// e decide o caminho certo internamente (tarefaId tem prioridade
+// quando os dois existem, porque é o evento específico do dia).
+async function marcarEventoAgendaRealizado(tarefaId, leadId) {
+  try {
+    if (tarefaId) {
+      await patch('tarefas', { concluida: true, status_reuniao: 'compareceu' }, `id=eq.${tarefaId}`);
+      const t = tarefas.find(x => x.id === tarefaId);
+      if (t) { t.concluida = true; t.status_reuniao = 'compareceu'; }
+    } else if (leadId) {
+      const leadAnterior = leads.find(x => x.id === leadId);
+      await patch('leads', { status: 'Diagnóstico Realizado', ultima_interacao: new Date().toISOString() }, `id=eq.${leadId}`);
+      if (leadAnterior) leadAnterior.status = 'Diagnóstico Realizado';
+      post('audit_log', {
+        colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status',
+        detalhe: `Status: Diagnóstico Agendado → Diagnóstico Realizado (Lead: ${leadId})`,
+        device_info: getDeviceInfo(), session_token: user.session_token || null,
+      }).catch(() => {});
+    }
+    renderCloserAgenda();
+    if (typeof renderLeadsTable === 'function') renderLeadsTable();
+  } catch (e) {
+    alert('Erro ao marcar como realizado: ' + e.message);
+  }
+}
+
+async function excluirEventoAgenda(tarefaId, leadId) {
+  if (!confirm('Remover este evento da Agenda de Hoje?')) return;
+  try {
+    if (tarefaId) {
+      await del('tarefas', `id=eq.${tarefaId}`);
+      tarefas = tarefas.filter(t => t.id !== tarefaId);
+    } else if (leadId) {
+      // Não é uma tarefa própria — é o agendamento de diagnóstico no
+      // próprio lead. "Excluir" aqui significa desmarcar o horário,
+      // não apagar o lead.
+      await patch('leads', { data_diagnostico: null, hora_diagnostico: null }, `id=eq.${leadId}`);
+      const l = leads.find(x => x.id === leadId);
+      if (l) { l.data_diagnostico = null; l.hora_diagnostico = null; }
+    }
+    renderCloserAgenda();
+  } catch (e) {
+    alert('Erro ao excluir: ' + e.message);
+  }
+}
+
+async function editarHoraEventoAgenda(tarefaId, leadId, dataAtual, horaAtual) {
+  const novaData = prompt('Nova data (AAAA-MM-DD):', dataAtual || todayStr());
+  if (novaData === null) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(novaData)) { alert('Data inválida — use o formato AAAA-MM-DD.'); return; }
+  const novaHora = prompt('Novo horário (HH:MM, deixe em branco pra "sem hora"):', horaAtual || '');
+  if (novaHora === null) return;
+  if (novaHora && !/^\d{1,2}:\d{2}$/.test(novaHora)) { alert('Hora inválida — use o formato HH:MM.'); return; }
+  try {
+    if (tarefaId) {
+      await patch('tarefas', { data: novaData, hora: novaHora || null }, `id=eq.${tarefaId}`);
+      const t = tarefas.find(x => x.id === tarefaId);
+      if (t) { t.data = novaData; t.hora = novaHora || null; }
+    } else if (leadId) {
+      await patch('leads', { data_diagnostico: novaData, hora_diagnostico: novaHora || null }, `id=eq.${leadId}`);
+      const l = leads.find(x => x.id === leadId);
+      if (l) { l.data_diagnostico = novaData; l.hora_diagnostico = novaHora || null; }
+    }
+    renderCloserAgenda();
+  } catch (e) {
+    alert('Erro ao editar dia/hora: ' + e.message);
+  }
+}
+
 function renderCloserAgenda() {
   const panel = document.getElementById('closer-agenda-panel');
   const list = document.getElementById('closer-agenda-list');
@@ -10553,10 +10637,13 @@ function renderCloserAgenda() {
           <div>
             <span class="badge ${item.label}">${item.tipo}</span>
           </div>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
             ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
             ${item.leadId ? `<button class="btn btn-primary btn-sm" onclick="editLead('${item.leadId}')">Cadastro</button>` : ''}
             ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
+            <button class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="marcarEventoAgendaRealizado(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">✔ Realizado</button>
+            <button class="btn btn-ghost btn-sm" onclick="editarHoraEventoAgenda(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'}, '${hoje}', '${item.hora || ''}')">🕑 Editar dia/hora</button>
+            <button class="btn btn-sm" style="background:rgba(255,77,106,.1);color:var(--red);border:1px solid rgba(255,77,106,.25)" onclick="excluirEventoAgenda(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">🗑 Excluir</button>
           </div>
         </div>
       `).join('')}
@@ -11296,11 +11383,40 @@ async function saveLead() {
     payload.sla_nivel = null;
   }
 
+  // Salva com proteção contra coluna que ainda não existe no banco (ex:
+  // `hora_diagnostico`, adicionada recentemente e que precisa de uma
+  // migração no Supabase pra existir de fato). Sem isso, o Postgrest
+  // rejeita o payload inteiro e a pessoa não consegue salvar o lead
+  // nem pra mudar status — mesmo em campos que nada têm a ver com o
+  // problema. Com isso, tenta salvar completo; se o banco reclamar de
+  // uma coluna específica, tenta de novo sem ela, e avisa o que ficou
+  // de fora.
+  let colunaIgnorada = null;
+  async function salvarLeadComFallback(payloadCompleto) {
+    try {
+      return id
+        ? await patch('leads', payloadCompleto, `id=eq.${id}`)
+        : await post('leads', payloadCompleto);
+    } catch (e) {
+      const msg = (e && e.message) || '';
+      const m = msg.match(/Could not find the '([a-zA-Z_]+)' column/);
+      if (m) {
+        colunaIgnorada = m[1];
+        const payloadReduzido = { ...payloadCompleto };
+        delete payloadReduzido[colunaIgnorada];
+        return id
+          ? await patch('leads', payloadReduzido, `id=eq.${id}`)
+          : await post('leads', payloadReduzido);
+      }
+      throw e;
+    }
+  }
+
   try {
     if (id) {
       const leadAnterior = leads.find(l => l.id === id);
       const statusMudou = leadAnterior && leadAnterior.status !== status;
-      const res = await patch('leads', payload, `id=eq.${id}`);
+      const res = await salvarLeadComFallback(payload);
       // ── Auditoria: edição de lead ─────────────────────────────────
       try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_edit', detalhe: `Lead editado: ${payload.nome || id} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
       const idx = leads.findIndex(l => l.id === id);
@@ -11360,7 +11476,7 @@ async function saveLead() {
     } else {
       payload.sdr_nome = user.nome;
       payload.sdr_id = user.id;
-      const res = await post('leads', payload);
+      const res = await salvarLeadComFallback(payload);
       if (res && res[0]) leads.unshift(res[0]);
       if (status === 'Fechado' && res && res[0]) {
         dispararIntegracaoGuiaMentor(res[0]);
@@ -11375,6 +11491,9 @@ async function saveLead() {
     // para o restante dos dados (economia de consumo de saída).
     if (status === 'Fechado' && typeof renderDashboard === 'function') {
       try { renderDashboard(); } catch(e3) {}
+    }
+    if (colunaIgnorada) {
+      alert(`Lead salvo, mas o campo "${colunaIgnorada}" não foi gravado — essa coluna ainda não existe na tabela "leads" do banco. Peça pra alguém com acesso ao Supabase rodar: ALTER TABLE leads ADD COLUMN ${colunaIgnorada} ${colunaIgnorada.startsWith('hora_') ? 'time' : 'text'};`);
     }
   } catch(e) {
     document.getElementById('l-err').textContent = 'Erro: ' + e.message;
@@ -12928,6 +13047,8 @@ function onPapelChange() {
 
   const cotaWrap = document.getElementById('c-cota-wrap');
   if (cotaWrap) cotaWrap.style.display = document.getElementById('c-papel')?.value === 'sdr' ? 'block' : 'none';
+  const veTodosWrap = document.getElementById('c-ve-todos-wrap');
+  if (veTodosWrap) veTodosWrap.style.display = document.getElementById('c-papel')?.value === 'sdr' ? 'block' : 'none';
 }
 
 function openColabModal() {
@@ -12936,6 +13057,7 @@ function openColabModal() {
   document.getElementById('c-meta-diag').value = 0;
   document.getElementById('c-meta-vendas').value = 0;
   document.getElementById('c-cota-leads').value = COTA_PADRAO_SDR;
+  document.getElementById('c-ve-todos-leads').checked = false;
   document.getElementById('c-err').textContent = '';
   document.querySelector('#modal-colab .modal-title').textContent = 'Novo Colaborador';
   onPapelChange();
@@ -12953,6 +13075,7 @@ function editColab(id) {
   document.getElementById('c-linkedin').value = c.linkedin_url || '';
   document.getElementById('c-instagram').value = c.instagram_url || '';
   document.getElementById('c-cota-leads').value = c.cota_leads || COTA_PADRAO_SDR;
+  document.getElementById('c-ve-todos-leads').checked = !!c.ve_todos_leads;
   const meta = getMeta(c.id);
   document.getElementById('c-meta-diag').value = meta ? meta.meta_diagnosticos : 0;
   document.getElementById('c-meta-vendas').value = meta ? meta.meta_vendas : 0;
@@ -12972,6 +13095,7 @@ async function saveColab() {
   const linkedin_url = document.getElementById('c-linkedin').value.trim() || null;
   const instagram_url = document.getElementById('c-instagram').value.trim() || null;
   const cota_leads = papel === 'sdr' ? (parseInt(document.getElementById('c-cota-leads').value) || COTA_PADRAO_SDR) : null;
+  const ve_todos_leads = papel === 'sdr' ? !!document.getElementById('c-ve-todos-leads').checked : false;
   if (!nome || !iniciais || !senha) { document.getElementById('c-err').textContent = 'Preencha todos os campos obrigatórios.'; return; }
 
   // As colunas `cota_leads` e `ativo` ainda não existem na tabela `colaboradores`
@@ -12980,7 +13104,8 @@ async function saveColab() {
   // enviadas. Pra não travar o cadastro/edição de colaboradores por causa disso,
   // tentamos salvar com esses campos e, se o banco reclamar especificamente
   // dessas colunas, tentamos de novo sem elas — o resto do cadastro é salvo
-  // normalmente, e avisamos que a cota/ativo não persistiram.
+  // normalmente, e avisamos que a cota/ativo não persistiram. `ve_todos_leads`
+  // segue a mesma lógica — só existe depois de rodar o SQL correspondente.
   let cotaAtivoIgnorados = false;
   async function salvarColaborador(payloadCompleto) {
     try {
@@ -12989,10 +13114,10 @@ async function saveColab() {
         : await post('colaboradores', payloadCompleto);
     } catch (e) {
       const msg = (e && e.message) || '';
-      const colunaFaltando = /cota_leads/i.test(msg) || (/\bativo\b/i.test(msg) && /column/i.test(msg));
+      const colunaFaltando = /cota_leads/i.test(msg) || /ve_todos_leads/i.test(msg) || (/\bativo\b/i.test(msg) && /column/i.test(msg));
       if (colunaFaltando) {
         cotaAtivoIgnorados = true;
-        const { cota_leads: _c, ativo: _a, ...payloadReduzido } = payloadCompleto;
+        const { cota_leads: _c, ativo: _a, ve_todos_leads: _v, ...payloadReduzido } = payloadCompleto;
         return id
           ? await patch('colaboradores', payloadReduzido, `id=eq.${id}`)
           : await post('colaboradores', payloadReduzido);
@@ -13004,11 +13129,11 @@ async function saveColab() {
   try {
     let colabId = id;
     if (id) {
-      const res = await salvarColaborador({ nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads });
+      const res = await salvarColaborador({ nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads, ve_todos_leads });
       const idx = colaboradores.findIndex(c => c.id === id);
       if (res && res[0]) colaboradores[idx] = res[0];
     } else {
-      const res = await salvarColaborador({ nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads, ativo: true });
+      const res = await salvarColaborador({ nome, iniciais, papel, senha, linkedin_url, instagram_url, cota_leads, ve_todos_leads, ativo: true });
       if (res && res[0]) { colaboradores.push(res[0]); colabId = res[0].id; }
     }
     colaboradores.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -13052,7 +13177,7 @@ async function saveColab() {
     renderAdmin();
     populateFilters();
     if (cotaAtivoIgnorados) {
-      alert('Colaborador salvo, mas a cota de leads e o status "ativo" NÃO foram gravados — as colunas "cota_leads" e "ativo" ainda não existem na tabela "colaboradores" do banco. Peça pra alguém com acesso ao Supabase rodar a migração que cria essas colunas; até lá, esses dois campos não têm efeito.');
+      alert('Colaborador salvo, mas a cota de leads, o status "ativo" e/ou "enxerga todos os leads" NÃO foram gravados — alguma dessas colunas ainda não existe na tabela "colaboradores" do banco. Peça pra alguém com acesso ao Supabase rodar a migração/SQL correspondente; até lá, esses campos não têm efeito.');
     }
     if (metaErro) {
       alert('Colaborador salvo, mas a meta não pôde ser salva: ' + metaErro + '\n\nIsso geralmente significa que a migração mais recente do banco ainda não foi rodada no Supabase.');
