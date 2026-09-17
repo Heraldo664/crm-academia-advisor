@@ -13064,7 +13064,18 @@ async function saveColab() {
 
 async function deleteColab(id) {
   if (id === user.id) { alert('Você não pode remover seu próprio usuário.'); return; }
-  if (!confirm('Remover este colaborador?')) return;
+  if (!confirm('Remover este colaborador? Os leads dele serão redistribuídos automaticamente pros outros SDRs antes da exclusão.')) return;
+  try {
+    // Precisa esvaziar as referências a este colaborador na tabela leads
+    // ANTES de excluir — senão o banco recusa (foreign key: um lead não
+    // pode apontar pra um colaborador que não existe mais).
+    const { movidos } = await redistribuirLeadsDoColaborador(id);
+    await liberarLeadsHistoricosDoColaborador(id);
+    if (movidos) { renderLeadsTable(); if (typeof renderDistribuicaoFila === 'function') renderDistribuicaoFila(); }
+  } catch (e) {
+    alert('Erro ao redistribuir os leads antes de excluir: ' + e.message + '\n\nA exclusão foi cancelada pra não deixar lead órfão. Tenta de novo, ou suspenda a conta em vez de excluir.');
+    return;
+  }
   try {
     await chamarEdgeFunction('admin-action', 'delete_colaborador', { colaboradorId: id });
     colaboradores = colaboradores.filter(c => c.id !== id);
@@ -15374,6 +15385,64 @@ async function encerrarSessao(colabId, colabNome) {
   } catch(e) { alert('Erro: ' + e.message); }
 }
 
+// ── Redistribuir leads de um colaborador (ao suspender ou excluir) ──
+// Pega os leads ATIVOS dele (mesma lista de status de getLeadsAtivosPorSDR)
+// e manda pra outros SDRs, mais antigo primeiro. Prioriza quem ainda tem
+// espaço dentro da própria cota; se todo mundo já estiver cheio, manda
+// pro que estiver com menos leads ativos mesmo assim — nunca deixa lead
+// travado sem dono só por falta de vaga. `sdr_nome` também é atualizado
+// (além do sdr_id) pra manter os relatórios corretos na hora.
+async function redistribuirLeadsDoColaborador(colabId) {
+  const ativosStatus = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada'];
+  const meusAtivos = (leads || [])
+    .filter(l => l.sdr_id === colabId && ativosStatus.includes(l.status))
+    .sort((a, b) => (a.criado_em || '').localeCompare(b.criado_em || ''));
+  if (!meusAtivos.length) return { movidos: 0 };
+
+  let outrosSdrs = [];
+  try {
+    outrosSdrs = (await get('colaboradores', '?papel=eq.sdr&select=id,nome,cota_leads')).filter(s => s.id !== colabId);
+  } catch (e) { console.error('Erro ao buscar SDRs pra redistribuir:', e); return { movidos: 0, erro: true }; }
+  if (!outrosSdrs.length) return { movidos: 0, semDestino: true };
+
+  let movidos = 0;
+  const agora = new Date().toISOString();
+  for (const lead of meusAtivos) {
+    const candidatos = outrosSdrs
+      .map(s => ({ s, ativos: getLeadsAtivosPorSDR(s.id), cota: s.cota_leads || COTA_PADRAO_SDR }))
+      .sort((a, b) => (a.ativos - a.cota) - (b.ativos - b.cota));
+    const destino = candidatos[0].s;
+    try {
+      await patch('leads', { sdr_id: destino.id, sdr_nome: destino.nome, distribuido_em: agora }, `id=eq.${lead.id}`);
+      lead.sdr_id = destino.id;
+      lead.sdr_nome = destino.nome;
+      lead.distribuido_em = agora;
+      movidos++;
+    } catch (e) {
+      console.error('Erro ao redistribuir lead', lead.id, e);
+    }
+  }
+  return { movidos };
+}
+
+// ── Solta as referências do colaborador nos leads que ele ainda tem
+// (mesmo depois de redistribuir os ativos, sobra histórico: leads
+// Fechado/Perdido que apontam pro sdr_id dele). Zera só o `sdr_id`
+// (a foreign key que trava a exclusão) e mantém `sdr_nome` intacto —
+// assim o relatório continua mostrando quem realmente trabalhou aquele
+// lead, só que sem mais o vínculo direto que impede apagar a conta.
+async function liberarLeadsHistoricosDoColaborador(colabId) {
+  const restantes = (leads || []).filter(l => l.sdr_id === colabId);
+  for (const lead of restantes) {
+    try {
+      await patch('leads', { sdr_id: null }, `id=eq.${lead.id}`);
+      lead.sdr_id = null;
+    } catch (e) {
+      console.error('Erro ao soltar histórico do lead', lead.id, e);
+    }
+  }
+}
+
 async function toggleSuspenso(colabId, suspenso) {
   const colab = colaboradores.find(c => c.id === colabId);
   if (!colab) return;
@@ -15391,6 +15460,13 @@ async function toggleSuspenso(colabId, suspenso) {
     if (idx >= 0) { colaboradores[idx].suspenso = suspenso; if (suspenso) colaboradores[idx].session_token = null; }
     renderSecAcessos();
     renderAdmin();
+    if (suspenso) {
+      // Redistribui os leads ativos dela pros outros SDRs, pra ninguém
+      // ficar parado no pipeline enquanto a conta está suspensa.
+      redistribuirLeadsDoColaborador(colabId).then(r => {
+        if (r && r.movidos) { renderLeadsTable(); if (typeof renderDistribuicaoFila === 'function') renderDistribuicaoFila(); }
+      }).catch(e => console.error('Erro ao redistribuir leads do suspenso:', e));
+    }
   } catch(e) { alert('Erro: ' + e.message); }
 }
 
