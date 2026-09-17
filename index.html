@@ -10641,8 +10641,7 @@ function renderCloserAgenda() {
             ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
             ${item.leadId ? `<button class="btn btn-primary btn-sm" onclick="editLead('${item.leadId}')">Cadastro</button>` : ''}
             ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
-            <button class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="marcarEventoAgendaRealizado(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">✔ Realizado</button>
-            <button class="btn btn-ghost btn-sm" onclick="editarHoraEventoAgenda(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'}, '${hoje}', '${item.hora || ''}')">🕑 Editar dia/hora</button>
+            <button class="btn btn-ghost btn-sm" onclick="marcarEventoAgendaRealizado(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">Marcar como realizado</button>
             <button class="btn btn-sm" style="background:rgba(255,77,106,.1);color:var(--red);border:1px solid rgba(255,77,106,.25)" onclick="excluirEventoAgenda(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">🗑 Excluir</button>
           </div>
         </div>
