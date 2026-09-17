@@ -13062,6 +13062,39 @@ async function saveColab() {
   }
 }
 
+// ── Rede de segurança final: tenta excluir o colaborador, e se o banco
+// recusar por causa de uma foreign key numa tabela que eu não mapeei
+// acima, lê o nome da tabela DIRETO da mensagem de erro do Postgres
+// (o formato é sempre "... on table "colaboradores" ... on table
+// "<tabela>""), solta o vínculo colaborador_id nela automaticamente (ou
+// exclui as linhas, se a coluna não aceitar null) e tenta excluir de
+// novo. Repete até funcionar ou até não conseguir mais identificar a
+// tabela culpada — nesse caso, propaga o erro original pra pessoa ver.
+async function tentarExcluirColaboradorComAutoLimpeza(id, maxTentativas = 10) {
+  for (let tentativa = 0; tentativa < maxTentativas; tentativa++) {
+    try {
+      await del('colaboradores', `id=eq.${id}`);
+      return; // sucesso
+    } catch (e) {
+      const msg = String((e && e.message) || e);
+      const m = msg.match(/on table "([a-zA-Z_]+)"\s*$/) || msg.match(/violates foreign key constraint "[^"]+" on table "([a-zA-Z_]+)"/);
+      const tabelaCulpada = m && m[1];
+      if (!tabelaCulpada || tabelaCulpada === 'colaboradores') throw e;
+      try {
+        await patch(tabelaCulpada, { colaborador_id: null }, `colaborador_id=eq.${id}`);
+      } catch (e2) {
+        try {
+          await del(tabelaCulpada, `colaborador_id=eq.${id}`);
+        } catch (e3) {
+          throw e; // não consegui limpar essa tabela de nenhum jeito — propaga o erro original
+        }
+      }
+      // loop continua e tenta excluir `colaboradores` de novo
+    }
+  }
+  throw new Error('Não consegui limpar todas as referências automaticamente após várias tentativas — pode haver muitas tabelas vinculadas. Considere suspender em vez de excluir.');
+}
+
 async function deleteColab(id) {
   if (id === user.id) { alert('Você não pode remover seu próprio usuário.'); return; }
   if (!confirm('Remover este colaborador? Os leads dele serão redistribuídos automaticamente pros outros SDRs antes da exclusão.')) return;
@@ -13082,9 +13115,10 @@ async function deleteColab(id) {
     idbPatchValue('colaboradores::?select=*&order=nome', (arr) => (arr || []).filter(c => c.id !== id)).catch(() => {});
     renderAdmin();
   } catch(e) {
-    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404')) {
+    const pareceForeignKey = /foreign key constraint/i.test(String(e.message || ''));
+    if (String(e.message).includes('Failed to fetch') || String(e.message).includes('404') || pareceForeignKey) {
       try {
-        await del('colaboradores', `id=eq.${id}`);
+        await tentarExcluirColaboradorComAutoLimpeza(id);
         colaboradores = colaboradores.filter(c => c.id !== id);
         renderAdmin();
       } catch(e3) { alert('Erro: ' + e3.message); }
@@ -15458,8 +15492,11 @@ async function liberarLeadsHistoricosDoColaborador(colabId) {
     }
   }
 
-  // distribuicao_fila: telemetria viva, sem valor histórico — exclui a linha.
+  // distribuicao_fila e metas: dados de configuração/telemetria viva do
+  // colaborador, sem valor histórico sem o dono — exclui a linha em vez
+  // de soltar o vínculo.
   try { await del('distribuicao_fila', `colaborador_id=eq.${colabId}`); } catch (e) { console.error('Erro ao limpar distribuicao_fila:', e); }
+  try { await del('metas', `colaborador_id=eq.${colabId}`); } catch (e) { console.error('Erro ao limpar metas:', e); }
 }
 
 async function toggleSuspenso(colabId, suspenso) {
