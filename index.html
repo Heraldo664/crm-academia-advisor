@@ -15425,22 +15425,41 @@ async function redistribuirLeadsDoColaborador(colabId) {
   return { movidos };
 }
 
-// ── Solta as referências do colaborador nos leads que ele ainda tem
-// (mesmo depois de redistribuir os ativos, sobra histórico: leads
-// Fechado/Perdido que apontam pro sdr_id dele). Zera só o `sdr_id`
-// (a foreign key que trava a exclusão) e mantém `sdr_nome` intacto —
-// assim o relatório continua mostrando quem realmente trabalhou aquele
-// lead, só que sem mais o vínculo direto que impede apagar a conta.
+// ── Solta as referências do colaborador em TODAS as tabelas do CRM que
+// guardam colaborador_id (histórico de auditoria, daily reports,
+// tarefas, confirmações de aviso, conexões semanais, respostas de
+// aviso automático, interações de lead, interações de WhatsApp). Sem
+// isso, a exclusão trava tabela por tabela, uma foreign key de cada
+// vez — melhor resolver todas de uma vez. Mantém qualquer campo
+// "colaborador_nome" (texto) intacto, só solta o vínculo (`colaborador_id`)
+// que é o que trava a exclusão. `distribuicao_fila` é diferente: a
+// linha é só telemetria viva do SDR, não histórico — melhor excluir a
+// linha inteira do que deixar um registro órfão sem dono.
 async function liberarLeadsHistoricosDoColaborador(colabId) {
-  const restantes = (leads || []).filter(l => l.sdr_id === colabId);
-  for (const lead of restantes) {
+  // Leads: solta sdr_id (mantém sdr_nome pro relatório continuar certo).
+  const leadsRestantes = (leads || []).filter(l => l.sdr_id === colabId);
+  for (const lead of leadsRestantes) {
     try {
       await patch('leads', { sdr_id: null }, `id=eq.${lead.id}`);
       lead.sdr_id = null;
+    } catch (e) { console.error('Erro ao soltar histórico do lead', lead.id, e); }
+  }
+
+  const tabelasComColaboradorId = [
+    'audit_log', 'daily_reports', 'tarefas', 'aviso_confirmacoes',
+    'conexoes_semanais', 'respostas_aviso_automatico', 'interacoes_lead',
+    'whatsapp_interacoes',
+  ];
+  for (const tabela of tabelasComColaboradorId) {
+    try {
+      await patch(tabela, { colaborador_id: null }, `colaborador_id=eq.${colabId}`);
     } catch (e) {
-      console.error('Erro ao soltar histórico do lead', lead.id, e);
+      console.error(`Erro ao soltar colaborador_id em ${tabela}:`, e);
     }
   }
+
+  // distribuicao_fila: telemetria viva, sem valor histórico — exclui a linha.
+  try { await del('distribuicao_fila', `colaborador_id=eq.${colabId}`); } catch (e) { console.error('Erro ao limpar distribuicao_fila:', e); }
 }
 
 async function toggleSuspenso(colabId, suspenso) {
