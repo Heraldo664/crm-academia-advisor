@@ -7053,6 +7053,7 @@ window.__initGuiaMentor = init;
     </div>
     <div class="form-row">
       <div class="field"><label>Data do Diagnóstico</label><input id="l-data-diag" type="date"></div>
+      <div class="field"><label>Hora do Diagnóstico</label><input id="l-hora-diag" type="time"></div>
       <div class="field"><label>Closer Responsável</label>
         <select id="l-closer"></select>
       </div>
@@ -10494,7 +10495,7 @@ function renderCloserAgenda() {
   applyAgendaPanelVisibility();
   const agendaItems = [
     ...diagHoje.map(l => ({
-      hora: null, nome: l.nome, tipo: '🩺 Diagnóstico', label: 'badge-purple',
+      hora: l.hora_diagnostico || null, nome: l.nome, tipo: '🩺 Diagnóstico', label: 'badge-purple',
       linkMeet: null, leadId: l.id, empresa: l.empresa
     })),
     ...tarefasHoje.map(t => {
@@ -10817,6 +10818,7 @@ function openLeadModal(lead = null) {
     document.getElementById('l-origem').value = lead.origem || '';
     document.getElementById('l-status').value = lead.status || 'Contatado';
     document.getElementById('l-data-diag').value = lead.data_diagnostico || '';
+    document.getElementById('l-hora-diag').value = lead.hora_diagnostico || '';
     document.getElementById('l-closer').value = lead.closer_nome || '';
     // valor calculado automaticamente pelo programa
     document.getElementById('l-data-compra').value = lead.data_compra_prevista || '';
@@ -11272,6 +11274,7 @@ async function saveLead() {
     objetivos: selectedObjetivos,
     status,
     data_diagnostico: document.getElementById('l-data-diag').value || null,
+    hora_diagnostico: document.getElementById('l-hora-diag').value || null,
     closer_nome: document.getElementById('l-closer').value || null,
     valor_oportunidade: valor,
     data_compra_prevista: document.getElementById('l-data-compra').value || null,
@@ -11538,7 +11541,7 @@ function renderEventsBoard() {
     .forEach(l => groups.call_fechamento.push({
       _auto: true, lead_id: l.id, lead_nome: l.nome,
       titulo: 'Diagnóstico agendado', data: l.data_diagnostico,
-      hora: null, link_meet: null, link_calendly: null, status_reuniao: null,
+      hora: l.hora_diagnostico || null, link_meet: null, link_calendly: null, status_reuniao: null,
     }));
 
   Object.values(groups).forEach(arr => arr.sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||''))));
