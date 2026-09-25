@@ -7597,15 +7597,15 @@ const _cache = {
                                  // já mantém os dados vivos pra quem está com a aba aberta;
                                  // esse TTL só controla a busca completa (1511 linhas) que
                                  // acontece a cada nova sessão/reload. Não precisa ser curto.
-    daily_reports: 120 * 1000, // 2min
-    tarefas: 60 * 1000,        // 1min
+    daily_reports: 4 * 60 * 60 * 1000, // 4h — pedido pelo usuário
+    tarefas: 4 * 60 * 60 * 1000,       // 4h — pedido pelo usuário
     guias: 10 * 60 * 1000,     // 10min — raramente muda
     colaboradores: 5 * 60 * 1000, // 5min
     metas: 5 * 60 * 1000,      // 5min
     avisos: 3 * 60 * 1000,     // 3min
     avisos_automaticos: 5 * 60 * 1000,
     conexoes_semanais: 2 * 60 * 1000,
-    historico_status: 2 * 60 * 1000,
+    historico_status: 60 * 60 * 1000, // 1h — pedido pelo usuário
     audit_log: 60 * 1000,
     interacoes_lead: 30 * 1000,
     whatsapp_interacoes: 30 * 1000,
@@ -7695,16 +7695,24 @@ async function supa(path, method = 'GET', body = null, extra = '') {
   const resultado = r.status === 204 ? null : await r.json().catch(() => null);
 
   // ── Mantém o cache correto após qualquer escrita ──────────────────────
-  // Pra leads e colaboradores (tabelas com TTL longo, onde vale a pena),
-  // corrige só o registro que mudou, usando o que o próprio Supabase já
-  // devolveu na resposta — sem precisar buscar tudo de novo depois.
-  // Pras demais tabelas (TTL curto, baixo impacto), mantém o jeito mais
-  // simples de apagar o cache inteiro daquela tabela.
+  // Pra leads, colaboradores, tarefas e daily_reports (tabelas com TTL
+  // longo, onde vale a pena), corrige só o registro que mudou, usando o
+  // que o próprio Supabase já devolveu na resposta — sem precisar buscar
+  // tudo de novo depois. Isso é o que permite ter um TTL de horas nessas
+  // tabelas sem mostrar dado desatualizado pro próprio usuário que acabou
+  // de editar algo.
+  // Pras demais tabelas (baixo impacto), apaga o cache inteiro daquela
+  // tabela — tanto em memória quanto no IndexedDB (o idbDelete usava um
+  // prefixo errado, 'tabela::all::', que só bate com o formato do
+  // getAllCached; getCached usa 'tabela::query' sem o 'all::', então o
+  // cache persistente nunca era de fato limpo — corrigido abaixo).
   if (method !== 'GET') {
     const tabela = path.split('?')[0];
     const CACHE_KEYS = {
       leads: 'leads::all::?select=*&order=criado_em.desc',
       colaboradores: 'colaboradores::?select=*&order=nome',
+      tarefas: 'tarefas::?select=*&order=data.asc',
+      daily_reports: 'daily_reports::?select=*&order=data.desc',
     };
     if (CACHE_KEYS[tabela]) {
       const chave = CACHE_KEYS[tabela];
@@ -7728,9 +7736,10 @@ async function supa(path, method = 'GET', body = null, extra = '') {
           return arr;
         }).catch(() => {});
       }
+      _cache.invalidate(tabela); // idem em memória, senão getCached() pega o hit de memória antes de olhar o IDB corrigido
     } else {
       try { _cache.invalidate(tabela); } catch(e) {}
-      idbDelete(tabela + '::all::').catch(() => {});
+      idbDelete(tabela + '::').catch(() => {});
     }
   }
   return resultado;
@@ -8068,6 +8077,7 @@ async function logout() {
                   // sozinho ao reabrir a página.
   localStorage.removeItem('crm_session');
   user = null;
+  pararConsumoDeSessao(); // zera todo polling/realtime — nada consome cota até o próximo login
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-auth-senha').value = '';
@@ -8093,7 +8103,9 @@ async function startApp() {
   // parado, alimenta o painel de risco do gestor aos 5+) — roda pouco
   // depois do carregamento inicial e depois a cada 10min.
   setTimeout(() => { if (typeof verificarEscalacaoFollowup === 'function') verificarEscalacaoFollowup(); }, 4000);
-  setInterval(() => { if (typeof verificarEscalacaoFollowup === 'function') verificarEscalacaoFollowup(); }, 10 * 60 * 1000);
+  // ECONOMIA: de 10min para 15min, e pula enquanto a aba está oculta.
+  trackInterval(setInterval(skipInBackground(() => { if (typeof verificarEscalacaoFollowup === 'function') verificarEscalacaoFollowup(); }), 15 * 60 * 1000));
+  window._bgSaver.onVisible.push(() => { if (typeof verificarEscalacaoFollowup === 'function') verificarEscalacaoFollowup(); });
   // SDR → vai direto para Leads no Kanban (fila de trabalho)
   // Admin/Closer → Dashboard (visão gerencial)
   if (user.papel === 'sdr') {
@@ -8124,6 +8136,49 @@ function renderTopUser() {
   if (liBtn) liBtn.style.display = 'inline-flex';
 }
 
+// ── Economia de cota: pausa polling quando a aba está em segundo plano ──
+// Reduz drasticamente Log Ingestion e Egress quando o CRM fica aberto
+// em abas esquecidas/minimizadas (cada aba roda todos os timers sozinha).
+window._bgSaver = {
+  hidden: document.hidden,
+  onVisible: [] // callbacks para "resync" ao voltar a ficar visível
+};
+document.addEventListener('visibilitychange', () => {
+  window._bgSaver.hidden = document.hidden;
+  if (!document.hidden) {
+    // Aba voltou a ficar visível: faz UM resync imediato em vez de
+    // esperar os intervals, para os dados não ficarem defasados.
+    window._bgSaver.onVisible.forEach(fn => { try { fn(); } catch (e) {} });
+  }
+});
+function skipInBackground(fn) {
+  // Envolve uma função periódica para não executar enquanto a aba
+  // está oculta — a chamada é simplesmente pulada (mais barato que
+  // desativar/reativar o setInterval).
+  return (...args) => { if (!window._bgSaver.hidden) fn(...args); };
+}
+
+// ── Economia de cota: zera todo o polling/realtime ao deslogar ──────────
+// Sem isso, um logout (manual ou por inatividade) deixava quase todos os
+// setIntervals rodando pra sempre na aba, e um novo login criava um novo
+// conjunto por cima — cada ciclo de login/logout na mesma aba dobrava o
+// consumo. Todo setInterval "de sessão" deve ser criado via trackInterval().
+window._sessionIntervals = [];
+function trackInterval(id) {
+  window._sessionIntervals.push(id);
+  return id;
+}
+function pararConsumoDeSessao() {
+  window._sessionIntervals.forEach(id => clearInterval(id));
+  window._sessionIntervals = [];
+  window._bgSaver.onVisible = []; // evita callbacks de resync duplicados no próximo login
+  if (window._realtimeReconnectTimer) { clearTimeout(window._realtimeReconnectTimer); window._realtimeReconnectTimer = null; }
+  if (window._realtimeWS) {
+    try { window._realtimeWS.onclose = null; window._realtimeWS.close(); } catch (e) {}
+    window._realtimeWS = null;
+  }
+}
+
 function startAutoRefresh() {
   // ── Supabase Realtime via WebSocket ─────────────────────────────────
   const WS_URL = SUPA_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
@@ -8147,6 +8202,7 @@ function recarregarDadosDebounced() {
 function conectarRealtime() {
     try {
       ws = new WebSocket(WS_URL);
+      window._realtimeWS = ws; // exposto p/ pararConsumoDeSessao() poder fechar no logout
 
       ws.onopen = () => {
         // Subscrever às tabelas críticas
@@ -8179,28 +8235,36 @@ function conectarRealtime() {
       ws.onerror = () => {};
 
       ws.onclose = () => {
-        // Reconectar em 5s se a conexão cair
+        // Reconectar em 5s se a conexão cair (mas não se foi o próprio
+        // logout que fechou a conexão — pararConsumoDeSessao() zera
+        // onclose antes de chamar close(), então este bloco nem roda)
         clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(() => {
           if (user) conectarRealtime();
         }, 5000);
+        window._realtimeReconnectTimer = reconnectTimer;
         mostrarIndicador('⚪ Reconectando...');
       };
 
     } catch(e) {
       // WebSocket falhou — fallback para polling a cada 2min (OTIMIZADO de 30s)
-      setInterval(async () => {
+      // ECONOMIA: pula o poll inteiro se a aba estiver em segundo plano.
+      trackInterval(setInterval(skipInBackground(async () => {
         if (!refreshing && user) { refreshing = true; await recarregarDados(); refreshing = false; }
-      }, 120000);
+      }), 120000));
     }
   }
 
-  // Heartbeat a cada 30s para manter conexão viva
-  setInterval(() => {
+  // Heartbeat a cada 30s para manter conexão viva (mantido mesmo oculto:
+  // é uma mensagem minúscula via WebSocket já aberto, custa bem menos
+  // do que deixar a conexão cair e ter que reconectar/rejoin depois).
+  // Também para sozinho após logout, pois pararConsumoDeSessao() fecha
+  // window._realtimeWS e este ws local deixa de estar OPEN.
+  trackInterval(setInterval(() => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' }));
     }
-  }, 30000);
+  }, 30000));
 
   function mostrarIndicador(texto) {
     const el = document.getElementById('refresh-indicator');
@@ -8209,7 +8273,10 @@ function conectarRealtime() {
 
   conectarRealtime();
   // Push notification periodic check
-  setInterval(() => { if (typeof checkPushNotifications === 'function') checkPushNotifications(); }, 5 * 60 * 1000);
+  // ECONOMIA: de 5min para 10min, e pula enquanto a aba está oculta.
+  trackInterval(setInterval(skipInBackground(() => { if (typeof checkPushNotifications === 'function') checkPushNotifications(); }), 10 * 60 * 1000));
+  // Ao voltar a ficar visível, resincroniza notificações na hora
+  window._bgSaver.onVisible.push(() => { if (typeof checkPushNotifications === 'function') checkPushNotifications(); });
 }
 
 
@@ -8377,6 +8444,7 @@ async function forcarLogoutInatividade() {
   authSignOut();
   localStorage.removeItem('crm_session');
   user = null;
+  pararConsumoDeSessao(); // zera todo polling/realtime — nada consome cota até o próximo login
   const warn = document.getElementById('inactivity-warning');
   if (warn) warn.style.display = 'none';
   document.getElementById('app').style.display = 'none';
@@ -8418,6 +8486,7 @@ function startActivityTracking() {
           authSignOut();
           localStorage.removeItem('crm_session');
           user = null;
+          pararConsumoDeSessao();
           document.getElementById('app').style.display = 'none';
           document.getElementById('login-screen').style.display = 'flex';
           const errEl = document.getElementById('login-auth-err');
@@ -8430,6 +8499,7 @@ function startActivityTracking() {
           authSignOut();
           localStorage.removeItem('crm_session');
           user = null;
+          pararConsumoDeSessao();
           document.getElementById('app').style.display = 'none';
           document.getElementById('login-screen').style.display = 'flex';
           const errEl = document.getElementById('login-auth-err');
@@ -8441,6 +8511,7 @@ function startActivityTracking() {
           authSignOut();
           localStorage.removeItem('crm_session');
           user = null;
+          pararConsumoDeSessao();
           document.getElementById('app').style.display = 'none';
           document.getElementById('login-screen').style.display = 'flex';
           const errEl = document.getElementById('login-auth-err');
@@ -8451,9 +8522,14 @@ function startActivityTracking() {
   };
 
   ping();
-  activityTimer = setInterval(ping, 300000); // otimizado: 5min ao invés de 1min
-  setInterval(verificarSessao, 60 * 1000); // checa a cada 1min — reage rápido quando o admin remove/suspende alguém
-  setInterval(garantirSessaoValida, 4 * 60 * 1000); // renova o token do Supabase Auth antes de vencer, evitando "JWT expired"
+  // ECONOMIA: os três abaixo pulam a execução com a aba oculta e
+  // resincronizam em UMA chamada assim que ela volta a ficar visível —
+  // em vez de continuar rodando a cada 1/4/5min em cada aba esquecida
+  // aberta em segundo plano.
+  activityTimer = trackInterval(setInterval(skipInBackground(ping), 300000)); // otimizado: 5min ao invés de 1min
+  trackInterval(setInterval(skipInBackground(verificarSessao), 60 * 1000)); // checa a cada 1min — reage rápido quando o admin remove/suspende alguém
+  trackInterval(setInterval(skipInBackground(garantirSessaoValida), 4 * 60 * 1000)); // renova o token do Supabase Auth antes de vencer, evitando "JWT expired"
+  window._bgSaver.onVisible.push(ping, verificarSessao, garantirSessaoValida);
 
   ['click','keydown','mousemove','touchstart','scroll'].forEach(ev => {
     document.addEventListener(ev, () => { resetInactivityTimer(); debounce(ping, 30000)(); }, { passive: true });
@@ -9134,14 +9210,22 @@ async function loadData() {
     [colaboradores, leads, dailyReports, tarefas, metas, historicoStatus, guias] = await Promise.all([
       getCached('colaboradores', '?select=*&order=nome'),
       getAllCached('leads', '?select=*&order=criado_em.desc', _cache.ttl.leads),
-      get('daily_reports', '?select=*&order=data.desc'),
-      get('tarefas', '?select=*&order=data.asc').catch(() => []),
+      // CORREÇÃO: estas 4 buscas ignoravam o cache (getCached) e baixavam a
+      // tabela inteira do zero a cada reload de página — mesmo já existindo
+      // TTL configurado pra cada uma logo acima (_cache.ttl). Trocado para
+      // getCached, que é exatamente o que recarregarDados() já fazia.
+      getCached('daily_reports', '?select=*&order=data.desc'),
+      getCached('tarefas', '?select=*&order=data.asc').catch(() => []),
       get('metas', '?select=id,colaborador_id,mes,ano,meta_diagnosticos,meta_vendas,meta_contatos_diarios').catch(() => []),
-      get('historico_status', (() => {
-      const d30 = new Date(Date.now() - 30*24*60*60*1000).toISOString();
-      return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d30;
+      getCached('historico_status', (() => {
+      // Arredonda para a hora cheia — mesmo ajuste já usado em
+      // recarregarDados(). Sem isso, o timestamp muda a cada milissegundo
+      // e a chave de cache nunca repete, então o cache de 1h nunca bate.
+      const d = new Date(Date.now() - 30*24*60*60*1000);
+      d.setMinutes(0,0,0);
+      return '?select=*&order=criado_em.desc&limit=500&criado_em=gte.' + d.toISOString();
     })()).catch(() => []),
-      get('guias', '?select=id,titulo,descricao,link&order=titulo.asc').catch(() => _loadGuiasLocal())
+      getCached('guias', '?select=id,titulo,descricao,link&order=titulo.asc').catch(() => _loadGuiasLocal())
     ]);
     if (user.papel === 'admin') {
       solicitacoesSenha = await get('solicitacoes_senha', '?select=*&order=criado_em.desc').catch(() => []);
@@ -14450,7 +14534,9 @@ async function initNotificationSystems() {
   // checkComprasAgendadasHoje via localStorage, e só para quando o status
   // do lead sair de "Compra Agendada".
   setTimeout(() => checkComprasAgendadasHoje(), 4000);
-  setInterval(() => checkComprasAgendadasHoje(), 15 * 60 * 1000);
+  // ECONOMIA: de 15min para 20min, e pula enquanto a aba está oculta.
+  trackInterval(setInterval(skipInBackground(() => checkComprasAgendadasHoje()), 20 * 60 * 1000));
+  window._bgSaver.onVisible.push(() => checkComprasAgendadasHoje());
 }
 
 // ─── Aviso de boas-vindas ao colaborador ────────────────────────────────────
@@ -15912,7 +15998,9 @@ async function doForceUpdate() {
 
 function iniciarVersionCheck() {
   checkAppVersion();
-  setInterval(checkAppVersion, 10 * 60 * 1000);
+  // ECONOMIA: de 10min para 20min, e pula enquanto a aba está oculta.
+  trackInterval(setInterval(skipInBackground(checkAppVersion), 20 * 60 * 1000));
+  window._bgSaver.onVisible.push(checkAppVersion);
 }
 
 // === PAINEL ADMIN DE VERSAO ===
