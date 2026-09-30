@@ -10664,13 +10664,15 @@ function renderCloserAgenda() {
   const agendaItems = [
     ...diagHoje.map(l => ({
       hora: l.hora_diagnostico || null, nome: l.nome, tipo: '🩺 Diagnóstico', label: 'badge-purple',
-      linkMeet: null, leadId: l.id, empresa: l.empresa
+      linkMeet: null, leadId: l.id, empresa: l.empresa,
+      realizado: l.status === 'Diagnóstico Realizado'
     })),
     ...tarefasHoje.map(t => {
       const lead = leads.find(l => l.id === t.lead_id);
       return {
         hora: t.hora, nome: t.lead_nome, tipo: '📞 Call Fechamento', label: 'badge-gold',
-        linkMeet: t.link_meet, tarefaId: t.id, leadId: t.lead_id || lead?.id || null, empresa: lead?.empresa || ''
+        linkMeet: t.link_meet, tarefaId: t.id, leadId: t.lead_id || lead?.id || null, empresa: lead?.empresa || '',
+        realizado: !!t.concluida
       };
     })
   ];
@@ -10725,7 +10727,10 @@ function renderCloserAgenda() {
             ${item.linkMeet ? `<a href="${item.linkMeet}" target="_blank" class="btn btn-primary btn-sm">▶ Entrar no Meet</a>` : ''}
             ${item.leadId ? `<button class="btn btn-primary btn-sm" onclick="editLead('${item.leadId}')">Cadastro</button>` : ''}
             ${item.tarefaId ? `<button id="btn-copy-msg-${item.tarefaId}" class="btn btn-sm" style="background:rgba(34,201,123,.12);color:var(--green);border:1px solid rgba(34,201,123,.25)" onclick="copiarMsgConfirmacao('${item.tarefaId}')">📋 Copiar mensagem</button>` : ''}
-            <button class="btn btn-ghost btn-sm" onclick="marcarEventoAgendaRealizado(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">Marcar como realizado</button>
+            ${item.realizado
+              ? `<button class="btn btn-sm" disabled style="background:rgba(34,201,123,.15);color:var(--green);border:1px solid rgba(34,201,123,.35);cursor:default">✓ Realizado</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="marcarEventoAgendaRealizado(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">Marcar como realizado</button>`
+            }
             <button class="btn btn-sm" style="background:rgba(255,77,106,.1);color:var(--red);border:1px solid rgba(255,77,106,.25)" onclick="excluirEventoAgenda(${item.tarefaId ? `'${item.tarefaId}'` : 'null'}, ${item.leadId ? `'${item.leadId}'` : 'null'})">🗑 Excluir</button>
           </div>
         </div>
