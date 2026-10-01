@@ -8259,7 +8259,7 @@ function aplicarMudancaRealtimeLead(p) {
     const idAberto = document.getElementById('l-id')?.value;
     if (modal && modal.classList.contains('open') && idAberto === rec.id && !window._leadModalSujo) {
       const sel = document.getElementById('l-status');
-      if (sel && rec.status && sel.value !== rec.status) { sel.value = rec.status; if (typeof onStatusChange === 'function') onStatusChange(); }
+      if (sel && rec.status && sel.value !== rec.status) { sel.value = rec.status; window._statusAoAbrirModal = rec.status; if (typeof onStatusChange === 'function') onStatusChange(); }
     }
   } catch (e) { console.warn('Realtime: falha ao aplicar mudança do lead', e); }
 }
@@ -11074,6 +11074,7 @@ function onStatusChange() {
 
 function openLeadModal(lead = null) {
   window._leadModalSujo = false;
+  window._statusAoAbrirModal = null;
   document.getElementById('modal-lead-title').textContent = lead ? 'Editar Lead' : 'Novo Lead';
   const fields = ['nome','empresa','cargo','linkedin','telefone','email','cidade','cert','programa','objetivo','status','data-diag','closer','data-compra','motivo-perda','obs','id','principal-objetivo','area-interesse','processos-reprovados','instituicao-desejada','faixa-salarial','origem','turma','inicio-curso','encerramento-curso'];
   fields.forEach(f => { const el = document.getElementById('l-' + f); if (el) el.value = ''; });
@@ -11112,6 +11113,9 @@ function openLeadModal(lead = null) {
     // fica editável para o colaborador escolher de onde veio.
     document.getElementById('l-origem').value = lead.origem || '';
     document.getElementById('l-status').value = lead.status || 'Contatado';
+    // Status que a pessoa VIU ao abrir o lead — a mudança de status só é
+    // gravada/registrada se o campo "Status" for alterado em relação a ele.
+    window._statusAoAbrirModal = lead.status || 'Contatado';
     document.getElementById('l-data-diag').value = lead.data_diagnostico || '';
     document.getElementById('l-hora-diag').value = lead.hora_diagnostico || '';
     document.getElementById('l-closer').value = lead.closer_nome || '';
@@ -11201,11 +11205,37 @@ const TIPO_ICONS_SVG = {
 };
 const TIPO_ICONS = { nota: '📝', ligacao: '📞', whatsapp: '💬', email: '✉️', linkedin: '🔗', instagram: '📷', status_change: '🔄', sistema: '🤖' };
 
+// Esconde do histórico as "mudanças de status" que nunca aconteceram de
+// verdade. Antes da correção do salvamento, quando o banco recusava a
+// alteração em silêncio, o sistema registrava "Status alterado de X para
+// Fechado" mesmo com o lead continuando em X — e a cada nova tentativa
+// gerava outra linha igual. A regra percorre do mais novo pro mais antigo
+// partindo do status REAL do lead: uma mudança "de X para Y" em que o lead
+// ainda está em X (e não em Y) é uma tentativa que não foi gravada e não
+// aparece. As demais interações (notas, ligações etc.) não são afetadas.
+function filtrarMudancasStatusFantasmas(interacoes, statusAtual) {
+  if (!statusAtual) return interacoes;
+  let esperado = statusAtual;
+  const ocultar = new Set();
+  for (const it of interacoes) { // já vem do mais novo pro mais antigo
+    if (it.tipo !== 'status_change') continue;
+    const m = /de "(.*)" para "(.*)"/.exec(it.descricao || '');
+    if (!m) continue;
+    const de = m[1], para = m[2];
+    if (para === esperado) { esperado = de; continue; }
+    if (de === esperado) { ocultar.add(it); continue; } // tentativa não gravada
+    esperado = de; // cadeia quebrada por outra via (ex: agenda) — mantém a linha
+  }
+  return ocultar.size ? interacoes.filter(it => !ocultar.has(it)) : interacoes;
+}
+
 async function carregarHistoricoInteracoes(leadId) {
   const list = document.getElementById('l-historico-list');
   list.innerHTML = '<p class="empty" style="padding:10px 0">Carregando...</p>';
   try {
-    const interacoes = await get('interacoes_lead', `?lead_id=eq.${leadId}&select=*&order=criado_em.desc`);
+    const interacoesBrutas = await get('interacoes_lead', `?lead_id=eq.${leadId}&select=*&order=criado_em.desc`);
+    const leadAtual = leads.find(l => l.id === leadId);
+    const interacoes = filtrarMudancasStatusFantasmas(interacoesBrutas || [], leadAtual ? leadAtual.status : null);
     if (!interacoes.length) {
       list.innerHTML = '<p class="empty" style="padding:10px 0">Nenhuma interação registrada ainda.</p>';
       return;
@@ -11555,7 +11585,10 @@ async function verificarLeadDuplicado(telefone, email) {
 // status (RLS/trigger bloqueou em silêncio), busca a linha no banco pra
 // confirmar e, se o status não bateu, lança um erro claro.
 async function confirmarLeadSalvo(id, resBruto, statusEsperado) {
-  if (Array.isArray(resBruto) && resBruto[0] && resBruto[0].status === statusEsperado) return resBruto;
+  if (Array.isArray(resBruto) && resBruto[0] && (statusEsperado === null || resBruto[0].status === statusEsperado)) return resBruto;
+  if (statusEsperado === null) {
+    throw new Error('o banco não confirmou o salvamento (nenhuma linha foi alterada). Provável sessão expirada ou falta de permissão para editar este lead. Saia e entre novamente e tente de novo.');
+  }
   let linha = null;
   try {
     const r = await get('leads', `?id=eq.${id}&select=*`);
@@ -11568,7 +11601,7 @@ async function confirmarLeadSalvo(id, resBruto, statusEsperado) {
     if (i >= 0) leads[i] = linha;
     atualizarLeadNoCacheIDB(linha);
     const sel = document.getElementById('l-status');
-    if (sel) { sel.value = linha.status; if (typeof onStatusChange === 'function') onStatusChange(); }
+    if (sel) { sel.value = linha.status; window._statusAoAbrirModal = linha.status; if (typeof onStatusChange === 'function') onStatusChange(); }
     throw new Error(`o banco NÃO gravou a mudança para "${statusEsperado}" — o lead continua como "${linha.status}". Isso acontece quando o seu usuário não tem permissão de editar este lead no banco (RLS) ou a sessão expirou. Saia e entre novamente e tente de novo; se persistir, peça a um admin para fazer a alteração.`);
   }
   throw new Error(`o banco não confirmou o salvamento (nenhuma linha foi alterada). Provável sessão expirada ou falta de permissão para editar este lead. Saia e entre novamente e tente de novo.`);
@@ -11728,7 +11761,18 @@ async function _saveLeadImpl() {
   try {
     if (id) {
       const leadAnterior = leads.find(l => l.id === id);
-      const statusMudou = leadAnterior && leadAnterior.status !== status;
+      // A mudança de status vale SÓ quando o campo "Status" da tela foi
+      // alterado em relação ao que estava quando o lead foi aberto. Se a
+      // pessoa salvou outra coisa (observação, telefone...) sem mexer no
+      // status, o status não é enviado — assim não sobrescreve uma
+      // mudança feita por outra pessoa nem gera histórico de status.
+      const statusDe = window._statusAoAbrirModal || (leadAnterior && leadAnterior.status) || null;
+      const statusMudou = !!statusDe && statusDe !== status;
+      if (!statusMudou) {
+        delete payload.status;
+        delete payload.contatar_desde;
+        delete payload.sla_nivel;
+      }
       const resBruto = await salvarLeadComFallback(payload);
       // ── CONFIRMAÇÃO REAL DO SALVAMENTO ────────────────────────────
       // O Supabase responde "200 OK" com lista vazia quando a regra de
@@ -11738,7 +11782,7 @@ async function _saveLeadImpl() {
       // mas o lead continuava com o status antigo no banco. Agora o
       // sistema confere no próprio banco se o status gravado é o pedido;
       // se não for, avisa na hora e NÃO registra histórico falso.
-      const res = await confirmarLeadSalvo(id, resBruto, status);
+      const res = await confirmarLeadSalvo(id, resBruto, statusMudou ? status : null);
       // ── Auditoria: edição de lead ─────────────────────────────────
       try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_edit', detalhe: `Lead editado: ${payload.nome || id} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
       const idx = leads.findIndex(l => l.id === id);
@@ -11748,11 +11792,11 @@ async function _saveLeadImpl() {
       }
       if (statusMudou) {
         // ── Registrar histórico de status ─────────────────────────────
-        post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status', detalhe: `Status: ${leadAnterior.status} → ${status} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }).catch(() => {});
+        post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status', detalhe: `Status: ${statusDe} → ${status} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }).catch(() => {});
         post('historico_status', {
           lead_id: id,
           lead_nome: (leads.find(l=>l.id===id)||{}).nome || '',
-          status_anterior: leadAnterior.status,
+          status_anterior: statusDe,
           status_novo: status,
           colaborador_id: user.id,
           colaborador_nome: user.nome,
@@ -11783,7 +11827,7 @@ async function _saveLeadImpl() {
           colaborador_id: user.id,
           colaborador_nome: user.nome,
           tipo: 'status_change',
-          descricao: `Status alterado de "${leadAnterior.status}" para "${status}".`,
+          descricao: `Status alterado de "${statusDe}" para "${status}".`,
         }).catch(() => {});
         // ── Integração com o Guia do Mentor (evento interno, sem webhook) ──
         // Disparado pela própria ação de fechamento do Closer, sem nenhuma
