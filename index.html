@@ -9640,7 +9640,11 @@ function renderDashHojeEMes() {
 
   const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr);
   const vendasMes = fechadosMes.length;
-  const realizadoMes = fechadosMes.reduce((s,l) => s+(l.valor_oportunidade||TICKET), 0);
+  // CORREÇÃO: usava ||TICKET (inventava R$2.997 pra venda sem valor salvo),
+  // diferente de TODOS os outros cálculos de faturamento do sistema (que
+  // usam ||0). Isso fazia esse painel mostrar um número diferente do card
+  // "Faturamento no Mês" logo acima, na mesma tela, pro mesmo mês.
+  const realizadoMes = fechadosMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivos = colaboradores.filter(cx => cx.papel==='closer').length || 1;
   const META_TOTAL = 7 * closersAtivos;
   const metaValor = META_TOTAL * TICKET;
@@ -11425,6 +11429,16 @@ async function saveLead() {
   const programa = document.getElementById('l-programa').value || null;
   // Valor calculado automaticamente pelo programa (campo manual foi removido)
   let valor = programa ? (getPrecoByPrograma(programa) || ticketByPrograma(programa)) : 0;
+
+  // Fechar um lead sem um valor de venda reconhecido faz ele entrar no
+  // faturamento do mês como R$0 — silenciosamente. Isso some do Dashboard
+  // sem ninguém perceber. Bloqueia e avisa o motivo exato antes de salvar.
+  if (status === 'Fechado' && valor === 0) {
+    document.getElementById('l-err').textContent = programa
+      ? `O programa "${programa}" não tem um preço cadastrado — corrija em Configurações → Programas antes de fechar este lead, ou ele vai contar como R$0 no faturamento.`
+      : 'Selecione o programa antes de marcar como Fechado — sem ele, esta venda entra como R$0 no faturamento do mês.';
+    return;
+  }
 
   const payload = {
     nome, empresa,
