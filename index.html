@@ -7676,17 +7676,25 @@ async function garantirSessaoValida() {
   }
 }
 
-async function supa(path, method = 'GET', body = null, extra = '') {
+// ECONOMIA DE SAÍDA: tabelas que só recebem registro (log/histórico) e
+// cuja resposta nunca é usada. Para elas o Supabase não precisa devolver a
+// linha gravada ("return=minimal") — o registro é salvo do mesmo jeito.
+const TABELAS_SO_REGISTRO = { audit_log: true, historico_status: true, interacoes_lead: true };
+
+async function supa(path, method = 'GET', body = null, extra = '', opcoes = null) {
   await garantirSessaoValida();
   const url = `${SUPA_URL}/rest/v1/${path}${extra}`;
   const tokenAtivo = (authSession && authSession.access_token) ? authSession.access_token : SUPA_KEY;
+  const tabelaReq = path.split('?')[0];
+  const respostaMinima = (opcoes && opcoes.minimal) ||
+    (method === 'POST' && TABELAS_SO_REGISTRO[tabelaReq] && !(opcoes && opcoes.minimal === false));
   const opts = {
     method,
     headers: {
       'apikey': SUPA_KEY,
       'Authorization': 'Bearer ' + tokenAtivo,
       'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+      'Prefer': respostaMinima ? 'return=minimal' : 'return=representation'
     }
   };
   if (body) opts.body = JSON.stringify(body);
@@ -7706,7 +7714,7 @@ async function supa(path, method = 'GET', body = null, extra = '') {
   // prefixo errado, 'tabela::all::', que só bate com o formato do
   // getAllCached; getCached usa 'tabela::query' sem o 'all::', então o
   // cache persistente nunca era de fato limpo — corrigido abaixo).
-  if (method !== 'GET') {
+  if (method !== 'GET' && !(opcoes && opcoes.manterCache)) {
     const tabela = path.split('?')[0];
     const CACHE_KEYS = {
       leads: 'leads::all::?select=*&order=criado_em.desc',
@@ -7721,6 +7729,8 @@ async function supa(path, method = 'GET', body = null, extra = '') {
         if (idMatch) {
           const idAlvo = decodeURIComponent(idMatch[1]);
           idbPatchValue(chave, (arr) => (arr || []).filter(x => String(x.id) !== idAlvo)).catch(() => {});
+          _invalidarCacheExceto(tabela, chave); // mantém a foto principal já corrigida
+          return resultado;
         } else {
           idbDelete(chave).catch(() => {}); // sem id específico — mais seguro apagar tudo
         }
@@ -7735,7 +7745,16 @@ async function supa(path, method = 'GET', body = null, extra = '') {
           });
           return arr;
         }).catch(() => {});
+        // ECONOMIA DE SAÍDA: a "foto" principal já foi corrigida acima com
+        // a linha real do banco — então só limpa a memória e as OUTRAS
+        // entradas dessa tabela. Antes o _cache.invalidate() apagava também
+        // a foto principal do IndexedDB, e qualquer edição (até o "estou
+        // ativo" a cada 5min) obrigava o próximo reload a baixar a tabela
+        // inteira de novo (ex: todos os ~1700 leads).
+        _invalidarCacheExceto(tabela, chave);
+        return resultado;
       }
+      // Sem linha devolvida (ou DELETE) — não dá pra corrigir no lugar; limpa tudo.
       _cache.invalidate(tabela); // idem em memória, senão getCached() pega o hit de memória antes de olhar o IDB corrigido
     } else {
       try { _cache.invalidate(tabela); } catch(e) {}
@@ -7743,6 +7762,30 @@ async function supa(path, method = 'GET', body = null, extra = '') {
     }
   }
   return resultado;
+}
+// Limpa o cache em memória da tabela e as entradas do IndexedDB dela,
+// preservando só a chave principal (que acabou de ser corrigida no lugar).
+function _invalidarCacheExceto(tabela, chaveMantida) {
+  try { Object.keys(_cache.store).forEach(k => { if (k.startsWith(tabela)) delete _cache.store[k]; }); } catch (e) {}
+  _idbDeleteExceto(tabela + '::', chaveMantida).catch(() => {});
+}
+async function _idbDeleteExceto(prefixo, chaveMantida) {
+  try {
+    if (typeof idbOpen !== 'function') return;
+    const db = await idbOpen();
+    if (!db) return;
+    await new Promise((resolve) => {
+      const tx = db.transaction('cache_store', 'readwrite');
+      const req = tx.objectStore('cache_store').openCursor();
+      req.onsuccess = (e) => {
+        const c = e.target.result;
+        if (!c) { resolve(); return; }
+        if (c.key.startsWith(prefixo) && c.key !== chaveMantida) c.delete();
+        c.continue();
+      };
+      req.onerror = () => resolve();
+    });
+  } catch (e) {}
 }
 const get    = (t, q='')          => supa(t, 'GET', null, q);
 const post   = (t, b)             => supa(t, 'POST', b);
@@ -7866,8 +7909,9 @@ async function getAllCached(table, query = '', ttlMs = 60000) {
   const idbKey = `${table}::all::${query}`;
   try {
     const rec = await idbGet(idbKey);
-    if (rec && (Date.now() - rec.ts) < rec.ttl) return rec.value;
+    if (rec && (Date.now() - rec.ts) < rec.ttl) { window._cacheHitTs = window._cacheHitTs || {}; window._cacheHitTs[idbKey] = rec.ts; return rec.value; }
   } catch (e) {}
+  if (window._cacheHitTs) delete window._cacheHitTs[idbKey];
   const data = await getAll(table, query);
   idbSet(idbKey, data, ttlMs).catch(() => {});
   return data;
@@ -8187,6 +8231,39 @@ function startAutoRefresh() {
   
 // ── Debounce para recarregarDados ────────────────────────
 // Evita múltiplas chamadas simultâneas quando realtime dispara rápido
+// Aplica na lista em memória (e no cache persistente) o lead que o
+// Supabase Realtime acabou de enviar — INSERT/UPDATE/DELETE.
+function aplicarMudancaRealtimeLead(p) {
+  try {
+    if (!p || (p.table && p.table !== 'leads')) return;
+    const tipo = p.type;
+    const rec = p.record;
+    const old = p.old_record;
+    if (tipo === 'DELETE') {
+      const idDel = old && old.id;
+      if (!idDel) return;
+      leads = leads.filter(l => l.id !== idDel);
+      if (typeof idbPatchValue === 'function') {
+        idbPatchValue('leads::all::?select=*&order=criado_em.desc', (arr) => (arr || []).filter(x => x.id !== idDel)).catch(() => {});
+      }
+      return;
+    }
+    if (!rec || !rec.id) return;
+    const i = leads.findIndex(l => l.id === rec.id);
+    const mesclado = i >= 0 ? { ...leads[i], ...rec } : rec;
+    if (i >= 0) leads[i] = mesclado; else if (tipo === 'INSERT') leads.unshift(mesclado); else return;
+    atualizarLeadNoCacheIDB(mesclado);
+    // Se o modal desse mesmo lead está aberto e a pessoa ainda não mexeu
+    // em nada, atualiza o status exibido pra não salvar por cima do novo.
+    const modal = document.getElementById('modal-lead');
+    const idAberto = document.getElementById('l-id')?.value;
+    if (modal && modal.classList.contains('open') && idAberto === rec.id && !window._leadModalSujo) {
+      const sel = document.getElementById('l-status');
+      if (sel && rec.status && sel.value !== rec.status) { sel.value = rec.status; if (typeof onStatusChange === 'function') onStatusChange(); }
+    }
+  } catch (e) { console.warn('Realtime: falha ao aplicar mudança do lead', e); }
+}
+
 let _reloadDebounceTimer = null;
 function recarregarDadosDebounced() {
   if (_reloadDebounceTimer) clearTimeout(_reloadDebounceTimer);
@@ -8227,6 +8304,13 @@ function conectarRealtime() {
           
           // Mudança detectada em qualquer tabela monitorada
           if (['INSERT','UPDATE','DELETE'].includes(msg.payload?.type)) {
+            // CORREÇÃO: recarregarDados() reaproveita a lista de leads em
+            // memória (não busca de novo) — então uma mudança feita por
+            // OUTRO usuário/aba (ex: lead marcado como Fechado) nunca
+            // aparecia aqui, e quem estava com a tela aberta continuava
+            // vendo o status antigo (e podia salvar por cima dele). Agora
+            // o próprio registro que o Realtime envia é aplicado na lista.
+            aplicarMudancaRealtimeLead(msg.payload);
             recarregarDadosDebounced();
           }
         } catch(e) {}
@@ -8458,7 +8542,15 @@ function startActivityTracking() {
   const ping = async () => {
     if (!user || !user.id) return;
     try {
-      await patch('colaboradores', { ultima_atividade: new Date().toISOString() }, `id=eq.${user.id}`);
+      // ECONOMIA DE SAÍDA: o "estou ativo" roda a cada 5min por pessoa
+      // logada. Antes o Supabase devolvia a linha inteira do colaborador
+      // (incluindo a foto de perfil em base64) a cada ping, e ainda
+      // apagava o cache da lista de colaboradores. Agora grava sem pedir
+      // nada de volta e sem mexer no cache — o dado salvo é o mesmo.
+      const agoraPing = new Date().toISOString();
+      await supa('colaboradores', 'PATCH', { ultima_atividade: agoraPing }, `?id=eq.${user.id}`, { minimal: true, manterCache: true });
+      const eu = (colaboradores || []).find(c => c.id === user.id);
+      if (eu) eu.ultima_atividade = agoraPing;
     } catch(e) {}
   };
 
@@ -9227,6 +9319,24 @@ async function loadData() {
     })()).catch(() => []),
       getCached('guias', '?select=id,titulo,descricao,link&order=titulo.asc').catch(() => _loadGuiasLocal())
     ]);
+    // CORREÇÃO: quando a lista de leads veio do cache local (até 20min),
+    // alterações feitas por OUTRAS pessoas nesse intervalo (ex: um lead
+    // marcado como Fechado pelo Closer) não apareciam — a tela mostrava o
+    // status antigo. Agora busca só os leads alterados desde a foto do
+    // cache (poucas linhas) e aplica por cima.
+    try {
+      const chaveLeads = 'leads::all::?select=*&order=criado_em.desc';
+      const tsCache = window._cacheHitTs && window._cacheHitTs[chaveLeads];
+      if (tsCache) {
+        const desde = new Date(tsCache - 5 * 60 * 1000).toISOString();
+        const alterados = await get('leads', `?select=*&ultima_interacao=gte.${encodeURIComponent(desde)}`);
+        (alterados || []).forEach(atual => {
+          const i = leads.findIndex(l => l.id === atual.id);
+          if (i >= 0) leads[i] = atual; else leads.unshift(atual);
+          atualizarLeadNoCacheIDB(atual);
+        });
+      }
+    } catch (eSync) { console.warn('Sincronização de leads alterados falhou (seguindo com o cache):', eSync); }
     if (user.papel === 'admin') {
       solicitacoesSenha = await get('solicitacoes_senha', '?select=*&order=criado_em.desc').catch(() => []);
       updateAdminNavBadge();
@@ -10575,8 +10685,13 @@ async function marcarEventoAgendaRealizado(tarefaId, leadId) {
       if (t) { t.concluida = true; t.status_reuniao = 'compareceu'; }
     } else if (leadId) {
       const leadAnterior = leads.find(x => x.id === leadId);
-      await patch('leads', { status: 'Diagnóstico Realizado', ultima_interacao: new Date().toISOString() }, `id=eq.${leadId}`);
-      if (leadAnterior) leadAnterior.status = 'Diagnóstico Realizado';
+      const rAgenda = await patch('leads', { status: 'Diagnóstico Realizado', ultima_interacao: new Date().toISOString() }, `id=eq.${leadId}`);
+      const confAgenda = await confirmarLeadSalvo(leadId, rAgenda, 'Diagnóstico Realizado');
+      if (confAgenda && confAgenda[0]) {
+        const iAg = leads.findIndex(x => x.id === leadId);
+        if (iAg >= 0) leads[iAg] = confAgenda[0];
+        atualizarLeadNoCacheIDB(confAgenda[0]);
+      } else if (leadAnterior) leadAnterior.status = 'Diagnóstico Realizado';
       post('audit_log', {
         colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status',
         detalhe: `Status: Diagnóstico Agendado → Diagnóstico Realizado (Lead: ${leadId})`,
@@ -10958,6 +11073,7 @@ function onStatusChange() {
 }
 
 function openLeadModal(lead = null) {
+  window._leadModalSujo = false;
   document.getElementById('modal-lead-title').textContent = lead ? 'Editar Lead' : 'Novo Lead';
   const fields = ['nome','empresa','cargo','linkedin','telefone','email','cidade','cert','programa','objetivo','status','data-diag','closer','data-compra','motivo-perda','obs','id','principal-objetivo','area-interesse','processos-reprovados','instituicao-desejada','faixa-salarial','origem','turma','inicio-curso','encerramento-curso'];
   fields.forEach(f => { const el = document.getElementById('l-' + f); if (el) el.value = ''; });
@@ -11026,8 +11142,49 @@ function openLeadModal(lead = null) {
 
 function editLead(id) {
   const lead = leads.find(l => l.id === id);
-  if (lead) openLeadModal(lead);
+  if (!lead) return;
+  window._leadModalSujo = false;
+  openLeadModal(lead);
+  // Abre na hora com o que já está na tela e, em paralelo, confere a
+  // versão atual no banco (1 linha só). Se outra pessoa/aba já tinha
+  // alterado o lead (ex: marcado como Fechado), o modal é atualizado
+  // antes de alguém salvar por cima com o status antigo.
+  // ECONOMIA DE SAÍDA: primeiro confere só 3 campos leves (status e
+  // marcas de atualização); a linha completa só é baixada se algo mudou.
+  get('leads', `?id=eq.${id}&select=id,status,ultima_interacao,sdr_id`).then(async rLeve => {
+    const leve = Array.isArray(rLeve) ? rLeve[0] : null;
+    if (!leve) return;
+    const i0 = leads.findIndex(l => l.id === id);
+    const local = i0 >= 0 ? leads[i0] : {};
+    if (leve.status === local.status && leve.ultima_interacao === local.ultima_interacao && leve.sdr_id === local.sdr_id) return;
+    const r = await get('leads', `?id=eq.${id}&select=*`);
+    const atual = Array.isArray(r) ? r[0] : null;
+    if (!atual) return;
+    const i = leads.findIndex(l => l.id === id);
+    if (i >= 0) leads[i] = atual;
+    atualizarLeadNoCacheIDB(atual);
+    const modal = document.getElementById('modal-lead');
+    if (modal && modal.classList.contains('open') && document.getElementById('l-id').value === id && !window._leadModalSujo) {
+      openLeadModal(atual);
+    }
+    if (typeof renderLeadsTable === 'function') try { renderLeadsTable(); } catch (e) {}
+  }).catch(() => {});
 }
+
+// Marca o modal de lead como "editado pela pessoa" — usado pra nunca
+// sobrescrever o que alguém está digitando com dados que chegaram depois.
+(function instalarMarcadorModalLead() {
+  const instalar = () => {
+    const m = document.getElementById('modal-lead');
+    if (!m || m._marcadorSujo) return;
+    m._marcadorSujo = true;
+    const marcar = () => { window._leadModalSujo = true; };
+    m.addEventListener('input', marcar, true);
+    m.addEventListener('change', marcar, true);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', instalar);
+  else instalar();
+})();
 
 // ============================================================
 // HISTÓRICO DE INTERAÇÕES DO LEAD
@@ -11392,7 +11549,53 @@ async function verificarLeadDuplicado(telefone, email) {
   return null;
 }
 
+// ── Confere no banco se a edição do lead foi gravada de verdade ──────────
+// Recebe a resposta do PATCH; se ela já trouxer o lead com o status
+// esperado, usa direto (zero custo extra). Se vier vazia ou com outro
+// status (RLS/trigger bloqueou em silêncio), busca a linha no banco pra
+// confirmar e, se o status não bateu, lança um erro claro.
+async function confirmarLeadSalvo(id, resBruto, statusEsperado) {
+  if (Array.isArray(resBruto) && resBruto[0] && resBruto[0].status === statusEsperado) return resBruto;
+  let linha = null;
+  try {
+    const r = await get('leads', `?id=eq.${id}&select=*`);
+    linha = Array.isArray(r) ? r[0] : null;
+  } catch (e) { /* tratado abaixo */ }
+  if (linha && linha.status === statusEsperado) return [linha];
+  if (linha) {
+    // Sincroniza a tela com o que realmente está no banco
+    const i = leads.findIndex(l => l.id === id);
+    if (i >= 0) leads[i] = linha;
+    atualizarLeadNoCacheIDB(linha);
+    const sel = document.getElementById('l-status');
+    if (sel) { sel.value = linha.status; if (typeof onStatusChange === 'function') onStatusChange(); }
+    throw new Error(`o banco NÃO gravou a mudança para "${statusEsperado}" — o lead continua como "${linha.status}". Isso acontece quando o seu usuário não tem permissão de editar este lead no banco (RLS) ou a sessão expirou. Saia e entre novamente e tente de novo; se persistir, peça a um admin para fazer a alteração.`);
+  }
+  throw new Error(`o banco não confirmou o salvamento (nenhuma linha foi alterada). Provável sessão expirada ou falta de permissão para editar este lead. Saia e entre novamente e tente de novo.`);
+}
+
+// Atualiza um único lead dentro do cache persistente (IndexedDB) da lista
+// de leads — assim um reload da página não traz a versão antiga de volta.
+function atualizarLeadNoCacheIDB(linha) {
+  if (!linha || !linha.id || typeof idbPatchValue !== 'function') return;
+  idbPatchValue('leads::all::?select=*&order=criado_em.desc', (arr) => {
+    arr = arr || [];
+    const i = arr.findIndex(x => x.id === linha.id);
+    if (i >= 0) arr[i] = linha; else arr.unshift(linha);
+    return arr;
+  }).catch(() => {});
+}
+
+// Trava contra clique duplo em "Salvar": dois envios simultâneos geravam
+// histórico duplicado e podiam se sobrepor no banco.
+let _salvandoLead = false;
 async function saveLead() {
+  if (_salvandoLead) return;
+  _salvandoLead = true;
+  try { await _saveLeadImpl(); } finally { _salvandoLead = false; }
+}
+
+async function _saveLeadImpl() {
   const id = document.getElementById('l-id').value;
   const nome = document.getElementById('l-nome').value.trim();
   const empresa = document.getElementById('l-empresa').value.trim();
@@ -11493,36 +11696,56 @@ async function saveLead() {
   // problema. Com isso, tenta salvar completo; se o banco reclamar de
   // uma coluna específica, tenta de novo sem ela, e avisa o que ficou
   // de fora.
+  // CORREÇÃO: antes só ignorava UMA coluna inexistente — se faltassem
+  // duas (ex: turma + inicio_curso), a segunda tentativa estourava erro e
+  // o lead não era salvo. Agora tenta de novo removendo quantas colunas
+  // inexistentes o banco apontar (até 10), sem nunca remover o status.
+  const colunasIgnoradas = [];
   let colunaIgnorada = null;
   async function salvarLeadComFallback(payloadCompleto) {
-    try {
-      return id
-        ? await patch('leads', payloadCompleto, `id=eq.${id}`)
-        : await post('leads', payloadCompleto);
-    } catch (e) {
-      const msg = (e && e.message) || '';
-      const m = msg.match(/Could not find the '([a-zA-Z_]+)' column/);
-      if (m) {
-        colunaIgnorada = m[1];
-        const payloadReduzido = { ...payloadCompleto };
-        delete payloadReduzido[colunaIgnorada];
+    let payloadAtual = { ...payloadCompleto };
+    for (let tentativa = 0; tentativa < 10; tentativa++) {
+      try {
         return id
-          ? await patch('leads', payloadReduzido, `id=eq.${id}`)
-          : await post('leads', payloadReduzido);
+          ? await patch('leads', payloadAtual, `id=eq.${id}`)
+          : await post('leads', payloadAtual);
+      } catch (e) {
+        const msg = (e && e.message) || '';
+        const m = msg.match(/Could not find the '([a-zA-Z_]+)' column/);
+        if (m && m[1] !== 'status' && m[1] in payloadAtual) {
+          colunasIgnoradas.push(m[1]);
+          colunaIgnorada = colunasIgnoradas.join(', ');
+          payloadAtual = { ...payloadAtual };
+          delete payloadAtual[m[1]];
+          continue;
+        }
+        throw e;
       }
-      throw e;
     }
+    throw new Error('Não foi possível salvar o lead (muitas colunas ausentes no banco).');
   }
 
   try {
     if (id) {
       const leadAnterior = leads.find(l => l.id === id);
       const statusMudou = leadAnterior && leadAnterior.status !== status;
-      const res = await salvarLeadComFallback(payload);
+      const resBruto = await salvarLeadComFallback(payload);
+      // ── CONFIRMAÇÃO REAL DO SALVAMENTO ────────────────────────────
+      // O Supabase responde "200 OK" com lista vazia quando a regra de
+      // permissão (RLS) ou uma trigger do banco impede a alteração — sem
+      // erro nenhum. Antes, o sistema tratava isso como sucesso: fechava
+      // o modal, registrava "Status alterado para Fechado" no histórico,
+      // mas o lead continuava com o status antigo no banco. Agora o
+      // sistema confere no próprio banco se o status gravado é o pedido;
+      // se não for, avisa na hora e NÃO registra histórico falso.
+      const res = await confirmarLeadSalvo(id, resBruto, status);
       // ── Auditoria: edição de lead ─────────────────────────────────
       try { await post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_edit', detalhe: `Lead editado: ${payload.nome || id} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }); } catch(e2) {}
       const idx = leads.findIndex(l => l.id === id);
-      if (res && res[0]) leads[idx] = res[0];
+      if (res && res[0]) {
+        if (idx >= 0) leads[idx] = res[0]; else leads.unshift(res[0]);
+        atualizarLeadNoCacheIDB(res[0]);
+      }
       if (statusMudou) {
         // ── Registrar histórico de status ─────────────────────────────
         post('audit_log', { colaborador_id: user.id, colaborador_nome: user.nome, acao: 'lead_status', detalhe: `Status: ${leadAnterior.status} → ${status} (Lead: ${id})`, device_info: getDeviceInfo(), session_token: user.session_token || null }).catch(() => {});
@@ -16253,7 +16476,18 @@ async function idbSet(key, value, ttlMs) {
 // Usado depois de criar/editar/excluir um registro: em vez de jogar fora
 // a "foto" inteira em cache (o que forçaria uma busca nova na próxima
 // vez, gastando saída do Supabase à toa), corrige só o que mudou.
-async function idbPatchValue(key, mutatorFn) {
+// CORREÇÃO: várias edições seguidas (ex: fechar um lead e logo em seguida
+// a fila do SDR reatribuir outros leads) faziam leituras/escritas
+// simultâneas na mesma entrada do cache — uma podia apagar a outra e o
+// reload trazia o status antigo de volta. Agora as correções do cache
+// rodam em fila, uma de cada vez.
+var _idbPatchFila = Promise.resolve();
+function idbPatchValue(key, mutatorFn) {
+  const tarefa = _idbPatchFila.then(() => _idbPatchValueImpl(key, mutatorFn));
+  _idbPatchFila = tarefa.catch(() => false);
+  return tarefa;
+}
+async function _idbPatchValueImpl(key, mutatorFn) {
   try {
     var db = await idbOpen();
     if (!db) return false;
