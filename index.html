@@ -7117,6 +7117,7 @@ window.__initGuiaMentor = init;
         <div id="l-programa-preco-badge" style="font-size:18px;color:var(--gold);font-weight:700;margin-top:4px;min-height:16px"></div>
       </div>
     </div>
+    <div class="field"><label>Preço / Valor da venda (R$)</label><input id="l-valor" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex: 3.497"></div>
     <div class="form-row">
       <div class="field"><label>Principal Objetivo (formulário)</label>
         <select id="l-principal-objetivo" onchange="atualizarObservacaoObjetivo()">
@@ -11076,9 +11077,10 @@ function openLeadModal(lead = null) {
   window._leadModalSujo = false;
   window._statusAoAbrirModal = null;
   document.getElementById('modal-lead-title').textContent = lead ? 'Editar Lead' : 'Novo Lead';
-  const fields = ['nome','empresa','cargo','linkedin','telefone','email','cidade','cert','programa','objetivo','status','data-diag','closer','data-compra','motivo-perda','obs','id','principal-objetivo','area-interesse','processos-reprovados','instituicao-desejada','faixa-salarial','origem','turma','inicio-curso','encerramento-curso'];
+  const fields = ['nome','empresa','cargo','linkedin','telefone','email','cidade','cert','programa','objetivo','status','data-diag','closer','data-compra','motivo-perda','obs','id','principal-objetivo','area-interesse','processos-reprovados','instituicao-desejada','faixa-salarial','origem','turma','inicio-curso','encerramento-curso','valor'];
   fields.forEach(f => { const el = document.getElementById('l-' + f); if (el) el.value = ''; });
   document.getElementById('l-status').value = 'Contatado';
+  { const vEl0 = document.getElementById('l-valor'); if (vEl0) vEl0.dataset.auto = ''; }
   selectedObjetivos = [];
   document.querySelectorAll('#l-objetivos-grid .check-item').forEach(el => el.classList.remove('checked'));
 
@@ -11119,7 +11121,20 @@ function openLeadModal(lead = null) {
     document.getElementById('l-data-diag').value = lead.data_diagnostico || '';
     document.getElementById('l-hora-diag').value = lead.hora_diagnostico || '';
     document.getElementById('l-closer').value = lead.closer_nome || '';
-    // valor calculado automaticamente pelo programa
+    // Preço informado manualmente no cadastro (varia por lead): mostra o
+    // valor já salvo no lead. Não há preço sugerido pelo programa.
+    {
+      const vEl = document.getElementById('l-valor');
+      if (vEl) {
+        const vSalvo = Number(lead.valor_oportunidade) || 0;
+        // Lead ainda NÃO fechado com o preço antigo automático (R$2.997):
+        // não mantém o preço antigo — o campo abre em branco para a pessoa
+        // informar o preço real. Venda Fechada mantém o valor da venda.
+        const descartarAntigo = lead.status !== 'Fechado' && lead.programa === 'Formação Banker & Advisor' && vSalvo === TICKET_FORMACAO;
+        vEl.value = formatValorLeadInput(descartarAntigo ? 0 : vSalvo);
+        vEl.dataset.auto = '';
+      }
+    }
     document.getElementById('l-data-compra').value = lead.data_compra_prevista || '';
     document.getElementById('l-motivo-perda').value = lead.motivo_perda || '';
     document.getElementById('l-obs').value = lead.observacoes || '';
@@ -11663,16 +11678,23 @@ async function _saveLeadImpl() {
   }
 
   const programa = document.getElementById('l-programa').value || null;
-  // Valor calculado automaticamente pelo programa (campo manual foi removido)
-  let valor = programa ? (getPrecoByPrograma(programa) || ticketByPrograma(programa)) : 0;
+  // Preço informado manualmente no cadastro (varia por lead). Em branco =
+  // lead sem preço definido (não usa mais o preço do programa).
+  const valorDigitado = (document.getElementById('l-valor')?.value || '').trim();
+  let valor;
+  if (valorDigitado) {
+    valor = parseValorLeadInput(valorDigitado);
+    if (valor === null) { document.getElementById('l-err').textContent = 'Preço inválido — informe apenas o valor em reais (ex: 3.497 ou 3497,00).'; return; }
+  } else {
+    valor = 0;
+  }
 
   // Fechar um lead sem um valor de venda reconhecido faz ele entrar no
   // faturamento do mês como R$0 — silenciosamente. Isso some do Dashboard
   // sem ninguém perceber. Bloqueia e avisa o motivo exato antes de salvar.
   if (status === 'Fechado' && valor === 0) {
-    document.getElementById('l-err').textContent = programa
-      ? `O programa "${programa}" não tem um preço cadastrado — corrija em Configurações → Programas antes de fechar este lead, ou ele vai contar como R$0 no faturamento.`
-      : 'Selecione o programa antes de marcar como Fechado — sem ele, esta venda entra como R$0 no faturamento do mês.';
+    document.getElementById('l-err').textContent =
+      'Informe o preço da venda no campo "Preço / Valor da venda" antes de marcar como Fechado — sem ele, esta venda entra como R$0 no faturamento do mês.';
     return;
   }
 
@@ -13728,6 +13750,21 @@ function updateProgramaSelect() {
   sel.innerHTML = '<option value="">Selecione…</option>' +
     programas.map(p => `<option value="${p.nome}">${p.nome} — ${formatBRL(p.preco)}</option>`).join('');
   sel.value = cur;
+}
+
+// Preço do lead digitado manualmente: aceita "3497", "3.497", "3.497,00", "R$ 3.497".
+// Retorna null se não for um número válido.
+function parseValorLeadInput(txt) {
+  let t = String(txt == null ? '' : txt).replace(/R\$/gi, '').replace(/\s/g, '');
+  if (!t) return null;
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  if (!/^\d+(\.\d+)?$/.test(t)) return null;
+  return Math.round(parseFloat(t) * 100) / 100;
+}
+function formatValorLeadInput(v) {
+  const n = Number(v) || 0;
+  return n > 0 ? n.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) : '';
 }
 
 function onProgramaChange() {
