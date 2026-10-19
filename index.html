@@ -742,7 +742,7 @@ async function enviarPedidoEsqueciSenha() {
             </svg>
             <span style="font-size:18px;font-weight:700;color:var(--text)">Selecionar Período</span>
           </div>
-          <div style="font-size:18px;color:var(--muted);margin-bottom:12px">Escolha um mês ou um intervalo de datas. Faturamento, % da Meta, vendas e metas usam o mês da data final escolhida.</div>
+          <div style="font-size:18px;color:var(--muted);margin-bottom:12px">Escolha um mês, um ano ou um intervalo de datas. Faturamento, % da Meta, vendas e metas seguem o mês (ou ano) escolhido; num intervalo de datas, usam o mês da data final.</div>
           <div class="field" style="margin:0 0 12px">
             <label style="font-size:18px">Mês</label>
             <select id="dash-mes-select" onchange="if(this.value) applyDashMes(this.value)" style="width:100%;color-scheme:dark;background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px"></select>
@@ -780,12 +780,12 @@ async function enviarPedidoEsqueciSenha() {
           <div id="kpi-leads-num" style="font-size:52px;font-weight:900;color:var(--accent);line-height:1;letter-spacing:-2px">—</div>
           <div id="kpi-leads-sub" style="font-size:18px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
-        <div id="kpi-faturamento-mes" onclick="irParaLeadsPorStatus('Fechado', dashMesRef())" title="Ver os leads fechados que compõem este número" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)">
+        <div id="kpi-faturamento-mes" onclick="irParaLeadsPorStatus('Fechado', dashMesFiltroLeads())" title="Ver os leads fechados que compõem este número" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border)">
           <div style="font-size:18px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Faturamento no Mês</div>
           <div id="kpi-fat-num" style="font-size:52px;font-weight:900;color:var(--gold);line-height:1;letter-spacing:-2px">—</div>
           <div id="kpi-fat-sub" style="font-size:18px;color:var(--muted);margin-top:6px">carregando...</div>
         </div>
-        <div id="kpi-meta-mes" onclick="irParaLeadsPorStatus('Fechado', dashMesRef())" title="Ver os leads fechados que compõem este número" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center;border-right:1px solid var(--border)">
+        <div id="kpi-meta-mes" onclick="irParaLeadsPorStatus('Fechado', dashMesFiltroLeads())" title="Ver os leads fechados que compõem este número" style="cursor:pointer;background:var(--surface);padding:24px 28px;text-align:center;border-right:1px solid var(--border)">
           <div style="font-size:18px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">% da Meta</div>
           <div id="kpi-meta-num" style="font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px;color:var(--muted)">—</div>
           <div id="kpi-meta-sub" style="font-size:18px;color:var(--muted);margin-top:6px">carregando...</div>
@@ -8835,8 +8835,8 @@ function renderDashboardExecutivo() {
   });
 
   // Investimento fixo mensal
-  const INV_INSTAGRAM = 2000;
-  const INV_LINKEDIN = 1000;
+  const INV_INSTAGRAM = 2000 * dashMesesRef(); // investimento mensal × meses do período
+  const INV_LINKEDIN = 1000 * dashMesesRef();
   const INV_TOTAL = INV_INSTAGRAM + INV_LINKEDIN;
 
   const leadsTotal = leads.filter(l => l.criado_em?.startsWith(mesAtual)).length || 1;
@@ -8860,7 +8860,7 @@ function renderDashboardExecutivo() {
 
   el.innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px">
-      <div class="stat-card" onclick="irParaLeadsPorStatus('Fechado', '${mesAtual}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Faturamento Mês</div><div class="stat-value gold">${formatBRL(faturamento)}</div></div>
+      <div class="stat-card" onclick="irParaLeadsPorStatus('Fechado', '${dashMesFiltroLeads()}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Faturamento Mês</div><div class="stat-value gold">${formatBRL(faturamento)}</div></div>
       <div class="stat-card"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> CAC (Custo por Venda)</div><div class="stat-value accent">${formatBRL(cac)}</div><div class="stat-sub">Inv. R$${formatBRL(INV_TOTAL)} / ${vendasMes.length} vendas</div></div>
       <div class="stat-card"><div class="stat-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> ROI</div><div class="stat-value ${roi>=0?'green':'red'}">${roi.toFixed(0)}%</div><div class="stat-sub">${roi>=0?'Positivo':'Negativo'}</div></div>
     </div>
@@ -9480,7 +9480,7 @@ function renderForecast() {
   // últimos 7 dias é contado a partir do fim do mês escolhido.
   const mesAtual = dashMesRef();
   const ehAtual = dashMesEhAtual();
-  const anoRef = Number(mesAtual.slice(0,4)), mesNumRef = Number(mesAtual.slice(5,7));
+  const anoRef = Number(mesAtual.slice(0,4)), mesNumRef = dashRefEhAno() ? 12 : Number(mesAtual.slice(5,7));
   const diasNoMes = new Date(anoRef, mesNumRef, 0).getDate();
   const hoje = ehAtual ? new Date() : new Date(anoRef, mesNumRef - 1, diasNoMes, 23, 59, 59);
   const diaDoMes = hoje.getDate();
@@ -9489,7 +9489,7 @@ function renderForecast() {
   const faturado = vendasMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivosFc = colaboradores.filter(cx => cx.papel==='closer').length || 1;
   const precoFc = programas[0]?.preco || 2997;
-  const meta = 7 * closersAtivosFc * precoFc;
+  const meta = 7 * closersAtivosFc * precoFc * dashMesesRef();
 
   // Ritmo recente (últimos 7 dias) em vez de média do mês inteiro — reage
   // mais rápido a uma equipe acelerando ou desacelerando. Se o mês tem
@@ -9515,7 +9515,7 @@ function renderForecast() {
 
   let html = '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">';
   const corProj = pctProj>=100?'var(--green)':pctProj>=70?'var(--yellow)':'var(--red)';
-  html += '<div><div style="font-size:18px;color:var(--muted);text-transform:uppercase;font-weight:700">Projeção de fechamento do mês</div><div style="font-size:26px;font-weight:800;color:'+corProj+'">'+formatBRL(projecao)+'</div><div style="font-size:18px;color:var(--muted)">ritmo dos últimos '+janelaDias+' dias: '+formatBRL(ritmo)+'/dia</div></div>';
+  html += '<div><div style="font-size:18px;color:var(--muted);text-transform:uppercase;font-weight:700">Projeção de fechamento do '+(dashRefEhAno()?'ano':'mês')+'</div><div style="font-size:26px;font-weight:800;color:'+corProj+'">'+formatBRL(projecao)+'</div><div style="font-size:18px;color:var(--muted)">ritmo dos últimos '+janelaDias+' dias: '+formatBRL(ritmo)+'/dia</div></div>';
   html += '<div style="text-align:right"><div style="font-size:18px;color:var(--muted);text-transform:uppercase;font-weight:700">% da meta projetado</div><div style="font-size:26px;font-weight:800;color:'+corProj+'">'+pctProj+'%</div><div style="font-size:18px;color:var(--muted)">realizado hoje: '+pct+'%</div></div>';
   html += '</div>';
 
@@ -9584,7 +9584,7 @@ function renderKPIsMacro() {
   const vendasMes  = leads.filter(l => l.status === 'Fechado' && ((l.data_compra_prevista||l.criado_em||'')).startsWith(mesAtual));
   const fat = vendasMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivosKpi = colaboradores.filter(cx => cx.papel==='closer').length || 1;
-  const meta = 7 * closersAtivosKpi * (programas[0]?.preco || 2997);
+  const meta = 7 * closersAtivosKpi * (programas[0]?.preco || 2997) * dashMesesRef();
   const pct = meta > 0 ? Math.round(fat/meta*100) : 0;
   const cor = pct >= 100 ? 'var(--green)' : pct >= 70 ? 'var(--yellow)' : 'var(--red)';
 
@@ -9606,7 +9606,7 @@ function renderKPIsMacro() {
     const diasMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
     const diasRestantes = diasMes - hoje.getDate();
     const encerrado = !dashMesEhAtual();
-    metaSub.textContent = pct >= 100 ? '🎉 Meta batida!' : (encerrado ? 'Mês encerrado · ' + nomeMesDash(mesAtual) : diasRestantes + ' dias restantes no mês');
+    metaSub.textContent = pct >= 100 ? '🎉 Meta batida!' : (encerrado ? (dashRefEhAno() ? 'Ano encerrado · ' + dashMesRef() : 'Mês encerrado · ' + dashNomeRef()) : diasRestantes + ' dias restantes no mês');
     metaSub.style.color = pct >= 100 ? 'var(--green)' : '';
   }
 
@@ -9713,7 +9713,26 @@ let dashPeriodoAtual = { inicio: primeiroDiaMesStr(), fim: todayStr(), label: 'E
 // período escolhido. Faturamento, % da Meta, vendas, metas e projeções usam
 // este mês — assim, escolhendo um mês anterior, tudo passa a mostrar aquele mês.
 function dashMesRef() {
+  // Ano inteiro escolhido: devolve só "AAAA" (startsWith casa o ano todo)
+  if (dashPeriodoAtual.anoInteiro) return dashPeriodoAtual.inicio.slice(0,4);
   return (dashPeriodoAtual.fim || todayStr()).slice(0,7);
+}
+// Quantos meses o período de referência cobre (1 = mês, 12 = ano) — usado
+// para multiplicar metas e investimentos mensais.
+function dashMesesRef() {
+  return dashPeriodoAtual.anoInteiro ? 12 : 1;
+}
+function dashRefEhAno() {
+  return !!dashPeriodoAtual.anoInteiro;
+}
+// Nome do período de referência para textos ("Setembro/2026" ou "Ano 2025")
+function dashNomeRef() {
+  const r = dashMesRef();
+  return r.length === 4 ? 'Ano ' + r : nomeMesDash(r);
+}
+// Filtro de mês da tela de Leads (ela só filtra por mês; ano inteiro = sem filtro)
+function dashMesFiltroLeads() {
+  return dashRefEhAno() ? '' : dashMesRef();
 }
 function dashMesEhAtual() {
   return dashMesRef() === mesAtualStr();
@@ -9723,24 +9742,36 @@ function nomeMesDash(mesStr) {
   const [a, m] = mesStr.split('-').map(Number);
   return NOMES_MESES_DASH[m-1] + '/' + a;
 }
-// Opções do seletor de mês: mês atual + 23 meses anteriores.
+// Opções do seletor: mês atual + 12 meses anteriores e, depois, os 3 últimos
+// anos completos (ano inteiro, de janeiro a dezembro).
 function popularDashMesSelect() {
   const sel = document.getElementById('dash-mes-select');
   if (!sel) return;
   const hoje = new Date();
-  let html = '<option value="">Selecione um mês…</option>';
-  for (let i = 0; i < 24; i++) {
+  let html = '<option value="">Selecione um mês ou ano…</option><optgroup label="Meses">';
+  for (let i = 0; i <= 12; i++) {
     const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
     const v = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
     html += `<option value="${v}">${nomeMesDash(v)}${i === 0 ? ' (atual)' : ''}</option>`;
   }
+  html += '</optgroup><optgroup label="Anos">';
+  for (let i = 1; i <= 3; i++) {
+    const ano = String(hoje.getFullYear() - i);
+    html += `<option value="${ano}">Ano ${ano} (completo)</option>`;
+  }
+  html += '</optgroup>';
   sel.innerHTML = html;
   const p = dashPeriodoAtual;
-  sel.value = (p.mesInteiro ? p.inicio.slice(0,7) : '');
+  sel.value = p.anoInteiro ? p.inicio.slice(0,4) : (p.mesInteiro ? p.inicio.slice(0,7) : '');
 }
 // Seleciona um mês inteiro. Mês atual vai do dia 1 até hoje; meses
 // anteriores vão do dia 1 ao último dia do mês.
 function applyDashMes(mesStr) {
+  if (/^\d{4}$/.test(mesStr)) { // ano inteiro
+    closeDashPicker();
+    applyDashCustomRange(mesStr + '-01-01', mesStr + '-12-31', 'Ano ' + mesStr, false, true);
+    return;
+  }
   const [a, m] = mesStr.split('-').map(Number);
   const ultimo = new Date(a, m, 0).getDate();
   const ehAtual = mesStr === mesAtualStr();
@@ -9757,16 +9788,17 @@ function applyDashMes(mesStr) {
 // vamos sem filtro de mês pra não mostrar um recorte que não bate com o
 // número que a pessoa acabou de ver.
 function irParaLeadsDoPeriodoAtual() {
-  const ehMesInteiro = !!dashPeriodoAtual.mesInteiro || dashPeriodoAtual.inicio === primeiroDiaMesStr();
+  const ehMesInteiro = !dashPeriodoAtual.anoInteiro && (!!dashPeriodoAtual.mesInteiro || dashPeriodoAtual.inicio === primeiroDiaMesStr());
   irParaLeadsPorStatus('', ehMesInteiro ? dashPeriodoAtual.inicio.slice(0,7) : '');
 }
 
 function renderDashHojeEMes() {
   const agora = new Date();
   // Mês de referência = mês escolhido no seletor do Dashboard
-  const mesStr = dashMesRef();
+  const mesStr = dashMesRef(); // "AAAA-MM" ou "AAAA" (ano inteiro)
   const anoAtual = Number(mesStr.slice(0,4));
-  const mesAtual = Number(mesStr.slice(5,7));
+  const mesAtual = dashRefEhAno() ? 12 : Number(mesStr.slice(5,7));
+  const filtroLeadsRef = dashMesFiltroLeads();
   const TICKET = 2997;
   const isAdm = user && user.papel === 'admin';
 
@@ -9801,7 +9833,7 @@ function renderDashHojeEMes() {
     <div class="stat-card ${nsP>0?'red-border':''}"><div class="stat-label">No-Show</div><div class="stat-value ${nsP>0?'red':'muted'}">${nsP}${agendP>0?` <span style="font-size:18px">(${taxaNSP}%)</span>`:''}</div></div>
   `;
 
-  const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr);
+  const fechadosMes = leads.filter(l => l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').startsWith(mesStr));
   const vendasMes = fechadosMes.length;
   // CORREÇÃO: usava ||TICKET (inventava R$2.997 pra venda sem valor salvo),
   // diferente de TODOS os outros cálculos de faturamento do sistema (que
@@ -9809,26 +9841,26 @@ function renderDashHojeEMes() {
   // "Faturamento no Mês" logo acima, na mesma tela, pro mesmo mês.
   const realizadoMes = fechadosMes.reduce((s,l) => s+(l.valor_oportunidade||0), 0);
   const closersAtivos = colaboradores.filter(cx => cx.papel==='closer').length || 1;
-  const META_TOTAL = 7 * closersAtivos;
+  const META_TOTAL = 7 * closersAtivos * dashMesesRef();
   const metaValor = META_TOTAL * TICKET;
   const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
   // Mês anterior já encerrado: projeção = o que foi realizado
   const diaDoMes = dashMesEhAtual() ? agora.getDate() : diasNoMes;
   const projecao = diaDoMes > 0 ? Math.round(realizadoMes/diaDoMes*diasNoMes) : realizadoMes;
-  const nsMes = tarefas.filter(t => t.data.slice(0,7)===mesStr && t.status_reuniao==='nao_compareceu').length;
-  const agendMes = tarefas.filter(t => t.data.slice(0,7)===mesStr).length;
+  const nsMes = tarefas.filter(t => (t.data||'').startsWith(mesStr) && t.status_reuniao==='nao_compareceu').length;
+  const agendMes = tarefas.filter(t => (t.data||'').startsWith(mesStr)).length;
   const taxaNSM = agendMes > 0 ? Math.round(nsMes/agendMes*100) : 0;
-  const reagMes = tarefas.filter(t => t.data.slice(0,7)===mesStr && t.status_reuniao==='reagendou').length;
+  const reagMes = tarefas.filter(t => (t.data||'').startsWith(mesStr) && t.status_reuniao==='reagendou').length;
 
   document.getElementById('dash-mes-stats').innerHTML = `
-    <div class="stat-card gold-border" onclick="irParaLeadsPorStatus('Fechado', '${mesStr}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer">
+    <div class="stat-card gold-border" onclick="irParaLeadsPorStatus('Fechado', '${filtroLeadsRef}')" title="Ver os leads fechados que compõem este número" style="cursor:pointer">
       <div class="stat-label">Meta — ${META_TOTAL} vendas</div>
       <div class="stat-value gold">${isAdm ? formatBRL(metaValor) : `${META_TOTAL} vendas`}</div>
       <div style="margin-top:6px;background:var(--surface3);border-radius:4px;height:6px"><div style="height:6px;border-radius:4px;background:var(--green);width:${metaValor>0?Math.min(100,Math.round(realizadoMes/metaValor*100)):0}%"></div></div>
       <div style="font-size:18px;color:var(--muted);margin-top:3px">${vendasMes} vendas realizadas · ${metaValor>0?Math.min(100,Math.round(realizadoMes/metaValor*100)):0}% da meta</div>
     </div>
     <div class="stat-card"><div class="stat-label">Projeção</div><div class="stat-value accent">${isAdm ? formatBRL(projecao) : `~${Math.round(projecao/TICKET)} vendas`}</div></div>
-    <div class="stat-card ${taxaNSM>20?'red-border':''}"><div class="stat-label">No-Show mês</div><div class="stat-value ${taxaNSM>20?'red':'muted'}">${nsMes} (${taxaNSM}%)</div><div class="stat-sub">Reagendados: ${reagMes}</div></div>
+    <div class="stat-card ${taxaNSM>20?'red-border':''}"><div class="stat-label">No-Show ${dashRefEhAno() ? 'ano' : 'mês'}</div><div class="stat-value ${taxaNSM>20?'red':'muted'}">${nsMes} (${taxaNSM}%)</div><div class="stat-sub">Reagendados: ${reagMes}</div></div>
   `;
 
   renderNoShowPorColab(mesStr);
@@ -9840,7 +9872,7 @@ function renderNoShowPorColab(mesStr) {
   const closers = colaboradores.filter(cx => cx.papel==='closer' || cx.papel==='admin');
   if (!closers.length) { el.innerHTML = ''; return; }
   const rows = closers.map(cx => {
-    const minhas = tarefas.filter(t => t.colaborador_id===cx.id && t.data.slice(0,7)===mesStr);
+    const minhas = tarefas.filter(t => t.colaborador_id===cx.id && (t.data||'').startsWith(mesStr));
     const agend = minhas.length;
     const conf = minhas.filter(t => t.status_reuniao==='confirmado' || t.status_reuniao==='compareceu').length;
     const comp = minhas.filter(t => t.status_reuniao==='compareceu').length;
@@ -9985,20 +10017,24 @@ function openRegraComissao() {
 
 function renderMetaProgress(containerId, colab, mesRef) {
   const container = document.getElementById(containerId);
-  const META_VENDAS = 7;
-  const META_DIAGS_SDR = 20;
+  let META_VENDAS = 7;
+  let META_DIAGS_SDR = 20;
   const TICKET = 2997;
   const mesStr = mesRef || todayStr().slice(0,7);
+  // Ano inteiro ("AAAA"): metas mensais × 12
+  const mesesPeriodo = mesStr.length === 4 ? 12 : 1;
+  META_VENDAS *= mesesPeriodo;
+  META_DIAGS_SDR *= mesesPeriodo;
   const isAdmin = user && user.papel === 'admin';
   let html = '';
 
   if (colab.papel === 'sdr') {
-    const realizado = leads.filter(l => l.sdr_id === colab.id && l.data_diagnostico && l.data_diagnostico.slice(0,7)===mesStr).length;
+    const realizado = leads.filter(l => l.sdr_id === colab.id && l.data_diagnostico && l.data_diagnostico.startsWith(mesStr)).length;
     const pct = Math.min(100, Math.round(realizado / META_DIAGS_SDR * 100));
-    const vendasSDR = leads.filter(l => l.sdr_id === colab.id && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr).length;
+    const vendasSDR = leads.filter(l => l.sdr_id === colab.id && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').startsWith(mesStr)).length;
     html = `
       <div class="progress-block">
-        <div class="progress-top"><span>Diagnósticos no Mês — Meta: ${META_DIAGS_SDR}</span><span class="progress-pct">${realizado}/${META_DIAGS_SDR} · ${pct}%</span></div>
+        <div class="progress-top"><span>Diagnósticos no ${mesesPeriodo === 12 ? 'Ano' : 'Mês'} — Meta: ${META_DIAGS_SDR}</span><span class="progress-pct">${realizado}/${META_DIAGS_SDR} · ${pct}%</span></div>
         <div class="progress-bar-bg"><div class="progress-bar-fill ${pct>=100?'gold':''}" style="width:${pct}%"></div></div>
       </div>
       <div class="progress-block">
@@ -10016,32 +10052,42 @@ function renderMetaProgress(containerId, colab, mesRef) {
   }
 
   if (colab.papel === 'closer') {
-    const realizadoVendas = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').slice(0,7)===mesStr).length;
+    const realizadoVendas = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').startsWith(mesStr)).length;
     const pctVendas = Math.min(100, Math.round(realizadoVendas / META_VENDAS * 100));
-    const reunioesMes = tarefas.filter(t => t.colaborador_id===colab.id && t.status_reuniao==='compareceu' && t.data.slice(0,7)===mesStr).length;
+    const reunioesMes = tarefas.filter(t => t.colaborador_id===colab.id && t.status_reuniao==='compareceu' && (t.data||'').startsWith(mesStr)).length;
     const pctReun = Math.min(100, Math.round(reunioesMes / META_VENDAS * 100));
-    const comissao = calcularComissaoCloser(realizadoVendas);
-    const proxFaixa = realizadoVendas < 15 ? 15 : realizadoVendas < 20 ? 20 : null;
+    let comissao;
+    if (mesesPeriodo === 12) {
+      comissao = 0;
+      for (let m = 1; m <= 12; m++) {
+        const pref = mesStr + '-' + String(m).padStart(2,'0');
+        const v = leads.filter(l => l.closer_nome===colab.nome && l.status==='Fechado' && (l.data_compra_prevista||l.criado_em||'').startsWith(pref)).length;
+        if (v) comissao += calcularComissaoCloser(v);
+      }
+    } else {
+      comissao = calcularComissaoCloser(realizadoVendas);
+    }
+    const proxFaixa = mesesPeriodo === 12 ? null : (realizadoVendas < 15 ? 15 : realizadoVendas < 20 ? 20 : null);
     const ganhoProx = proxFaixa ? calcularComissaoCloser(proxFaixa) : null;
     html = `
       <div class="progress-block">
-        <div class="progress-top"><span>Vendas no Mês — Meta: ${META_VENDAS}</span><span class="progress-pct">${realizadoVendas}/${META_VENDAS} · ${pctVendas}%</span></div>
+        <div class="progress-top"><span>Vendas no ${mesesPeriodo === 12 ? 'Ano' : 'Mês'} — Meta: ${META_VENDAS}</span><span class="progress-pct">${realizadoVendas}/${META_VENDAS} · ${pctVendas}%</span></div>
         <div class="progress-bar-bg"><div class="progress-bar-fill ${pctVendas>=100?'gold':''}" style="width:${pctVendas}%"></div></div>
       </div>
       <div class="progress-block">
-        <div class="progress-top"><span>Reuniões Realizadas — Meta: ${META_VENDAS}/mês</span><span class="progress-pct">${reunioesMes}/${META_VENDAS} · ${pctReun}%</span></div>
+        <div class="progress-top"><span>Reuniões Realizadas — Meta: ${META_VENDAS}${mesesPeriodo === 12 ? '/ano' : '/mês'}</span><span class="progress-pct">${reunioesMes}/${META_VENDAS} · ${pctReun}%</span></div>
         <div class="progress-bar-bg"><div class="progress-bar-fill ${pctReun>=100?'gold':''}" style="width:${pctReun}%"></div></div>
       </div>
       <div style="margin-top:14px;padding:14px 16px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:10px">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
           <div>
-            <div style="font-size:18px;color:var(--muted)">💰 Comissão do Mês (${realizadoVendas} vendas)</div>
+            <div style="font-size:18px;color:var(--muted)">💰 Comissão ${mesesPeriodo === 12 ? 'do Ano (soma dos meses)' : 'do Mês'} (${realizadoVendas} vendas)</div>
             <div style="font-size:26px;font-weight:800;color:var(--gold)">${formatBRL(comissao)}</div>
             <div style="font-size:18px;color:var(--muted);margin-top:2px">Atribuída a partir do 8º dia após cada venda</div>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="openRegraComissao()">Ver Regra</button>
         </div>
-        ${proxFaixa ? `<div style="font-size:18px;color:var(--gold-light)">🚀 Faltam <strong>${proxFaixa-realizadoVendas} venda${proxFaixa-realizadoVendas!==1?'s':''}</strong> para atingir <strong>${formatBRL(ganhoProx)}</strong> no total</div>` : `<div style="font-size:18px;color:var(--green)">🏆 Acima de 20 vendas: +R$100 por venda adicional!</div>`}
+        ${proxFaixa ? `<div style="font-size:18px;color:var(--gold-light)">🚀 Faltam <strong>${proxFaixa-realizadoVendas} venda${proxFaixa-realizadoVendas!==1?'s':''}</strong> para atingir <strong>${formatBRL(ganhoProx)}</strong> no total</div>` : (mesesPeriodo === 12 ? '' : `<div style="font-size:18px;color:var(--green)">🏆 Acima de 20 vendas: +R$100 por venda adicional!</div>`)}
       </div>`;
     container.innerHTML = html;
     return;
@@ -14098,9 +14144,9 @@ function applyDashDatePicker() {
 // Único ponto que atualiza o período do Dashboard — grava o estado compartilhado
 // e deixa renderDashHojeEMes() (fonte única de verdade) recalcular tanto o card
 // "Leads" do topo quanto o painel "Atividade no Período".
-function applyDashCustomRange(inicio, fim, label, mesInteiro) {
+function applyDashCustomRange(inicio, fim, label, mesInteiro, anoInteiro) {
   label = label || (inicio === fim ? formatDate(inicio) : formatDate(inicio) + ' → ' + formatDate(fim));
-  dashPeriodoAtual = { inicio, fim, label, mesInteiro: !!mesInteiro };
+  dashPeriodoAtual = { inicio, fim, label, mesInteiro: !!mesInteiro, anoInteiro: !!anoInteiro };
   const picoLabel = document.getElementById('dash-picker-label');
   if (picoLabel) picoLabel.textContent = label;
   // Recalcula o Dashboard inteiro (cards do topo, faturamento, meta,
