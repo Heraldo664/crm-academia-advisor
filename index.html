@@ -954,7 +954,7 @@ async function enviarPedidoEsqueciSenha() {
             <option value="">Todos os status</option>
             <option>Contatar</option><option>Contatado</option><option>Respondeu</option><option>Diagnóstico Agendado</option>
             <option>Diagnóstico Realizado</option><option>Proposta Enviada</option>
-            <option>Compra Agendada</option><option>Fechado</option><option>Perdido</option>
+            <option>Compra Agendada</option><option>Fechado</option><option value="Cancelou (&lt;7 d)">Cancelou (&lt;7 d)</option><option>Perdido</option>
           </select>
           <select id="lead-filter-sdr" class="search-input" style="width:150px" onchange="renderLeadsTable()">
             <option value="">Todos os SDRs</option>
@@ -7043,7 +7043,7 @@ window.__initGuiaMentor = init;
         <select id="l-status" onchange="onStatusChange()">
           <option>Contatar</option><option>Contatado</option><option>Respondeu</option><option>Diagnóstico Agendado</option>
           <option>Diagnóstico Realizado</option><option>Proposta Enviada</option>
-          <option>Compra Agendada</option><option>Fechado</option><option>Perdido</option>
+          <option>Compra Agendada</option><option>Fechado</option><option value="Cancelou (&lt;7 d)">Cancelou (&lt;7 d)</option><option>Perdido</option>
         </select>
       </div>
       <div class="field" id="status-contrato-wrap" style="display:none">
@@ -9160,13 +9160,13 @@ function renderCarenciaContratos() {
   const el = document.getElementById('dash-carencia');
   if (!el) return;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const fechados = leads.filter(l => l.status === 'Fechado');
+  const fechados = leads.filter(l => l.status === 'Fechado' || l.status === STATUS_CANCELOU);
   if (!fechados.length) { el.innerHTML = '<p class="empty">Nenhuma venda fechada ainda.</p>'; return; }
   const items = fechados.map(l => {
     const ref = l.data_compra_prevista || l.criado_em;
     const dt = ref ? new Date(ref) : null;
     const dias = dt ? Math.round((hoje - dt) / 86400000) : null;
-    const sc = l.status_contrato || (dias !== null ? (dias < 7 ? 'carencia' : 'confirmada') : null);
+    const sc = l.status === STATUS_CANCELOU ? 'cancelada' : (l.status_contrato || (dias !== null ? (dias < 7 ? 'carencia' : 'confirmada') : null));
     return { l, sc, dias, restam: dias !== null ? Math.max(0, 7 - dias) : null };
   });
   const emC = items.filter(i => i.sc === 'carencia').length;
@@ -9271,10 +9271,10 @@ function renderCycleTime() {
   const diasVend = leadsVend.map(l => { const r = l.data_compra_prevista||l.criado_em; return r ? Math.max(0,(new Date(r)-new Date(l.criado_em))/86400000) : null; }).filter(Boolean);
   const mediaVend = diasVend.length ? (diasVend.reduce((s,d)=>s+d,0)/diasVend.length).toFixed(1) : null;
 
-  const statusOrder = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Perdido'];
+  const statusOrder = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Cancelou (<7 d)','Perdido'];
   const counts = statusOrder.map(s => ({ s, n: leads.filter(l => l.status === s).length }));
   const maxN = Math.max(...counts.map(x => x.n), 1);
-  const corMap = { 'Contatar': 'var(--yellow)', 'Contatado': 'var(--accent)', 'Respondeu': 'var(--accent)', 'Diagnóstico Agendado': 'var(--accent2)', 'Diagnóstico Realizado': 'var(--accent2)', 'Proposta Enviada': 'var(--gold)', 'Compra Agendada': 'var(--gold)', 'Fechado': 'var(--green)', 'Perdido': 'var(--red)' };
+  const corMap = { 'Contatar': 'var(--yellow)', 'Contatado': 'var(--accent)', 'Respondeu': 'var(--accent)', 'Diagnóstico Agendado': 'var(--accent2)', 'Diagnóstico Realizado': 'var(--accent2)', 'Proposta Enviada': 'var(--gold)', 'Compra Agendada': 'var(--gold)', 'Fechado': 'var(--green)', 'Cancelou (<7 d)': 'var(--muted)', 'Perdido': 'var(--red)' };
 
   el.innerHTML = `
     <div class="stats-grid" style="margin-bottom:16px">
@@ -10291,7 +10291,7 @@ function statusBadge(s) {
     'Contatar': 'badge-yellow', 'Contatado': 'badge-blue', 'Respondeu': 'badge-blue',
     'Diagnóstico Agendado': 'badge-purple', 'Diagnóstico Realizado': 'badge-purple',
     'Proposta Enviada': 'badge-orange', 'Compra Agendada': 'badge-orange',
-    'Fechado': 'badge-green', 'Perdido': 'badge-red'
+    'Fechado': 'badge-green', 'Cancelou (<7 d)': 'badge-gray', 'Perdido': 'badge-red'
   };
   return `<span class="badge ${map[s] || 'badge-gray'}">${s || '—'}</span>`;
 }
@@ -10698,7 +10698,10 @@ function renderLeadsTable() {
   if (currentView === 'kanban') renderKanban();
 }
 
-const KANBAN_COLS = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Perdido'];
+// Venda cancelada pelo cliente dentro dos 7 dias de garantia. Sai do
+// faturamento, das metas e da comissão (que só somam leads "Fechado").
+const STATUS_CANCELOU = 'Cancelou (<7 d)';
+const KANBAN_COLS = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Cancelou (<7 d)','Perdido'];
 
 
 // ═══ MICRO-FEEDBACK ══════════════════════════════════════════════════════
@@ -12034,7 +12037,7 @@ async function _saveLeadImpl() {
         // Gatilho 2 da distribuição automática: o lead saiu da fila
         // (Fechado ou Perdido) → libera 1 vaga no SDR dele, que é
         // reposta na hora com o próximo lead pendente mais antigo.
-        if ((status === 'Fechado' || status === 'Perdido') && leadAnterior.sdr_id) {
+        if ((status === 'Fechado' || status === 'Perdido' || status === STATUS_CANCELOU) && leadAnterior.sdr_id) {
           preencherSDR(leadAnterior.sdr_id).then(() => { if (typeof renderDistribuicaoFila === 'function') renderDistribuicaoFila(); }).catch(e => console.error('Erro ao repor fila do SDR:', e));
         }
       }
