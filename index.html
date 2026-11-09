@@ -954,7 +954,7 @@ async function enviarPedidoEsqueciSenha() {
             <option value="">Todos os status</option>
             <option>Contatar</option><option>Contatado</option><option>Respondeu</option><option>Diagnóstico Agendado</option>
             <option>Diagnóstico Realizado</option><option>Proposta Enviada</option>
-            <option>Compra Agendada</option><option>Fechado</option><option value="Cancelou (&lt;7 d)">Cancelou (&lt;7 d)</option><option>Perdido</option>
+            <option>Compra Agendada</option><option>Fechado</option><option value="Cancelou (&lt;7 d)">Cancelou (&lt;7 d)</option><option>Nutrição</option><option>Perdido</option>
           </select>
           <select id="lead-filter-sdr" class="search-input" style="width:150px" onchange="renderLeadsTable()">
             <option value="">Todos os SDRs</option>
@@ -7043,7 +7043,7 @@ window.__initGuiaMentor = init;
         <select id="l-status" onchange="onStatusChange()">
           <option>Contatar</option><option>Contatado</option><option>Respondeu</option><option>Diagnóstico Agendado</option>
           <option>Diagnóstico Realizado</option><option>Proposta Enviada</option>
-          <option>Compra Agendada</option><option>Fechado</option><option value="Cancelou (&lt;7 d)">Cancelou (&lt;7 d)</option><option>Perdido</option>
+          <option>Compra Agendada</option><option>Fechado</option><option value="Cancelou (&lt;7 d)">Cancelou (&lt;7 d)</option><option>Nutrição</option><option>Perdido</option>
         </select>
       </div>
       <div class="field" id="status-contrato-wrap" style="display:none">
@@ -7581,7 +7581,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '3.0'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '3.1'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -10674,7 +10674,7 @@ function renderLeadsTable() {
   } else {
     tbody.innerHTML = filtered.map(l => `
       <tr>
-        <td><strong>${l.nome}</strong> ${origemBadge(l)} ${slaBadge(l)} ${followupBadgeHtml(l)}
+        <td><strong>${l.nome}</strong> ${origemBadge(l)} ${slaBadge(l)} ${followupBadgeHtml(l)} ${typeof aaFaixaBadge === 'function' ? aaFaixaBadge(l) : ''}
           <div style="margin-top:2px">${faixaSalarialBadgeHtml(l)}</div>
           ${l.empresa ? `<div style="margin-top:2px;color:var(--muted);font-size:18px">🏢 ${l.empresa}</div>` : ''}
         </td>
@@ -10701,7 +10701,7 @@ function renderLeadsTable() {
 // Venda cancelada pelo cliente dentro dos 7 dias de garantia. Sai do
 // faturamento, das metas e da comissão (que só somam leads "Fechado").
 const STATUS_CANCELOU = 'Cancelou (<7 d)';
-const KANBAN_COLS = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Cancelou (<7 d)','Perdido'];
+const KANBAN_COLS = ['Contatar','Contatado','Respondeu','Diagnóstico Agendado','Diagnóstico Realizado','Proposta Enviada','Compra Agendada','Fechado','Cancelou (<7 d)','Nutrição','Perdido'];
 
 
 // ═══ MICRO-FEEDBACK ══════════════════════════════════════════════════════
@@ -11027,7 +11027,7 @@ function renderKanban() {
 
             return `
             <div class="kanban-card" onclick="editLead('${l.id}')" style="${l.data_compra_prevista === todayStr() ? 'border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)' : ''}">
-              <div class="kanban-card-name">${l.nome} ${slaBadge(l)} ${followupBadgeHtml(l)}</div>
+              <div class="kanban-card-name">${l.nome} ${slaBadge(l)} ${followupBadgeHtml(l)} ${typeof aaFaixaBadge === 'function' ? aaFaixaBadge(l) : ''}</div>
               <div class="kanban-card-sub">${l.empresa}</div>
               <div class="kanban-card-sub" style="font-size:18px;opacity:.75;margin-top:1px">🕒 ${formatDateTime(l.criado_em)}</div>
               ${col !== 'Contatar' ? `<div style="margin-top:3px">${leadPriorityBadgeHtml(l)}</div>` : ''}
@@ -11622,7 +11622,7 @@ async function renderWhatsappConversa(lead) {
     }
     listEl.innerHTML = conversa.map(m => {
       const classe = m.precisa_humano ? 'sistema' : (m.remetente === 'lead' ? 'lead' : 'automacao');
-      return `<div class="wa-bubble ${classe}">${m.texto}</div>`;
+      return `<div class="wa-bubble ${classe}">${(window.aaEsc ? aaEsc(m.texto) : String(m.texto ?? '').replace(/</g, '&lt;'))}</div>`;
     }).join('');
     listEl.scrollTop = listEl.scrollHeight;
   } catch (e) {
@@ -17321,5 +17321,300 @@ function limparErrosLocais() {
 
 </script>
 <div id="version-banner"><div class="vb-box"><h2>Nova versao disponivel</h2><p>O CRM foi atualizado. Clique abaixo para carregar a versao mais recente.</p><div><span class="vb-tag-old" id="vb-old"></span><span class="vb-tag-new" id="vb-new"></span></div><ul class="vb-notes" id="vb-notes"></ul><button class="btn-vb-update" onclick="doForceUpdate()">Atualizar agora</button></div></div>
+<!-- ===================================================================
+     MÓDULO AUTOMAÇÃO E DIAGNÓSTICO (Academia Advisor) · v1
+     Acrescentado ao CRM: faixa/nota nos cards, diagnóstico na ficha do
+     lead, WhatsApp oficial na ficha e a seção "Automação" no Admin.
+     =================================================================== -->
+<style>
+  .aa-badge{display:inline-block;font-size:12px;font-weight:800;padding:1px 7px;border-radius:20px;margin-left:4px;vertical-align:middle}
+  .aa-A{background:rgba(34,201,123,.18);color:#22c97b}.aa-B{background:rgba(245,166,35,.18);color:#f5a623}.aa-C{background:rgba(140,140,160,.18);color:#9aa0b4}
+  .aa-box{border:1px solid rgba(197,240,24,.35);background:rgba(197,240,24,.04);border-radius:12px;padding:12px 14px;margin:10px 0 14px}
+  .aa-box h4{font-size:15px;font-weight:800;margin:0 0 8px;color:#d9f56b}
+  .aa-pre{white-space:pre-wrap;font-size:14px;line-height:1.45;color:var(--text,#e6e6e6)}
+  .aa-kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13.5px;margin:6px 0}
+  .aa-kv b{color:var(--muted,#9aa)}
+  .aa-wa{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px}
+  .aa-wa textarea{width:100%;min-height:62px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:inherit;padding:8px;font:inherit;font-size:14px}
+  .aa-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .aa-adm{border:1.5px solid rgba(197,240,24,.35);border-radius:14px;padding:1.25rem;margin-bottom:18px;background:rgba(197,240,24,.03)}
+  .aa-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+  .aa-tabs button{border:1px solid rgba(255,255,255,.15);background:transparent;color:inherit;border-radius:20px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:14px}
+  .aa-tabs button.on{background:#C5F018;color:#0b0b0b;border-color:#C5F018}
+  .aa-tab table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .aa-tab td,.aa-tab th{border-bottom:1px solid rgba(255,255,255,.08);padding:7px 6px;text-align:left;vertical-align:top}
+  .aa-tab input,.aa-tab select,.aa-tab textarea{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:inherit;padding:6px 8px;font:inherit;font-size:13.5px}
+  .aa-tab textarea.json{width:100%;min-height:320px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+  .aa-ok{color:#22c97b;font-weight:700}.aa-no{color:#ff6b6b;font-weight:700}
+  .aa-copy{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:rgba(0,0,0,.3);padding:6px 8px;border-radius:8px;word-break:break-all;display:block;margin:4px 0 10px}
+  .aa-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .aa-grid2 label{display:block;font-size:12px;color:var(--muted,#9aa);margin-bottom:3px}
+  .aa-grid2 input,.aa-grid2 select{width:100%}
+</style>
+<script>
+(function(){
+  const AA_FN = SUPA_URL + '/functions/v1/';
+  const aaEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  window.aaEsc = aaEsc;
+
+  async function aaCall(fn, acao, dados = {}) {
+    const r = await fetch(AA_FN + fn, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY },
+      body: JSON.stringify({ acao, colaborador_id: user && user.id, session_token: user && user.session_token, ...dados }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.erro) throw new Error(j.erro || ('HTTP ' + r.status));
+    return j;
+  }
+
+  // ---------------------------------------------------------------- badge nos cards
+  window.aaFaixaBadge = function(l){
+    if (!l || !l.faixa) return '';
+    const t = { A: 'Quente', B: 'Morno', C: 'Nutrição' }[l.faixa] || l.faixa;
+    return `<span class="aa-badge aa-${aaEsc(l.faixa)}" title="Faixa ${aaEsc(l.faixa)} · nota ${l.score ?? '-'}${l.perfil_playbook ? ' · ' + aaEsc(l.perfil_playbook) : ''}">${aaEsc(l.faixa)} · ${l.score ?? '-'}</span>`;
+  };
+
+  // ---------------------------------------------------------------- ficha do lead
+  function aaMontarFicha(lead){
+    const hist = document.getElementById('whatsapp-conversa-historico');
+    if (!hist) return;
+    let wa = document.getElementById('aa-wa'), dg = document.getElementById('aa-diag');
+    if (!wa) { wa = document.createElement('div'); wa.id = 'aa-wa'; hist.insertAdjacentElement('afterend', wa); }
+    if (!dg) { dg = document.createElement('div'); dg.id = 'aa-diag'; wa.insertAdjacentElement('afterend', dg); }
+    if (!lead || !lead.id) { wa.innerHTML = ''; dg.innerHTML = ''; return; }
+    const id = lead.id;
+    wa.innerHTML = `<div class="aa-wa">
+      <textarea id="aa-wa-txt" placeholder="Responder pelo WhatsApp oficial (só funciona até 24 h depois da última mensagem do lead)"></textarea>
+      <div class="aa-row">
+        <button type="button" class="btn btn-primary btn-sm" onclick="aaEnviarManual('${id}')">Enviar pelo WhatsApp oficial</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('assumir','${id}')">Assumir conversa (pausar IA)</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('devolver','${id}')">Devolver para a IA</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('noshow','${id}')">No-show: oferecer reagendamento</button>
+        <span id="aa-wa-msg" style="font-size:13px"></span>
+      </div></div>`;
+    const r = lead.respostas || {};
+    const rot = { momento:'Momento', instituicao_atual:'Instituição atual', cargo_atual:'Cargo atual', tempo_cargo:'Tempo no cargo', cargo_desejado:'Vaga desejada', instituicao_desejada:'Instituição desejada', certificacao:'Certificação', processos:'Processos sem avançar', tempo_tentando:'Tentando há', travas:'Travas', preparo:'Preparo', formacao:'Formação', prazo:'Prazo', urgencia:'Urgência (0-10)', renda:'Renda', orientacao:'Quer orientação?', motivo_espera:'Motivo para esperar' };
+    const linhas = Object.keys(rot).filter(k => r[k] !== undefined && r[k] !== '').map(k => `<b>${rot[k]}</b><span>${aaEsc(Array.isArray(r[k]) ? r[k].join(' · ') : r[k])}</span>`).join('');
+    if (!lead.faixa && !linhas) { dg.innerHTML = `<div class="aa-box"><h4>Diagnóstico automático</h4><span style="color:var(--muted)">Ainda sem diagnóstico para este lead.</span> <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('recalcular','${id}')">Calcular agora</button></div>`; return; }
+    dg.innerHTML = `<div class="aa-box"><h4>Diagnóstico automático ${aaFaixaBadge(lead)}</h4>
+      <div class="aa-kv"><b>Perfil</b><span>${aaEsc(lead.perfil_playbook || '-')}</span><b>Produto sugerido</b><span>${aaEsc(lead.produto_sugerido || '-')}</span>
+      <b>Custo de esperar</b><span>${lead.gap_mensal ? 'R$ ' + Number(lead.gap_mensal).toLocaleString('pt-BR') + '/mês' : '-'}</span>
+      <b>Dor nas palavras do lead</b><span>${lead.dor_palavras ? '“' + aaEsc(lead.dor_palavras) + '”' : '-'}</span>
+      ${lead.pendentes && lead.pendentes.length ? `<b>Ainda falta saber</b><span>${aaEsc(lead.pendentes.join(', '))}</span>` : ''}</div>
+      ${lead.resumo_closer ? `<details open><summary style="cursor:pointer;font-weight:700;margin:8px 0">Resumo para o Closer</summary><div class="aa-pre">${aaEsc(lead.resumo_closer)}</div></details>` : ''}
+      ${lead.espelho ? `<details><summary style="cursor:pointer;font-weight:700;margin:8px 0">Espelho que o lead viu</summary><div class="aa-pre">${aaEsc(lead.espelho)}</div></details>` : ''}
+      ${linhas ? `<details><summary style="cursor:pointer;font-weight:700;margin:8px 0">Todas as respostas</summary><div class="aa-kv">${linhas}</div></details>` : ''}
+      <div class="aa-row" style="margin-top:8px"><button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('recalcular','${id}')">Recalcular</button></div></div>`;
+  }
+  window.aaEnviarManual = async function(id){
+    const el = document.getElementById('aa-wa-txt'), msg = document.getElementById('aa-wa-msg');
+    const texto = (el.value || '').trim(); if (!texto) return;
+    msg.textContent = 'Enviando...';
+    try { await aaCall('aa-whatsapp', 'enviar_manual', { lead_id: id, texto }); el.value = ''; msg.innerHTML = '<span class="aa-ok">Enviado. IA pausada nesta conversa.</span>';
+      const lead = leads.find(l => l.id === id); if (lead) { lead.automacao_whatsapp_status = 'pausada_humano'; renderWhatsappConversa(lead); } }
+    catch (e) { msg.innerHTML = `<span class="aa-no">${aaEsc(e.message)}</span>`; }
+  };
+  window.aaAcaoLead = async function(acao, id){
+    const msg = document.getElementById('aa-wa-msg');
+    if (acao === 'noshow' && !confirm('Marcar no-show e mandar ao lead 2 opções de novo horário pelo WhatsApp?')) return;
+    try {
+      await aaCall('aa-whatsapp', acao, { lead_id: id });
+      const r = await get('leads', `?id=eq.${id}&select=*`);
+      const novo = r && r[0];
+      if (novo) { const i = leads.findIndex(l => l.id === id); if (i >= 0) leads[i] = { ...leads[i], ...novo }; renderWhatsappConversa(novo); aaMontarFicha(novo); }
+      const m2 = document.getElementById('aa-wa-msg'); if (m2) m2.innerHTML = '<span class="aa-ok">Feito.</span>';
+    } catch (e) { if (msg) msg.innerHTML = `<span class="aa-no">${aaEsc(e.message)}</span>`; else alert(e.message); }
+  };
+  const _olm = window.openLeadModal;
+  if (typeof _olm === 'function') {
+    window.openLeadModal = function(lead){ const r = _olm.apply(this, arguments); try { aaMontarFicha(lead); } catch (e) { console.error(e); } return r; };
+    try { openLeadModal = window.openLeadModal; } catch (e) {}
+  }
+
+  // ---------------------------------------------------------------- Admin › Automação
+  let aaAba = 'status';
+  const ABAS = [['status','Status e ligações'],['closers','Closers e agenda'],['depos','Depoimentos'],['aulas','Aulas gratuitas'],['videos','Vídeos do YouTube'],['templates','Modelos do WhatsApp'],['avancado','Roteiro e faixas']];
+  function aaSecao(){
+    const pg = document.getElementById('page-admin'); if (!pg) return null;
+    let s = document.getElementById('aa-admin');
+    if (!s) {
+      s = document.createElement('div'); s.id = 'aa-admin'; s.className = 'aa-adm';
+      const hdr = pg.querySelector('.page-header');
+      (hdr ? hdr : pg.firstChild).insertAdjacentElement(hdr ? 'afterend' : 'beforebegin', s);
+    }
+    return s;
+  }
+  window.aaAdminRender = async function(){
+    if (!user || user.papel !== 'admin') return;
+    const s = aaSecao(); if (!s) return;
+    s.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="document.getElementById('aa-adm-corpo').style.display=document.getElementById('aa-adm-corpo').style.display==='none'?'block':'none'">
+      <span style="font-size:18px;font-weight:800;color:#d9f56b">Automação e Diagnóstico</span><span style="color:var(--muted)">▼</span></div>
+      <div id="aa-adm-corpo"><div class="aa-tabs">${ABAS.map(([k,v]) => `<button type="button" class="${k===aaAba?'on':''}" onclick="aaAba_('${k}')">${v}</button>`).join('')}</div><div class="aa-tab" id="aa-tab">Carregando...</div></div>`;
+    aaTab();
+  };
+  window.aaAba_ = k => { aaAba = k; aaAdminRender(); };
+  async function aaTab(){
+    const el = document.getElementById('aa-tab');
+    try { el.innerHTML = await ({ status: tStatus, closers: tClosers, depos: tDepos, aulas: tAulas, videos: tVideos, templates: tTemplates, avancado: tAvancado })[aaAba](); }
+    catch (e) { el.innerHTML = `<span class="aa-no">Erro: ${aaEsc(e.message)}</span><br><span style="color:var(--muted)">Se a mensagem fala em tabela inexistente, rode o arquivo 01_banco.sql no Supabase.</span>`; }
+  }
+  async function cfgGet(chave){ const r = await get('aa_config', `?chave=eq.${chave}&select=valor`); return r && r[0] ? r[0].valor : null; }
+  async function cfgSet(chave, valor){ await patch('aa_config', { valor, atualizado_em: new Date().toISOString() }, `chave=eq.${chave}`); }
+
+  // ---- status
+  async function tStatus(){
+    const geral = await cfgGet('geral') || {};
+    let st = null, erroSt = '';
+    try { st = await aaCall('aa-whatsapp', 'status'); } catch (e) { erroSt = e.message; }
+    const seg = st ? Object.entries(st.segredos).map(([k,v]) => `<tr><td>${k}</td><td class="${v?'aa-ok':'aa-no'}">${v?'configurado':'faltando'}</td></tr>`).join('') : '';
+    const evs = st ? Object.entries(st.ultimos).map(([k,v]) => `<tr><td>${k}</td><td>${v ? new Date(v.criado_em).toLocaleString('pt-BR') : '<span style="color:var(--muted)">nunca</span>'}</td><td style="font-size:12px;color:var(--muted)">${v && v.dados && Object.keys(v.dados).length ? aaEsc(JSON.stringify(v.dados).slice(0,160)) : ''}</td></tr>`).join('') : '';
+    return `<div class="aa-grid2">
+      <div><label>Automação de envios</label><select id="aa-g-auto"><option value="0" ${!geral.automacao_ligada?'selected':''}>Desligada (só números de teste)</option><option value="1" ${geral.automacao_ligada?'selected':''}>LIGADA para todos os leads</option></select></div>
+      <div><label>IA respondendo no WhatsApp</label><select id="aa-g-ia"><option value="1" ${geral.ia_ligada?'selected':''}>Ligada</option><option value="0" ${!geral.ia_ligada?'selected':''}>Desligada</option></select></div>
+      <div><label>Números de teste (separe por vírgula)</label><input id="aa-g-teste" value="${aaEsc((geral.numeros_teste||[]).join(', '))}"></div>
+      <div><label>Nome que assina a abordagem (sem SDR)</label><input id="aa-g-ass" value="${aaEsc(geral.assinatura_sdr||'')}"></div>
+      <div><label>Link do chat de diagnóstico</label><input id="aa-g-url" value="${aaEsc(geral.url_diagnostico||'')}"></div>
+      <div><label>ID do Pixel da Meta (para o chat)</label><input id="aa-g-px" value="${aaEsc(geral.pixel_id||'')}"></div>
+      <div><label>Envio de marketing das</label><input id="aa-g-ini" type="time" value="${aaEsc(geral.horario_envio_inicio||'08:00')}"></div>
+      <div><label>até</label><input id="aa-g-fim" type="time" value="${aaEsc(geral.horario_envio_fim||'21:00')}"></div>
+      </div><div class="aa-row" style="margin:10px 0 18px"><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarGeral()">Salvar</button><span id="aa-g-msg"></span></div>
+      <h4 style="margin:6px 0">Links para cadastrar</h4>
+      <div style="font-size:13px;color:var(--muted)">URL de callback do webhook (Meta › WhatsApp › Configuração):</div><code class="aa-copy">${SUPA_URL}/functions/v1/aa-whatsapp</code>
+      <div style="font-size:13px;color:var(--muted)">Código para colar nas páginas (bolha):</div><code class="aa-copy">${aaEsc(`<script src="${(geral.url_diagnostico||'https://diagnostico.academiaadvisor.com.br/').replace(/[^/]*$/,'')}widget.js" data-origem="nome-da-pagina" data-modo="bolha" defer><\/script>`)}</code>
+      ${st && st.google_email ? `<div style="font-size:13px;color:var(--muted)">E-mail da conta de serviço do Google (compartilhe a agenda de cada Closer com ele, com permissão para fazer alterações):</div><code class="aa-copy">${aaEsc(st.google_email)}</code>` : ''}
+      <h4 style="margin:12px 0 6px">Funções no Supabase ${erroSt ? `<span class="aa-no" style="font-size:13px"> · ${aaEsc(erroSt)}</span>` : ''}</h4>
+      ${st ? `<div class="aa-grid2"><table>${seg}</table><table><tr><th>Último evento</th><th>Quando</th><th></th></tr>${evs}</table></div><p style="margin-top:8px">Tarefas pendentes na fila: <b>${st.fila_pendente}</b></p>` : ''}
+      <h4 style="margin:14px 0 6px">Testar um modelo</h4><div class="aa-row"><input id="aa-t-tel" placeholder="Seu WhatsApp com DDD"><select id="aa-t-tpl">${(await get('aa_templates','?select=nome&order=nome') || []).map(x => `<option>${aaEsc(x.nome)}</option>`).join('')}</select><button type="button" class="btn btn-ghost btn-sm" onclick="aaTestar()">Enviar teste</button><span id="aa-t-msg"></span></div>`;
+  }
+  window.aaSalvarGeral = async function(){
+    const g = await cfgGet('geral') || {};
+    Object.assign(g, {
+      automacao_ligada: document.getElementById('aa-g-auto').value === '1', ia_ligada: document.getElementById('aa-g-ia').value === '1',
+      numeros_teste: document.getElementById('aa-g-teste').value.split(',').map(x => x.trim()).filter(Boolean),
+      assinatura_sdr: document.getElementById('aa-g-ass').value.trim(), url_diagnostico: document.getElementById('aa-g-url').value.trim(),
+      pixel_id: document.getElementById('aa-g-px').value.trim(), horario_envio_inicio: document.getElementById('aa-g-ini').value, horario_envio_fim: document.getElementById('aa-g-fim').value,
+    });
+    if (g.automacao_ligada && !confirm('Ligar a automação para TODOS os leads novos? A partir de agora, todo lead de formulário recebe WhatsApp automático.')) return;
+    await cfgSet('geral', g); document.getElementById('aa-g-msg').innerHTML = '<span class="aa-ok">Salvo.</span>';
+  };
+  window.aaTestar = async function(){
+    const m = document.getElementById('aa-t-msg'); m.textContent = 'Enviando...';
+    try { await aaCall('aa-whatsapp', 'testar_template', { telefone: document.getElementById('aa-t-tel').value, template: document.getElementById('aa-t-tpl').value }); m.innerHTML = '<span class="aa-ok">Enviado. Confira no celular.</span>'; }
+    catch (e) { m.innerHTML = `<span class="aa-no">${aaEsc(e.message)}</span>`; }
+  };
+
+  // ---- closers
+  const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  async function tClosers(){
+    const cs = await get('aa_closers', '?select=*&order=nome') || [];
+    const colabs = (await get('colaboradores', '?select=id,nome,papel&order=nome') || []).filter(c => ['closer','admin'].includes(c.papel));
+    const linha = c => `<tr data-id="${c.id||''}">
+      <td><select class="c-colab"><option value="">—</option>${colabs.map(x => `<option value="${x.id}" ${String(x.id)===String(c.colaborador_id)?'selected':''}>${aaEsc(x.nome)}</option>`).join('')}</select><br><input class="c-nome" placeholder="Nome exibido" value="${aaEsc(c.nome||'')}" style="margin-top:4px"></td>
+      <td>${DIAS.map((d,i) => `<label style="white-space:nowrap;font-size:12px"><input type="checkbox" class="c-dia" value="${i}" ${(c.dias||[1,2,3,4,5]).includes(i)?'checked':''}> ${d}</label>`).join(' ')}<br>
+        <input class="c-ini" type="time" value="${(c.inicio||'08:00').slice(0,5)}"> às <input class="c-fim" type="time" value="${(c.fim||'21:00').slice(0,5)}"></td>
+      <td><input class="c-max" type="number" min="1" style="width:60px" value="${c.max_dia??6}"> por dia<br><input class="c-pct" type="number" min="10" max="100" style="width:60px" value="${c.percentual_visivel??50}">% visível<br><input class="c-peso" type="number" min="1" style="width:60px" value="${c.peso??1}"> peso</td>
+      <td><input class="c-meet" placeholder="Link fixo do Meet" value="${aaEsc(c.meet_link||'')}"><br><input class="c-cal" placeholder="ID da Google Agenda (e-mail)" value="${aaEsc(c.google_calendar_id||'')}" style="margin-top:4px"></td>
+      <td><select class="c-ativo"><option value="1" ${c.ativo!==false?'selected':''}>Ativo</option><option value="0" ${c.ativo===false?'selected':''}>Inativo</option></select><br>
+        <button type="button" class="btn btn-primary btn-sm" style="margin-top:4px" onclick="aaSalvarCloser(this)">Salvar</button></td></tr>`;
+    return `<p style="color:var(--muted);font-size:13px">Cada Closer define dias, horários e quantos diagnósticos aceita por dia. "% visível" é a parte dos horários livres que aparece para o lead; o resto fica reservada para o SDR e para reagendamentos. Na Google Agenda do Closer, compartilhe a agenda com o e-mail da conta de serviço (aba Status).</p>
+      <table><tr><th>Closer</th><th>Dias e horário</th><th>Capacidade</th><th>Sala e agenda</th><th></th></tr>${cs.map(linha).join('')}${linha({})}</table>`;
+  }
+  window.aaSalvarCloser = async function(btn){
+    const tr = btn.closest('tr'), q = c => tr.querySelector(c);
+    const sel = q('.c-colab'); const nome = q('.c-nome').value.trim() || (sel.selectedOptions[0] && sel.value ? sel.selectedOptions[0].textContent : '');
+    if (!nome) return alert('Escolha o colaborador ou digite o nome.');
+    const dados = { colaborador_id: sel.value || null, nome, dias: [...tr.querySelectorAll('.c-dia:checked')].map(x => +x.value), inicio: q('.c-ini').value, fim: q('.c-fim').value,
+      max_dia: +q('.c-max').value || 6, percentual_visivel: +q('.c-pct').value || 50, peso: +q('.c-peso').value || 1, meet_link: q('.c-meet').value.trim() || null,
+      google_calendar_id: q('.c-cal').value.trim() || null, ativo: q('.c-ativo').value === '1' };
+    try { tr.dataset.id ? await patch('aa_closers', dados, `id=eq.${tr.dataset.id}`) : await post('aa_closers', dados); aaTab(); } catch (e) { alert('Erro: ' + e.message); }
+  };
+
+  // ---- depoimentos
+  async function tDepos(){
+    const ds = await get('aa_depoimentos', '?select=*&order=criado_em') || [];
+    const cargos = ['','Entrar no banco (AN ou Gerente)','Gerente de Relacionamento','Gerente Alta Renda (Banker)','Especialista de Investimentos','Advisor ou Private Banker'];
+    const linha = d => `<tr data-id="${d.id||''}">
+      <td>${d.video_id ? `<a href="https://youtu.be/${aaEsc(d.video_id)}" target="_blank"><img src="https://i.ytimg.com/vi/${aaEsc(d.video_id)}/default.jpg" style="width:80px;border-radius:6px"></a>` : `<input class="d-url" placeholder="Link do vídeo no YouTube"><br><label style="font-size:12px"><input type="checkbox" class="d-5"> tem mais de 5 minutos</label>`}</td>
+      <td><input class="d-nome" placeholder="Nome (com autorização)" value="${aaEsc(d.nome||'')}"><br><select class="d-gen" style="margin-top:4px"><option value="m" ${d.genero!=='f'?'selected':''}>aluno</option><option value="f" ${d.genero==='f'?'selected':''}>aluna</option></select></td>
+      <td><input class="d-orig" placeholder="De onde veio" value="${aaEsc(d.origem_texto||'')}" style="width:100%"><br><input class="d-conq" placeholder="Aonde chegou" value="${aaEsc(d.conquista||'')}" style="width:100%;margin-top:4px"></td>
+      <td><input class="d-prazo" placeholder="Prazo" value="${aaEsc(d.prazo||'')}" style="width:110px"><br><select class="d-cargo" style="margin-top:4px">${cargos.map(c => `<option ${c===d.cargo_conquistado?'selected':''}>${c}</option>`).join('')}</select></td>
+      <td><select class="d-ativo"><option value="1" ${d.ativo!==false?'selected':''}>Ativo</option><option value="0" ${d.ativo===false?'selected':''}>Oculto</option></select><br><button type="button" class="btn btn-primary btn-sm" style="margin-top:4px" onclick="aaSalvarDepo(this)">Salvar</button></td></tr>`;
+    return `<p style="color:var(--muted);font-size:13px">Só vídeos com mais de 5 minutos; Shorts não entram. O sistema escolhe o depoimento mais parecido com cada lead (mesmo cargo de origem, mesmo cargo desejado, mesma trava ou perfil). Nunca preencha nome ou prazo sem autorização do aluno.</p>
+      <table><tr><th>Vídeo</th><th>Quem</th><th>Trajetória</th><th>Prazo e cargo</th><th></th></tr>${ds.map(linha).join('')}${linha({})}</table>`;
+  }
+  window.aaSalvarDepo = async function(btn){
+    const tr = btn.closest('tr'), q = c => tr.querySelector(c);
+    const dados = { nome: q('.d-nome').value.trim(), genero: q('.d-gen').value, origem_texto: q('.d-orig').value.trim(), conquista: q('.d-conq').value.trim(),
+      prazo: q('.d-prazo').value.trim(), cargo_conquistado: q('.d-cargo').value, ativo: q('.d-ativo').value === '1' };
+    if (!dados.conquista) return alert('Preencha "Aonde chegou".');
+    if (!tr.dataset.id) {
+      const url = q('.d-url').value.trim();
+      if (/\/shorts\//i.test(url)) return alert('Shorts não são usados como depoimento. Use um vídeo com mais de 5 minutos.');
+      if (!q('.d-5').checked) return alert('Confirme que o vídeo tem mais de 5 minutos.');
+      const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); if (!m) return alert('Link do YouTube inválido.');
+      dados.video_id = m[1];
+    }
+    try { tr.dataset.id ? await patch('aa_depoimentos', dados, `id=eq.${tr.dataset.id}`) : await post('aa_depoimentos', dados); aaTab(); } catch (e) { alert('Erro: ' + e.message); }
+  };
+
+  // ---- aulas
+  async function tAulas(){
+    const as = await get('aa_aulas', '?select=*') || [];
+    const chaves = ['padrao','Não me chamam para entrevista','Travo nos cases técnicos','Travo na entrevista comportamental ou dinâmica','Não sei o que o banco avalia','Não tenho tempo de estudar sozinho(a)','Estou esgotado(a) das metas do varejo','Cético','Reprovado Repetido','Primeiro Emprego ou Recolocação','Confiante Sozinho','Sem Urgência','Estagnado','Esgotado do Varejo'];
+    const linha = a => `<tr data-id="${a.id||''}"><td><select class="a-ch">${chaves.map(c => `<option value="${aaEsc(c)}" ${c===a.chave?'selected':''}>${c==='padrao'?'Padrão (todos)':aaEsc(c)}</option>`).join('')}</select></td>
+      <td><input class="a-tit" placeholder="Título" value="${aaEsc(a.titulo||'')}" style="width:100%"></td><td><input class="a-url" placeholder="Link" value="${aaEsc(a.url||'')}" style="width:100%"></td>
+      <td><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarAula(this)">Salvar</button> ${a.id ? `<button type="button" class="btn btn-ghost btn-sm" onclick="aaDel('aa_aulas','${a.id}')">Excluir</button>` : ''}</td></tr>`;
+    return `<p style="color:var(--muted);font-size:13px">Aula enviada aos leads da faixa C (nutrição), escolhida pela trava ou pelo perfil; se nada combinar, vai a "Padrão".</p><table><tr><th>Para quem</th><th>Título</th><th>Link</th><th></th></tr>${as.map(linha).join('')}${linha({})}</table>`;
+  }
+  window.aaSalvarAula = async function(btn){
+    const tr = btn.closest('tr'), q = c => tr.querySelector(c);
+    const dados = { chave: q('.a-ch').value, titulo: q('.a-tit').value.trim(), url: q('.a-url').value.trim() };
+    if (!dados.titulo || !dados.url) return alert('Preencha título e link.');
+    try { tr.dataset.id ? await patch('aa_aulas', dados, `id=eq.${tr.dataset.id}`) : await post('aa_aulas', dados); aaTab(); } catch (e) { alert('Erro: ' + e.message); }
+  };
+  window.aaDel = async function(t, id){ if (!confirm('Excluir?')) return; try { await del(t, `id=eq.${id}`); aaTab(); } catch (e) { alert(e.message); } };
+
+  // ---- vídeos
+  async function tVideos(){
+    const vs = await get('aa_videos', '?select=*') || [];
+    const linha = v => `<tr data-id="${aaEsc(v.video_id||'')}"><td><input class="v-id" placeholder="Link ou ID do vídeo" value="${aaEsc(v.video_id||'')}" ${v.video_id?'disabled':''}></td><td><input class="v-tema" placeholder="Tema (ex.: Marcação a Mercado)" value="${aaEsc(v.tema||'')}" style="width:100%"></td>
+      <td><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarVideo(this)">Salvar</button>${v.video_id ? ` <button type="button" class="btn btn-ghost btn-sm" onclick="aaDelVideo('${aaEsc(v.video_id)}')">Excluir</button>` : ''}</td></tr>`;
+    return `<p style="color:var(--muted);font-size:13px">Quem chega pelo link da descrição (<code>?src=youtube&v=ID</code>) vê uma abertura que cita o tema do vídeo.</p><table><tr><th>Vídeo</th><th>Tema</th><th></th></tr>${vs.map(linha).join('')}${linha({})}</table>`;
+  }
+  window.aaSalvarVideo = async function(btn){
+    const tr = btn.closest('tr'), q = c => tr.querySelector(c);
+    let id = tr.dataset.id || q('.v-id').value.trim(); const m = id.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/); if (m) id = m[1];
+    if (!/^[\w-]{11}$/.test(id)) return alert('ID do vídeo inválido.');
+    try { tr.dataset.id ? await patch('aa_videos', { tema: q('.v-tema').value.trim() }, `video_id=eq.${id}`) : await post('aa_videos', { video_id: id, tema: q('.v-tema').value.trim() }); aaTab(); } catch (e) { alert('Erro: ' + e.message); }
+  };
+  window.aaDelVideo = async function(id){ if (!confirm('Excluir?')) return; await del('aa_videos', `video_id=eq.${id}`); aaTab(); };
+
+  // ---- templates
+  async function tTemplates(){
+    const ts = await get('aa_templates', '?select=*&order=nome') || [];
+    return `<p style="color:var(--muted);font-size:13px">Cadastre cada modelo no Gerenciador do WhatsApp com <b>o mesmo nome, a mesma categoria e exatamente este texto</b> (idioma Português BR), e marque aqui quando for aprovado. Botões: aa_diagnostico_recebido (Pode perguntar · Agora não), aa_reuniao_confirmada e aa_lembrete_vespera (Confirmar presença · Reagendar), todos do tipo resposta rápida.</p>
+      <table><tr><th>Nome</th><th>Categoria</th><th>Texto</th><th>Status na Meta</th></tr>${ts.map(t => `<tr><td><b>${aaEsc(t.nome)}</b></td><td>${aaEsc(t.categoria)}</td><td style="font-size:13px">${aaEsc(t.texto||'')}</td>
+      <td><select onchange="patch('aa_templates',{status:this.value},'nome=eq.${aaEsc(t.nome)}')">${['nao_enviado','em_analise','aprovado','rejeitado'].map(s => `<option ${s===t.status?'selected':''}>${s}</option>`).join('')}</select></td></tr>`).join('')}</table>`;
+  }
+
+  // ---- avançado
+  async function tAvancado(){
+    const f = await cfgGet('faixas'), r = await cfgGet('roteiro'), o = await cfgGet('origens_automacao');
+    return `<p style="color:var(--muted);font-size:13px">Edição direta. Mantenha as chaves; um erro de formatação é recusado antes de salvar.</p>
+      <h4>Faixas salariais de referência</h4><textarea class="json" id="aa-j-faixas">${aaEsc(JSON.stringify(f, null, 2))}</textarea><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarJson('faixas','aa-j-faixas')">Salvar faixas</button>
+      <h4 style="margin-top:16px">Origens que recebem automação</h4><textarea class="json" id="aa-j-orig" style="min-height:60px">${aaEsc(JSON.stringify(o))}</textarea><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarJson('origens_automacao','aa-j-orig')">Salvar origens</button>
+      <h4 style="margin-top:16px">Roteiro do chat (perguntas e reações)</h4><textarea class="json" id="aa-j-rot">${aaEsc(JSON.stringify(r, null, 2))}</textarea><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarJson('roteiro','aa-j-rot')">Salvar roteiro</button>`;
+  }
+  window.aaSalvarJson = async function(chave, id){
+    let v; try { v = JSON.parse(document.getElementById(id).value); } catch (e) { return alert('Formato inválido: ' + e.message); }
+    try { await cfgSet(chave, v); alert('Salvo.'); } catch (e) { alert('Erro: ' + e.message); }
+  };
+
+  const _ras = window.renderAdminSeguro;
+  if (typeof _ras === 'function') {
+    window.renderAdminSeguro = function(){ const r = _ras.apply(this, arguments); try { aaAdminRender(); } catch (e) { console.error(e); } return r; };
+    try { renderAdminSeguro = window.renderAdminSeguro; } catch (e) {}
+  }
+})();
+</script>
+
 </body>
 </html>
