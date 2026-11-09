@@ -17653,9 +17653,13 @@ function limparErrosLocais() {
   .aai-main,.aai-side{background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .aai-side-h{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
   .aai-side-h input{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;color:inherit;padding:9px 11px;font:inherit;font-size:14px}
-  .aai-f{display:flex;gap:6px;flex-wrap:wrap}
-  .aai-f button{border:1px solid var(--border);background:transparent;color:inherit;border-radius:20px;padding:4px 10px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .aai-f{display:flex;gap:8px;flex-wrap:wrap}
+  .aai-f button{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:rgba(255,255,255,.78);border-radius:9px;padding:7px 13px;font:inherit;font-size:13.5px;font-weight:600;letter-spacing:.1px;line-height:1.2;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+  .aai-f button:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22);color:#fff}
+  .aai-f button:focus-visible{outline:2px solid #C5F018;outline-offset:2px}
   .aai-f button.on{background:#C5F018;color:#0b0b0b;border-color:#C5F018}
+  .aai-f .aai-fn{min-width:20px;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.08);font-size:12px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+  .aai-f button.on .aai-fn{background:rgba(0,0,0,.14)}
   .aai-list{overflow-y:auto;flex:1}
   .aai-c{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;display:flex;gap:10px;align-items:flex-start}
   .aai-c:hover{background:rgba(255,255,255,.03)} .aai-c.sel{background:rgba(197,240,24,.08);border-right:3px solid #C5F018;padding-right:9px}
@@ -17725,7 +17729,7 @@ function limparErrosLocais() {
       if (faltam.length) { const r = await get('leads', `?id=in.(${faltam.join(',')})&select=*`).catch(() => []); (r || []).forEach(l => st.extra[l.id] = l); }
     }
   }
-  function conversas(){
+  function conversas(filtro = st.filtro){
     const g = {};
     for (const m of st.msgs) {
       if (!m.lead_id) continue;
@@ -17736,10 +17740,10 @@ function limparErrosLocais() {
     let lista = Object.values(g).map(c => ({ ...c, lead: leadDe(c.id) })).filter(c => c.lead);   // só leads que este usuário pode ver
     const b = st.busca.trim().toLowerCase();
     if (b) lista = lista.filter(c => (c.lead.nome || '').toLowerCase().includes(b) || (c.lead.telefone || '').replace(/\D/g,'').includes(b.replace(/\D/g,'') || '§'));
-    if (st.filtro === 'humano') lista = lista.filter(c => iaPausada(c.lead) || c.alerta);
-    if (st.filtro === 'ia') lista = lista.filter(c => !iaPausada(c.lead));
-    if (st.filtro === 'naolidas') lista = lista.filter(c => c.naoLidas);
-    if (st.filtro === 'minhas') lista = lista.filter(c => meu(c.lead));
+    if (filtro === 'humano') lista = lista.filter(c => iaPausada(c.lead) || c.alerta);
+    if (filtro === 'ia') lista = lista.filter(c => !iaPausada(c.lead));
+    if (filtro === 'naolidas') lista = lista.filter(c => c.naoLidas);
+    if (filtro === 'minhas') lista = lista.filter(c => meu(c.lead));
     return lista.sort((a, b) => (b.ultima.enviada_em || '').localeCompare(a.ultima.enviada_em || ''));
   }
 
@@ -17759,8 +17763,18 @@ function limparErrosLocais() {
       </aside></div>`;
   }
   function renderFiltros(){
-    const f = [['todas','Todas'],['naolidas','Não lidas'],['humano','Precisa de humano'],['ia','IA ativa'],['minhas','Minhas']];
-    document.getElementById('aai-f').innerHTML = f.map(([k, t]) => `<button class="${st.filtro === k ? 'on' : ''}" onclick="aaiFiltro('${k}')">${t}</button>`).join('');
+    const f = [
+      ['todas', 'Todas', 'Todas as conversas que você pode ver'],
+      ['naolidas', 'Não lidas', 'Conversas com mensagens do lead que você ainda não abriu'],
+      ['humano', 'Precisa de humano', 'A IA está pausada ou o lead pediu para falar com uma pessoa'],
+      ['ia', 'IA ativa', 'Conversas em que a IA está respondendo sozinha'],
+      ['minhas', 'Meus leads', 'Somente leads em que você é o SDR ou o closer responsável']
+    ];
+    const el = document.getElementById('aai-f'); if (!el) return;
+    el.innerHTML = f.map(([k, t, dica]) => {
+      const n = conversas(k).length;
+      return `<button type="button" class="${st.filtro === k ? 'on' : ''}" title="${dica}" aria-pressed="${st.filtro === k}" onclick="aaiFiltro('${k}')">${t}${n ? `<span class="aai-fn">${n}</span>` : ''}</button>`;
+    }).join('');
   }
   function renderLista(){
     renderFiltros();
