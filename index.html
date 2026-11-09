@@ -17654,10 +17654,11 @@ function limparErrosLocais() {
   .aai-side-h{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
   .aai-side-h input{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;color:inherit;padding:9px 11px;font:inherit;font-size:14px}
   .aai-f{display:flex;gap:6px;flex-wrap:wrap}
-  .aai-f{gap:8px!important}
-  .aai-f button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:22px;padding:8px 14px;font-size:14.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .aai-f{display:grid!important;grid-template-columns:repeat(6,1fr);gap:6px!important}
+  .aai-f button{grid-column:span 2;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;border-radius:10px;padding:8px 6px;font-size:13.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-width:0}
+  .aai-f button:nth-child(n+4){grid-column:span 3}
   .aai-f button:hover{border-color:#fff;background:rgba(255,255,255,.06)}
-  .aai-f button .n{background:rgba(255,255,255,.14);border-radius:20px;padding:0 7px;font-size:12.5px}
+  .aai-f button .n{background:rgba(255,255,255,.14);border-radius:20px;padding:0 7px;font-size:12px;line-height:18px}
   .aai-f button.on .n{background:rgba(0,0,0,.15)}
   .aai-bt{background:transparent!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.75)!important;font-weight:800!important}
   .aai-bt:hover{background:rgba(255,255,255,.08)!important;border-color:#fff!important}
@@ -17691,8 +17692,11 @@ function limparErrosLocais() {
   .aai-comp{border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
   .aai-bar{display:flex;align-items:flex-end;gap:8px;position:relative}
   .aai-comp textarea{flex:1;min-height:44px;max-height:160px;resize:none;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:22px;color:inherit;padding:11px 16px;font:inherit;font-size:14.5px;line-height:1.35}
-  .aai-ic{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--muted);font-size:21px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-  .aai-ic:hover{background:rgba(255,255,255,.07);color:var(--text)}
+  .aai-ic{min-width:44px;height:44px;border-radius:12px;border:0;background:transparent;color:#d6dae3;font-size:21px;cursor:pointer;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0 6px}
+  .aai-ic span{font-size:10.5px;font-weight:700;letter-spacing:.2px;line-height:1}
+  .aai-ic:hover{background:rgba(255,255,255,.08);color:#fff}
+  .aai-ic:disabled{opacity:.4;cursor:not-allowed}
+  #aai-cancel{border-radius:50%}
   .aai-mic{width:48px;height:48px;border-radius:50%;border:0;background:#25D366;color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(37,211,102,.35);transition:transform .15s,background .15s;touch-action:none;user-select:none}
   .aai-mic:hover{background:#20bd5a}
   .aai-mic svg{width:22px;height:22px;fill:#fff;pointer-events:none}
@@ -17843,9 +17847,9 @@ function limparErrosLocais() {
     const f = [
       ['todas', 'Todas', 'Todas as conversas do WhatsApp oficial'],
       ['naolidas', 'Não lidas', 'Conversas com mensagens do lead que você ainda não abriu'],
+      ['minhas', 'Meus leads', 'Só os leads em que você é o SDR ou o Closer responsável'],
       ['humano', 'Precisa de você', 'A IA sinalizou (bips) ou está pausada: precisa de alguém da equipe responder'],
       ['ia', 'IA ativa', 'Conversas em que a IA está respondendo sozinha'],
-      ['minhas', 'Meus leads', 'Só os leads em que você é o SDR ou o Closer responsável'],
     ];
     const salvo = st.filtro; const cont = {};
     for (const [k] of f) { st.filtro = k; cont[k] = conversas().length; }
@@ -17935,8 +17939,8 @@ function limparErrosLocais() {
       <div class="aai-th" id="aai-th">${bolhas || '<div class="aai-vazio">Sem mensagens.</div>'}</div>
       <div class="aai-comp">
         <div class="aai-bar">
-          <button class="aai-ic" title="Anexar arquivo (foto, PDF, vídeo, documento)" onclick="aaiAnexar()" ${podeResp ? '' : 'disabled'}>📎</button>
-          <button class="aai-ic" title="Chamada de vídeo: envia o link da sala e abre a reunião" onclick="aaiVideo()" ${podeResp ? '' : 'disabled'}>📹</button>
+          <button class="aai-ic" title="Anexar arquivo (foto, PDF, vídeo, documento)" onclick="aaiAnexar()" ${podeResp ? '' : 'disabled'}><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><span>Arquivo</span></button>
+          <button class="aai-ic" title="Chamada de vídeo: envia o link da sala e abre a reunião" onclick="aaiVideo()" ${podeResp ? '' : 'disabled'}><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span>Vídeo</span></button>
           <textarea id="aai-txt" rows="1" placeholder="${restante > 0 ? 'Mensagem' : 'Fora da janela de 24 h'}" ${podeResp ? '' : 'disabled'} oninput="aaiTroca()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aaiEnviar()}"></textarea>
           <div id="aai-rec" class="aai-rec" style="display:none"><span class="dot"></span><b id="aai-tempo">0:00</b><span class="ondas"><i></i><i style="animation-delay:.15s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.45s"></i><i style="animation-delay:.6s"></i></span><span class="dica" id="aai-dica">Solte para enviar · arraste ⬆ para travar · ⬅ para cancelar</span><button class="aai-ic" id="aai-cancel" title="Cancelar áudio" style="display:none" onclick="aaiCancelarAudio()">🗑</button></div>
           <button id="aai-send" class="aai-mic" style="display:none" title="Enviar" onclick="aaiEnviar()"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>
