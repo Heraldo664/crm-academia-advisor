@@ -7581,7 +7581,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '3.1'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '3.2'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17613,6 +17613,279 @@ function limparErrosLocais() {
     window.renderAdminSeguro = function(){ const r = _ras.apply(this, arguments); try { aaAdminRender(); } catch (e) { console.error(e); } return r; };
     try { renderAdminSeguro = window.renderAdminSeguro; } catch (e) {}
   }
+})();
+</script>
+
+<!-- ===================================================================
+     MÓDULO CONVERSAS (inbox do WhatsApp oficial) · v1
+     Aba "Conversas": conversa aberta na área grande, contatos à direita.
+     Permite observar a IA, assumir (pausar IA), devolver, responder.
+     =================================================================== -->
+<style>
+  #page-conversas.active{display:block;max-width:none;padding:14px 18px}
+  .aai{display:grid;grid-template-columns:360px 1fr;gap:14px;height:calc(100vh - 120px);min-height:520px}
+  .aai-side{order:-1}
+  .aai-main,.aai-side{background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .aai-side-h{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+  .aai-side-h input{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;color:inherit;padding:9px 11px;font:inherit;font-size:14px}
+  .aai-f{display:flex;gap:6px;flex-wrap:wrap}
+  .aai-f button{border:1px solid var(--border);background:transparent;color:inherit;border-radius:20px;padding:4px 10px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .aai-f button.on{background:#C5F018;color:#0b0b0b;border-color:#C5F018}
+  .aai-list{overflow-y:auto;flex:1}
+  .aai-c{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;display:flex;gap:10px;align-items:flex-start}
+  .aai-c:hover{background:rgba(255,255,255,.03)} .aai-c.sel{background:rgba(197,240,24,.08);border-right:3px solid #C5F018;padding-right:9px}
+  .aai-av{width:38px;height:38px;border-radius:50%;background:#26304a;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-size:15px}
+  .aai-cb{flex:1;min-width:0}
+  .aai-cn{display:flex;justify-content:space-between;gap:6px;font-weight:700;font-size:14.5px}
+  .aai-cn span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .aai-ct{font-size:11.5px;color:var(--muted);font-weight:500;flex-shrink:0}
+  .aai-cp{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+  .aai-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+  .aai-tag{font-size:11px;font-weight:800;padding:1px 7px;border-radius:20px}
+  .aai-t-ia{background:rgba(34,201,123,.15);color:#22c97b}.aai-t-hum{background:rgba(245,166,35,.18);color:#f5a623}.aai-t-alert{background:rgba(255,107,107,.18);color:#ff6b6b}
+  .aai-un{background:#C5F018;color:#0b0b0b;border-radius:20px;font-size:11.5px;font-weight:800;padding:0 7px;min-width:20px;text-align:center}
+  .aai-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .aai-head h3{margin:0;font-size:17px}
+  .aai-sub{font-size:12.5px;color:var(--muted)}
+  .aai-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .aai-th{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.12)}
+  .aai-m{max-width:72%;padding:8px 11px 5px;border-radius:12px;font-size:14.5px;line-height:1.42;white-space:pre-wrap;word-wrap:break-word}
+  .aai-m small{display:block;font-size:11px;opacity:.65;margin-top:3px;text-align:right}
+  .aai-lead{align-self:flex-start;background:#232a3d;border-top-left-radius:3px}
+  .aai-ia{align-self:flex-end;background:#1f4a3a;border-top-right-radius:3px}
+  .aai-hum{align-self:flex-end;background:#4a3a14;border-top-right-radius:3px}
+  .aai-sis{align-self:center;background:rgba(255,107,107,.12);color:#ffb3b3;font-size:12.5px;max-width:90%;text-align:center}
+  .aai-dia{align-self:center;font-size:11.5px;color:var(--muted);background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;margin:6px 0}
+  .aai-comp{border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+  .aai-comp textarea{width:100%;min-height:54px;max-height:160px;resize:vertical;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;color:inherit;padding:9px 11px;font:inherit;font-size:14.5px}
+  .aai-info{font-size:12.5px;color:var(--muted)}
+  .aai-comp button:disabled,.aai-comp textarea:disabled{opacity:.45;cursor:not-allowed}
+  .aai-vazio{margin:auto;color:var(--muted);text-align:center;padding:30px;font-size:15px}
+  .aai-back{display:none}
+  @media (max-width:900px){
+    .aai{grid-template-columns:1fr;height:calc(100vh - 150px)}
+    .aai.tem-sel .aai-side{display:none} .aai:not(.tem-sel) .aai-main{display:none}
+    .aai-back{display:inline-flex} .aai-m{max-width:88%}
+  }
+</style>
+<script>
+(function(){
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const FN = SUPA_URL + '/functions/v1/aa-whatsapp';
+  const st = { msgs: [], extra: {}, sel: null, filtro: 'todas', busca: '', timer: null, enviando: false };
+
+  async function call(acao, dados){
+    const r = await fetch(FN, { method:'POST', headers:{ 'Content-Type':'application/json', apikey:SUPA_KEY, Authorization:'Bearer ' + SUPA_KEY },
+      body: JSON.stringify({ acao, colaborador_id: user && user.id, session_token: user && user.session_token, ...dados }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.erro) throw new Error(j.erro || ('HTTP ' + r.status));
+    return j;
+  }
+  const lido = id => { try { return localStorage.getItem('aa_lido_' + id) || ''; } catch (e) { return ''; } };
+  const marcarLido = (id, ts) => { try { localStorage.setItem('aa_lido_' + id, ts); } catch (e) {} };
+  const leadDe = id => (typeof leads !== 'undefined' && leads.find(l => String(l.id) === String(id))) || st.extra[id] || null;
+  function hora(ts){ const d = new Date(ts); const hoje = new Date(); 
+    if (d.toDateString() === hoje.toDateString()) return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    const ontem = new Date(Date.now() - 864e5); if (d.toDateString() === ontem.toDateString()) return 'Ontem';
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' }); }
+  const iaPausada = l => l && l.automacao_whatsapp_status === 'pausada_humano';
+  const meu = l => l && user && (String(l.sdr_id ?? l.responsavel_id ?? '') === String(user.id) || (l.closer_nome && l.closer_nome === user.nome) || (l.sdr_nome && l.sdr_nome === user.nome));
+
+  // ------------------------------------------------ dados
+  async function carregar(){
+    const m = await get('whatsapp_conversas', '?select=lead_id,remetente,texto,enviada_em,precisa_humano,autor_nome&order=enviada_em.desc&limit=1500');
+    st.msgs = m || [];
+    if (user && user.papel === 'admin') {   // admin vê também leads que ainda não estão na lista carregada
+      const faltam = [...new Set(st.msgs.map(x => x.lead_id))].filter(id => id && !leadDe(id)).slice(0, 80);
+      if (faltam.length) { const r = await get('leads', `?id=in.(${faltam.join(',')})&select=*`).catch(() => []); (r || []).forEach(l => st.extra[l.id] = l); }
+    }
+  }
+  function conversas(){
+    const g = {};
+    for (const m of st.msgs) {
+      if (!m.lead_id) continue;
+      const c = g[m.lead_id] || (g[m.lead_id] = { id: m.lead_id, ultima: m, naoLidas: 0, alerta: false });
+      if (m.remetente === 'lead' && m.enviada_em > lido(m.lead_id) && String(st.sel) !== String(m.lead_id)) c.naoLidas++;
+      if (m.precisa_humano) c.alerta = true;
+    }
+    let lista = Object.values(g).map(c => ({ ...c, lead: leadDe(c.id) })).filter(c => c.lead);   // só leads que este usuário pode ver
+    const b = st.busca.trim().toLowerCase();
+    if (b) lista = lista.filter(c => (c.lead.nome || '').toLowerCase().includes(b) || (c.lead.telefone || '').replace(/\D/g,'').includes(b.replace(/\D/g,'') || '§'));
+    if (st.filtro === 'humano') lista = lista.filter(c => iaPausada(c.lead) || c.alerta);
+    if (st.filtro === 'ia') lista = lista.filter(c => !iaPausada(c.lead));
+    if (st.filtro === 'naolidas') lista = lista.filter(c => c.naoLidas);
+    if (st.filtro === 'minhas') lista = lista.filter(c => meu(c.lead));
+    return lista.sort((a, b) => (b.ultima.enviada_em || '').localeCompare(a.ultima.enviada_em || ''));
+  }
+
+  // ------------------------------------------------ tela
+  function esqueleto(){
+    const pg = document.getElementById('page-conversas');
+    if (pg.dataset.ok) return;
+    pg.dataset.ok = '1';
+    pg.innerHTML = `<div class="aai" id="aai">
+      <section class="aai-main" id="aai-main"><div class="aai-vazio">Escolha uma conversa na lista à esquerda.<br><br>Aqui você acompanha o que a IA está falando, assume a conversa quando quiser e responde pelo WhatsApp oficial.</div></section>
+      <aside class="aai-side">
+        <div class="aai-side-h">
+          <input id="aai-busca" placeholder="Buscar por nome ou telefone" oninput="aaiBusca(this.value)">
+          <div class="aai-f" id="aai-f"></div>
+        </div>
+        <div class="aai-list" id="aai-list"><div class="aai-vazio">Carregando...</div></div>
+      </aside></div>`;
+  }
+  function renderFiltros(){
+    const f = [['todas','Todas'],['naolidas','Não lidas'],['humano','Precisa de humano'],['ia','IA ativa'],['minhas','Minhas']];
+    document.getElementById('aai-f').innerHTML = f.map(([k, t]) => `<button class="${st.filtro === k ? 'on' : ''}" onclick="aaiFiltro('${k}')">${t}</button>`).join('');
+  }
+  function renderLista(){
+    renderFiltros();
+    const el = document.getElementById('aai-list'); if (!el) return;
+    const lista = conversas();
+    if (!lista.length) { el.innerHTML = `<div class="aai-vazio">${st.msgs.length ? 'Nenhuma conversa neste filtro.' : 'Ainda não há conversas.<br>Elas aparecem aqui assim que o WhatsApp oficial começar a enviar e receber mensagens.'}</div>`; atualizarContador(0); return; }
+    el.innerHTML = lista.map(c => {
+      const l = c.lead, u = c.ultima;
+      const quem = u.remetente === 'lead' ? '' : u.remetente === 'humano' ? 'Você/Equipe: ' : u.remetente === 'sistema' ? '⚠ ' : 'IA: ';
+      const tags = [iaPausada(l) ? '<span class="aai-tag aai-t-hum">IA pausada</span>' : '<span class="aai-tag aai-t-ia">IA ativa</span>'];
+      if (c.alerta && !iaPausada(l)) tags.push('<span class="aai-tag aai-t-alert">pediu humano</span>');
+      if (l.status) tags.push(`<span class="aai-tag" style="background:rgba(255,255,255,.06)">${esc(l.status)}</span>`);
+      return `<div class="aai-c ${String(st.sel) === String(c.id) ? 'sel' : ''}" onclick="aaiAbrir('${esc(c.id)}')">
+        <div class="aai-av">${esc((l.nome || '?').trim().charAt(0).toUpperCase())}</div>
+        <div class="aai-cb">
+          <div class="aai-cn"><span>${esc(l.nome || l.telefone || 'Sem nome')} ${window.aaFaixaBadge ? aaFaixaBadge(l) : ''}</span><span class="aai-ct">${hora(u.enviada_em)}</span></div>
+          <div class="aai-cn" style="font-weight:400"><div class="aai-cp">${esc(quem + (u.texto || ''))}</div>${c.naoLidas ? `<span class="aai-un">${c.naoLidas}</span>` : ''}</div>
+          <div class="aai-tags">${tags.join('')}</div>
+        </div></div>`;
+    }).join('');
+    atualizarContador(lista.reduce((s, c) => s + (c.naoLidas ? 1 : 0), 0));
+  }
+  function atualizarContador(n){
+    const b = document.getElementById('nav-conversas'); if (!b) return;
+    let s = b.querySelector('.aai-un'); 
+    if (!n) { if (s) s.remove(); return; }
+    if (!s) { s = document.createElement('span'); s.className = 'aai-un'; s.style.marginLeft = '6px'; b.appendChild(s); }
+    s.textContent = n;
+  }
+  async function renderThread(rolar){
+    const main = document.getElementById('aai-main'); if (!main || !st.sel) return;
+    const l = leadDe(st.sel); if (!l) return;
+    const th0 = document.getElementById('aai-th');
+    const noFim = !th0 || th0.scrollHeight - th0.scrollTop - th0.clientHeight < 60;
+    const rascunho = document.getElementById('aai-txt') ? document.getElementById('aai-txt').value : '';
+    const msgs = await get('whatsapp_conversas', `?lead_id=eq.${encodeURIComponent(st.sel)}&select=*&order=enviada_em.asc&limit=500`).catch(() => []) || [];
+    if (String(l.id) !== String(st.sel)) return;
+    const ultLead = [...msgs].reverse().find(m => m.remetente === 'lead');
+    const tsLead = l.ultima_msg_lead_em || (ultLead && ultLead.enviada_em);
+    const restante = tsLead ? 24 * 3600e3 - (Date.now() - new Date(tsLead).getTime()) : -1;
+    if (msgs.length) marcarLido(st.sel, msgs[msgs.length - 1].enviada_em);
+    let dia = '';
+    const bolhas = msgs.map(m => {
+      const d = new Date(m.enviada_em).toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'2-digit' });
+      const sep = d !== dia ? `<div class="aai-dia">${esc(d)}</div>` : ''; dia = d;
+      const hr = new Date(m.enviada_em).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      if (m.remetente === 'sistema' || m.tipo === 'sistema') return sep + `<div class="aai-m aai-sis">${esc(m.texto)}<small>${hr}</small></div>`;
+      const cls = m.remetente === 'lead' ? 'aai-lead' : m.remetente === 'humano' ? 'aai-hum' : 'aai-ia';
+      const autor = m.remetente === 'lead' ? '' : m.remetente === 'humano' ? (m.autor_nome || 'Equipe') + ' · ' : (m.tipo === 'template' ? 'Automação (modelo) · ' : 'IA · ');
+      const tx = m.tipo === 'audio' && !m.texto ? '🎤 Áudio' : (m.texto || `[${m.tipo || 'mensagem'}]`);
+      return sep + `<div class="aai-m ${cls}">${esc(tx)}<small>${esc(autor)}${hr}</small></div>`;
+    }).join('');
+    const pausada = iaPausada(l);
+    const janela = restante > 0
+      ? `Janela de resposta aberta por mais ${Math.floor(restante / 3600e3)}h${String(Math.floor(restante % 3600e3 / 60e3)).padStart(2,'0')}.`
+      : 'Fora da janela de 24 h: o WhatsApp só deixa responder depois que o lead mandar uma nova mensagem (ou a automação mandar um modelo aprovado).';
+    main.innerHTML = `
+      <div class="aai-head">
+        <button class="btn btn-ghost btn-sm aai-back" onclick="aaiVoltar()">← Contatos</button>
+        <div><h3>${esc(l.nome || 'Sem nome')} ${window.aaFaixaBadge ? aaFaixaBadge(l) : ''}</h3>
+          <div class="aai-sub">${esc(l.telefone || '')}${l.status ? ' · ' + esc(l.status) : ''}${l.perfil_playbook ? ' · ' + esc(l.perfil_playbook) : ''}${l.produto_sugerido ? ' · ' + esc(l.produto_sugerido) : ''}</div>
+          <div class="aai-sub">${pausada ? '<b style="color:#f5a623">⏸ IA pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 IA respondendo sozinha</b>'}${l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : ''}</div></div>
+        <div class="aai-acts">
+          ${pausada ? `<button class="btn btn-primary btn-sm" onclick="aaiAcao('devolver')">▶ Devolver para a IA</button>` : `<button class="btn btn-primary btn-sm" onclick="aaiAcao('assumir')">⏸ Pausar IA e assumir</button>`}
+          <button class="btn btn-ghost btn-sm" onclick="aaiFicha()">Abrir ficha</button>
+          <button class="btn btn-ghost btn-sm" onclick="aaiAcao('noshow')">No-show</button>
+        </div>
+      </div>
+      <div class="aai-th" id="aai-th">${bolhas || '<div class="aai-vazio">Sem mensagens.</div>'}</div>
+      <div class="aai-comp">
+        <textarea id="aai-txt" placeholder="${restante > 0 ? 'Escreva sua resposta. Enter envia, Shift+Enter quebra linha.' : 'Fora da janela de 24 h'}" ${restante > 0 && !l.opt_out ? '' : 'disabled'} onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aaiEnviar()}"></textarea>
+        <div class="aa-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="aaiEnviar()" ${restante > 0 && !l.opt_out ? '' : 'disabled'}>Enviar</button>
+          <span class="aai-info">${janela}${restante > 0 ? ' Ao enviar, a IA pausa nesta conversa.' : ''}</span>
+          <span id="aai-msg" class="aai-info"></span>
+        </div>
+      </div>`;
+    const t = document.getElementById('aai-txt'); if (t && rascunho) t.value = rascunho;
+    const th = document.getElementById('aai-th'); if (th && (rolar || noFim)) th.scrollTop = th.scrollHeight;
+  }
+
+  async function atualizar(rolar){
+    try { await carregar(); renderLista(); if (st.sel) await renderThread(rolar); }
+    catch (e) { const el = document.getElementById('aai-list'); if (el && !st.msgs.length) el.innerHTML = `<div class="aai-vazio">Não consegui carregar: ${esc(e.message)}</div>`; }
+  }
+  function ativo(){ const p = document.getElementById('page-conversas'); return p && p.classList.contains('active'); }
+  function ligarTimer(){ clearInterval(st.timer); st.timer = setInterval(() => {
+    if (document.hidden) return;
+    if (ativo()) atualizar(false);
+    else carregar().then(() => atualizarContador(conversas().filter(c => c.naoLidas).length)).catch(() => {});
+  }, 8000); }
+
+  // ------------------------------------------------ ações (globais p/ onclick)
+  window.aaiFiltro = k => { st.filtro = k; renderLista(); };
+  window.aaiBusca = v => { st.busca = v; renderLista(); };
+  window.aaiAbrir = id => { st.sel = id; document.getElementById('aai').classList.add('tem-sel'); renderLista(); renderThread(true); };
+  window.aaiVoltar = () => { st.sel = null; document.getElementById('aai').classList.remove('tem-sel'); renderLista(); };
+  window.aaiFicha = () => { const l = leadDe(st.sel); if (!l) return; if (leads.find(x => String(x.id) === String(l.id))) editLead(l.id); else openLeadModal(l); };
+  window.aaiAcao = async acao => {
+    const msg = document.getElementById('aai-msg');
+    if (acao === 'noshow' && !confirm('Marcar no-show e mandar ao lead 2 opções de novo horário pelo WhatsApp?')) return;
+    try {
+      await call(acao, { lead_id: st.sel });
+      const r = await get('leads', `?id=eq.${st.sel}&select=*`); const novo = r && r[0];
+      if (novo) { const i = leads.findIndex(l => String(l.id) === String(novo.id)); if (i >= 0) leads[i] = { ...leads[i], ...novo }; else st.extra[novo.id] = novo; }
+      await atualizar(true);
+    } catch (e) { if (msg) msg.innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; else alert(e.message); }
+  };
+  window.aaiEnviar = async () => {
+    const t = document.getElementById('aai-txt'), msg = document.getElementById('aai-msg');
+    const texto = (t.value || '').trim(); if (!texto || st.enviando) return;
+    st.enviando = true; msg.textContent = 'Enviando...';
+    try {
+      await call('enviar_manual', { lead_id: st.sel, texto });
+      t.value = '';
+      const l = leadDe(st.sel); if (l) l.automacao_whatsapp_status = 'pausada_humano';
+      await atualizar(true);
+    } catch (e) { const m2 = document.getElementById('aai-msg'); if (m2) m2.innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; }
+    finally { st.enviando = false; }
+  };
+
+  // ------------------------------------------------ encaixe no CRM
+  function criarPagina(){
+    if (document.getElementById('page-conversas')) return;
+    const ref = document.getElementById('page-dashboard'); if (!ref) return;
+    const pg = document.createElement('div'); pg.className = 'page'; pg.id = 'page-conversas';
+    ref.parentNode.appendChild(pg);
+  }
+  function botaoMenu(){
+    if (!user || user.papel === 'mentor') return;
+    const nav = document.getElementById('topbar-nav'); if (!nav || document.getElementById('nav-conversas')) return;
+    const b = document.createElement('button'); b.className = 'nav-btn'; b.id = 'nav-conversas';
+    b.setAttribute('onclick', "navigateTo('conversas')"); b.textContent = 'Conversas';
+    const ref = document.getElementById('nav-leads');
+    if (ref && ref.nextSibling) nav.insertBefore(b, ref.nextSibling); else nav.appendChild(b);
+    ligarTimer();
+  }
+  const _bn = window.buildNav;
+  if (typeof _bn === 'function') {
+    window.buildNav = function(){ const r = _bn.apply(this, arguments); try { criarPagina(); botaoMenu(); } catch (e) { console.error(e); } return r; };
+    try { buildNav = window.buildNav; } catch (e) {}
+  }
+  const _nt = window.navigateTo;
+  if (typeof _nt === 'function') {
+    window.navigateTo = function(pageId){ if (pageId === 'conversas') criarPagina(); const r = _nt.apply(this, arguments);
+      if (pageId === 'conversas') { try { esqueleto(); atualizar(true); } catch (e) { console.error(e); } } return r; };
+    try { navigateTo = window.navigateTo; } catch (e) {}
+  }
+  // se o login já aconteceu antes deste trecho carregar
+  try { if (typeof user !== 'undefined' && user && document.getElementById('topbar-nav') && document.getElementById('topbar-nav').children.length) { criarPagina(); botaoMenu(); } } catch (e) {}
 })();
 </script>
 
