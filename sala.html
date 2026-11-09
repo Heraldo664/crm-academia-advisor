@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0B0B">
+<title>Sua consultoria · Academia Advisor</title>
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0B0B0B;--card:#141414;--line:#262626;--tx:#F5F5F2;--tx2:#A3A39E;--acc:#C5F018}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--tx);font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;justify-content:center;padding:28px 16px;-webkit-font-smoothing:antialiased}
+  .w{width:100%;max-width:460px}
+  .top{display:flex;align-items:center;gap:10px;margin-bottom:22px;font-weight:800;font-size:17px}
+  .top img{width:38px;height:38px;border-radius:9px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 20px}
+  h1{font-size:23px;line-height:1.25;margin-bottom:6px}
+  .sub{color:var(--tx2);font-size:15px;line-height:1.5}
+  .info{margin:20px 0;border-radius:12px;background:rgba(197,240,24,.07);border:1px solid rgba(197,240,24,.18)}
+  .info div{display:flex;justify-content:space-between;padding:12px 14px;font-size:15px}
+  .info div+div{border-top:1px solid rgba(255,255,255,.06)}
+  .info span{color:var(--tx2)} .info b{text-align:right}
+  .cd{text-align:center;font-size:15px;color:var(--tx2);margin-bottom:12px;min-height:22px}
+  .cd b{color:var(--acc);font-size:18px}
+  .entrar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:14px;background:var(--acc);color:#0b0b0b;font:inherit;font-weight:800;font-size:19px;padding:18px;cursor:pointer;text-decoration:none;box-shadow:0 8px 30px rgba(197,240,24,.18)}
+  .entrar.pulsa{animation:p 1.6s infinite}
+  @keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(197,240,24,.55)}50%{box-shadow:0 0 0 12px rgba(197,240,24,0)}}
+  .dica{margin-top:16px;font-size:14px;color:var(--tx2);line-height:1.55;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .dica b{color:var(--tx)}
+  .lojas{display:flex;gap:8px;margin-top:10px}
+  .lojas a,.sec a,.sec button{flex:1;text-align:center;border:1px solid #3a3a3a;border-radius:10px;padding:10px;color:var(--tx);text-decoration:none;font:inherit;font-size:14px;font-weight:700;background:transparent;cursor:pointer}
+  .sec{display:flex;gap:8px;margin-top:14px}
+  .wpp{display:block;margin-top:16px;text-align:center;color:var(--tx2);font-size:14px}
+  .wpp a{color:var(--acc);font-weight:700}
+  .fut{margin-top:22px}
+  .fut .rot{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tx2);font-weight:800;margin-bottom:6px}
+  .fut .int{font-size:15px;line-height:1.55;color:var(--tx2);margin-bottom:14px}
+  .fut .int i{color:var(--tx)}
+  .carta{border-radius:14px;overflow:hidden;background:#fff;color:#111;box-shadow:0 10px 40px rgba(0,0,0,.45);opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
+  .carta.on{opacity:1;transform:none}
+  .carta .cab{padding:13px 16px;font-weight:800;font-size:15px}
+  .carta .corpo{padding:18px 16px 8px}
+  .carta h2{font-size:20px;line-height:1.3;margin-bottom:8px}
+  .carta p{font-size:15px;line-height:1.55;color:#333;margin-bottom:12px}
+  .carta table{width:100%;border-collapse:collapse;border-top:1px solid #eee}
+  .carta td{padding:8px 0;font-size:13px;color:#666;vertical-align:top}
+  .carta td+td{font-size:15px;font-weight:800;color:#111;padding-left:10px}
+  .carta .obs{font-size:11px;color:#999;line-height:1.4;padding:4px 16px 14px}
+  .fut .fim{font-size:15px;line-height:1.6;color:var(--tx2);margin-top:16px}
+  .fut .fim b{color:var(--tx)}
+  .msg{text-align:center;padding:10px 0}
+  .msg .ic{font-size:40px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="top"><img src="/icon-192.png" alt="">Academia Advisor</div>
+  <div class="card" id="c"><p class="sub">Carregando sua consultoria...</p></div>
+</div>
+<script>
+const API = 'https://spnhtjqwafqubgybyobx.supabase.co/functions/v1/aa-diagnostico';
+const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
+const id = new URLSearchParams(location.search).get('c') || '';
+const $c = document.getElementById('c');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+let S = null;
+function api(acao, keepalive){
+  return fetch(API, { method: 'POST', keepalive: !!keepalive, headers: { 'Content-Type': 'application/json', apikey: ANON, Authorization: 'Bearer ' + ANON }, body: JSON.stringify({ acao, c: id }) }).then(r => r.json()).catch(() => ({ erro: 'Sem conexão. Verifique a internet e recarregue a página.' }));
+}
+const fmt = (d, o) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', ...o }).format(d);
+const movel = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+function wppLink(){ const n = String(S.whatsapp || '').replace(/\D/g, ''); return n.length >= 12 ? `https://wa.me/${n}` : ''; }
+function ajuda(){ const w = wppLink(); return w ? `<p class="wpp">Algum problema para entrar? <a href="${w}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a></p>` : ''; }
+function dicaPlataforma(link){
+  const app = /meet\.google\.com/.test(link) ? ['Google Meet', 'https://play.google.com/store/apps/details?id=com.google.android.apps.tachyon', 'https://apps.apple.com/app/google-meet/id1096918571']
+    : /zoom\.us/.test(link) ? ['Zoom', 'https://play.google.com/store/apps/details?id=us.zoom.videomeetings', 'https://apps.apple.com/app/zoom/id546505307']
+    : /teams\./.test(link) ? ['Microsoft Teams', 'https://play.google.com/store/apps/details?id=com.microsoft.teams', 'https://apps.apple.com/app/microsoft-teams/id1113153706']
+    : /jit\.si/.test(link) ? ['Jitsi Meet', 'https://play.google.com/store/apps/details?id=org.jitsi.meet', 'https://apps.apple.com/app/jitsi-meet/id1165103905'] : null;
+  if (!movel) return `<div class="dica">💻 <b>No computador, abre direto no navegador</b>, sem instalar nada. Quando o navegador pedir, toque em <b>Permitir</b> câmera e microfone.</div>`;
+  if (!app) return `<div class="dica">📱 Quando o celular pedir, toque em <b>Permitir</b> câmera e microfone.</div>`;
+  return `<div class="dica">📱 <b>No celular, a sala abre no app ${app[0]}</b> (gratuito). Se ainda não tiver, instale agora para não perder tempo na hora:
+    <div class="lojas">${ios ? `<a href="${app[2]}" target="_blank" rel="noopener">Baixar na App Store</a>` : `<a href="${app[1]}" target="_blank" rel="noopener">Baixar no Google Play</a>`}</div>
+    <div style="margin-top:8px">Se preferir, entre pelo computador: abra este mesmo link nele.</div></div>`;
+}
+function agenda(){
+  const ini = new Date(S.inicio), fim = new Date(S.fim || ini.getTime() + 40 * 60000);
+  const g = x => x.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Consultoria de carreira · Academia Advisor')}&dates=${g(ini)}/${g(fim)}&details=${encodeURIComponent('Com ' + S.closer + '. Para entrar: ' + location.href)}&location=${encodeURIComponent(location.href)}`;
+  const ics = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', 'DTSTART:' + g(ini), 'DTEND:' + g(fim), 'SUMMARY:Consultoria de carreira · Academia Advisor', 'DESCRIPTION:Com ' + S.closer + '. Para entrar: ' + location.href, 'URL:' + location.href, 'BEGIN:VALARM', 'TRIGGER:-PT15M', 'ACTION:DISPLAY', 'DESCRIPTION:Sua consultoria começa em 15 minutos', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n'));
+  return `<div class="sec"><a href="${gcal}" target="_blank" rel="noopener">+ Google Agenda</a><a href="${ics}" download="consultoria-academia-advisor.ics">+ iPhone / Outlook</a></div>`;
+}
+function futuro(){
+  const f = S.futuro; if (!f) return '';
+  const linha = (k, v) => v ? `<tr><td>${k}</td><td>${esc(v)}</td></tr>` : '';
+  return `<div class="fut">
+    <div class="rot">Enquanto espera, imagine</div>
+    <p class="int">Chega de abrir o e-mail e ler <i>"agradecemos sua participação, mas seguiremos com outros candidatos"</i>. Daqui a alguns meses, a mensagem pode ser esta:</p>
+    <div class="carta" id="carta">
+      <div class="cab" style="background:${esc(f.cor)};color:${esc(f.cor_texto)}">${f.banco ? esc(f.banco) + ' · ' : ''}Boas-vindas ao time</div>
+      <div class="corpo">
+        <h2>Parabéns${S.nome ? ', ' + esc(S.nome) : ''}! Você foi aprovado(a).</h2>
+        <p>É com alegria que confirmamos a sua contratação como <b>${esc(f.cargo || 'o cargo que você tanto buscou')}</b>${f.banco ? ` ${esc(f.prep)} <b>${esc(f.banco)}</b>` : ''}. Seja bem-vindo(a)! Sua nova jornada começa agora.</p>
+        ${f.fixo ? `<table>${linha('Salário fixo', f.fixo)}${linha('Remuneração variável', f.variavel)}${linha('Benefícios', f.beneficio)}</table>` : ''}
+      </div>
+      <div class="obs">Ilustração criada pela Academia Advisor para você visualizar o seu objetivo.${f.fixo ? ' Faixas de referência de mercado para o cargo; variam conforme instituição, região e desempenho.' : ''}</div>
+    </div>
+    <p class="fim">É essa virada que os nossos alunos vivem na <b>${esc(f.programa)}</b>. Na consultoria, ${esc(S.closer)} vai mostrar <b>exatamente o caminho para essa mensagem chegar até você</b>.</p>
+  </div>`;
+}
+function entrar(){
+  api('sala_entrou', true);
+  setTimeout(() => { location.href = S.link; }, 150);
+}
+function contagem(){
+  const el = document.getElementById('cd'), bt = document.getElementById('bt');
+  if (!el) return;
+  const min = Math.round((new Date(S.inicio) - Date.now()) / 60000);
+  if (min > 60 * 24) el.innerHTML = `Faltam <b>${Math.floor(min / 1440)} dia${Math.floor(min / 1440) > 1 ? 's' : ''}</b>`;
+  else if (min > 60) el.innerHTML = `Começa em <b>${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}</b>`;
+  else if (min > 0) el.innerHTML = `Começa em <b>${min} min</b>`;
+  else el.innerHTML = `<b>Está na hora!</b> ${esc(S.closer)} está esperando você.`;
+  if (bt) bt.classList.toggle('pulsa', min <= 10);
+}
+function render(){
+  if (!S || S.erro) {
+    $c.innerHTML = `<div class="msg"><div class="ic">🔗</div><h1>Link não encontrado</h1><p class="sub">Confira o link mais recente que enviamos no seu WhatsApp.</p></div>`; return;
+  }
+  const ini = new Date(S.inicio), fim = new Date(S.fim || ini.getTime() + 40 * 60000);
+  const ola = S.nome ? `${esc(S.nome)}, ` : '';
+  if (S.cancelado) {
+    $c.innerHTML = `<div class="msg"><div class="ic">🔁</div><h1>Este horário foi alterado</h1><p class="sub">Confira no seu WhatsApp o link do novo horário da sua consultoria.</p></div>${ajuda()}`; return;
+  }
+  if (S.status === 'realizado' || Date.now() > fim.getTime() + 60 * 60000) {
+    $c.innerHTML = `<div class="msg"><div class="ic">✅</div><h1>Esta consultoria já aconteceu</h1><p class="sub">Qualquer dúvida sobre os próximos passos, fale com a gente.</p></div>${ajuda()}`; return;
+  }
+  $c.innerHTML = `<h1>${ola}sua consultoria de carreira</h1>
+    <p class="sub">${esc(S.closer)} vai entender o que está te travando e montar com você um plano de ação para conquistar sua vaga ou promoção.</p>
+    <div class="info"><div><span>Data</span><b>${fmt(ini, { weekday: 'long', day: 'numeric', month: 'long' })}</b></div>
+      <div><span>Horário</span><b>${fmt(ini, { hour: '2-digit', minute: '2-digit' })} (Brasília)</b></div>
+      <div><span>Com</span><b>${esc(S.closer)}</b></div></div>
+    <p class="cd" id="cd"></p>
+    <button class="entrar" id="bt" onclick="entrar()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>Entrar na consultoria</button>
+    ${dicaPlataforma(S.link)}
+    ${Date.now() < ini.getTime() - 30 * 60000 ? agenda() : ''}
+    ${futuro()}
+    ${ajuda()}`;
+  contagem();
+  const ct = document.getElementById('carta');
+  if (ct) { const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { ct.classList.add('on'); io.disconnect(); } }), { threshold: .25 }) : null; io ? io.observe(ct) : ct.classList.add('on'); }
+}
+(async () => {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) { S = { erro: 1 }; return render(); }
+  S = await api('sala');
+  render();
+  setInterval(contagem, 20000);
+})();
+</script>
+</body>
+</html>

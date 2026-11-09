@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.4'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.5'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18277,7 +18277,7 @@ function limparErrosLocais() {
     const de = hojeSP(), ate = somaDias(de, 7);
     try {
       const [ags, cls] = await Promise.all([
-        get('aa_agendamentos', `?select=id,lead_id,closer_id,inicio,status&inicio=gte.${de}T00:00:00-03:00&inicio=lte.${ate}T23:59:59-03:00&order=inicio.asc`).catch(() => []),
+        get('aa_agendamentos', `?select=id,lead_id,closer_id,inicio,status,sala_link,lead_entrou_em&inicio=gte.${de}T00:00:00-03:00&inicio=lte.${ate}T23:59:59-03:00&order=inicio.asc`).catch(() => []),
         get('aa_closers', '?select=id,nome,colaborador_id,meet_link,ativo').catch(() => []),
       ]);
       A.ags = ags || []; A.closers = cls || [];
@@ -18340,7 +18340,7 @@ function limparErrosLocais() {
     return partes.join('\n\n') || 'Sem briefing ainda. Abra o Cadastro para ver os dados do lead.';
   }
   function cardItem(it, i){
-    const l = it.lead, link = it.tarefa?.link_meet || it.closer?.meet_link || '';
+    const l = it.lead, link = it.tarefa?.link_meet || it.ag?.sala_link || it.closer?.meet_link || '';
     const min = it.hora && it.dia === hojeSP() ? Math.round((quando(it.dia, it.hora) - Date.now()) / 60000) : 999;
     const chave = `${it.tipo}-${it.tarefa?.id || l.id}`;
     const faixa = window.aaFaixaBadge ? aaFaixaBadge(l) : '';
@@ -18349,7 +18349,7 @@ function limparErrosLocais() {
     return `<div class="ag-item">
       <div class="ag-hora"><b>${esc(it.hora || '--:--')}</b>${contagem(it)}</div>
       <div>
-        <div class="ag-nome">${esc(l.nome || 'Lead')} ${faixa} ${chipConfirmacao(it)}</div>
+        <div class="ag-nome">${esc(l.nome || 'Lead')} ${faixa} ${chipConfirmacao(it)}${it.ag?.lead_entrou_em && !it.realizado && Date.now() - new Date(it.ag.lead_entrou_em) < 3 * 3600e3 ? `<span class="ag-chip ag-ok" title="O lead tocou em Entrar na consultoria">🟢 Entrou na sala às ${new Date(it.ag.lead_entrou_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}</span>` : ''}</div>
         <div class="ag-sub">${esc(it.tipo === 'diag' ? '🩺 Consultoria de diagnóstico' : '📞 Call de fechamento')}${sub ? ' · ' + esc(sub) : ''}</div>
         <div class="ag-acts">
           ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener" class="btn btn-sm ag-entrar ${min <= 10 && min > -45 && !it.realizado ? 'pulsa' : ''}">▶ Entrar na reunião</a>`
@@ -18363,6 +18363,7 @@ function limparErrosLocais() {
               ${it.realizado ? '' : `<button onclick="agReagendar('${lid}')">🔁 Reagendar (envia 2 horários)</button><button onclick="agNoShow('${lid}')">🚫 Marcar no-show</button>`}
               <button onclick="editarHoraEventoAgenda(${tid}, ${it.tarefa ? 'null' : `'${lid}'`}, '${esc(it.dia)}', '${esc(it.hora)}')">🕑 Mudar dia/hora</button>
               ${it.tarefa ? `<button onclick="copiarMsgConfirmacao('${esc(it.tarefa.id)}')">📋 Copiar mensagem</button>` : ''}
+              ${it.ag ? `<button onclick="agCopiarSala('${esc(it.ag.id)}')">🔗 Copiar link do aluno</button>` : ''}
               <button style="color:#ff6b6b" onclick="excluirEventoAgenda(${tid}, ${it.tarefa ? 'null' : `'${lid}'`})">🗑 Excluir da agenda</button>
             </div></span>
         </div>
@@ -18398,6 +18399,7 @@ function limparErrosLocais() {
   window.agBrief = k => { A.abertos[k] = !A.abertos[k]; const el = document.getElementById('b-' + k); if (el) el.classList.toggle('on', !!A.abertos[k]); };
   window.agMenu = (ev, id) => { ev.stopPropagation(); document.querySelectorAll('.ag-menu.on').forEach(m => m.id !== id && m.classList.remove('on')); const m = document.getElementById(id); if (m) m.classList.toggle('on'); };
   document.addEventListener('click', () => document.querySelectorAll('.ag-menu.on').forEach(m => m.classList.remove('on')));
+  window.agCopiarSala = (id) => { const u = location.origin + '/sala.html?c=' + id; try { navigator.clipboard.writeText(u); } catch (e) {} alert('Link do aluno copiado. É só colar na conversa:\n\n' + u); };
   window.agSemLink = () => alert('Este Closer ainda não tem link de sala.\n\nEm Admin → Automação e Diagnóstico → Closers e agenda, cole o link fixo da sala (Google Meet, Zoom ou Teams) no campo "Link da sala".');
   window.agWhats = id => { navigateTo('conversas'); setTimeout(() => window.aaiAbrir && aaiAbrir(String(id)), 300); };
   window.agReagendar = async id => { if (!confirm('Enviar ao lead 2 novos horários pelo WhatsApp para reagendar?')) return; try { await call('reagendar', { lead_id: id }); A.carregadoEm = 0; carregarExtras(true); alert('Horários enviados ao lead.'); } catch (e) { alert(e.message); } };
@@ -18470,6 +18472,17 @@ function limparErrosLocais() {
       const min = (quando(it.dia, it.hora) - Date.now()) / 60000;
       if (min <= 10 && min > -5) alertar(`ag-${it.tipo}-${it.tarefa?.id || it.lead.id}-${it.dia}`, `Consultoria em ${Math.max(0, Math.round(min))} min`, `${it.lead.nome} às ${it.hora}. Toque para abrir a agenda.`, () => navigateTo('leads'));
     }
+    // 1b) lead tocou em "Entrar na consultoria"
+    try {
+      const desde = new Date(Date.now() - 15 * 60e3).toISOString();
+      const ents = await get('aa_agendamentos', `?select=id,lead_id,closer_id,lead_entrou_em&lead_entrou_em=gte.${desde}`).catch(() => []);
+      for (const a of ents || []) {
+        const l = leads.find(x => String(x.id) === String(a.lead_id));
+        const meu = user.papel === 'admin' || (l && (l.closer_nome === user.nome || l.sdr_id === user.id)) || A.closers.some(c => c.id === a.closer_id && String(c.colaborador_id) === String(user.id));
+        if (!meu) continue;
+        alertar(`entrou-${a.id}`, '🟢 Lead entrou na sala', `${l?.nome || 'Seu lead'} tocou em "Entrar na consultoria". Entre na reunião agora.`, () => navigateTo('leads'));
+      }
+    } catch (e) {}
     // 2) lead faixa A novo, sem nenhum contato humano há mais de 5 minutos
     try {
       const desde = new Date(Date.now() - 24 * 3600e3).toISOString();
