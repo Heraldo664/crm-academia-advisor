@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '3.7'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '3.8'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17502,7 +17502,8 @@ function limparErrosLocais() {
       </div><div class="aa-row" style="margin:10px 0 18px"><button type="button" class="btn btn-primary btn-sm" onclick="aaSalvarGeral()">Salvar</button><span id="aa-g-msg"></span></div>
       <h4 style="margin:6px 0">Links para cadastrar</h4>
       <div style="font-size:13px;color:var(--muted)">URL de callback do webhook (Meta › WhatsApp › Configuração):</div><code class="aa-copy">${SUPA_URL}/functions/v1/aa-whatsapp</code>
-      <div style="font-size:13px;color:var(--muted)">Código para colar nas páginas (bolha):</div><code class="aa-copy">${aaEsc(`<script src="${(geral.url_diagnostico||'https://diagnostico.academiaadvisor.com.br/').replace(/[^/]*$/,'')}widget.js" data-origem="nome-da-pagina" data-modo="bolha" defer><\/script>`)}</code>
+      <div style="font-size:13px;color:var(--muted)">Código para colar nas páginas (bolha):</div><code class="aa-copy">${aaEsc(`<script src="https://diagnostico-academiaadvisor.netlify.app/widget.js" data-origem="nome-da-pagina" data-modo="bolha" defer><\/script>`)}</code>
+      <div style="font-size:13px;color:var(--muted)">Link direto (YouTube, Instagram, anúncios · troque o final pelo canal):</div><code class="aa-copy">${aaEsc((geral.url_diagnostico||'https://academiaadvisor.com.br/diagnostico') + '?utm_source=youtube')}</code>
       ${st && st.google_email ? `<div style="font-size:13px;color:var(--muted)">E-mail da conta de serviço do Google (compartilhe a agenda de cada Closer com ele, com permissão para fazer alterações):</div><code class="aa-copy">${aaEsc(st.google_email)}</code>` : ''}
       <h4 style="margin:12px 0 6px">Funções no Supabase ${erroSt ? `<span class="aa-no" style="font-size:13px"> · ${aaEsc(erroSt)}</span>` : ''}</h4>
       ${st ? `<div class="aa-grid2"><table>${seg}</table><table><tr><th>Último evento</th><th>Quando</th><th></th></tr>${evs}</table></div><p style="margin-top:8px">Tarefas pendentes na fila: <b>${st.fila_pendente}</b></p>` : ''}
