@@ -18239,7 +18239,7 @@ function limparErrosLocais() {
   const hojeSP = () => isoDia(new Date());
   const somaDias = (dia, n) => isoDia(new Date(new Date(dia + 'T12:00:00-03:00').getTime() + n * 86400e3));
   const quando = (dia, hora) => new Date(`${dia}T${(hora || '00:00').slice(0, 5)}:00-03:00`);
-  function intervalo(){ const h = hojeSP(); return A.aba === 'amanha' ? [somaDias(h, 1), somaDias(h, 1)] : A.aba === 'semana' ? [h, somaDias(h, 6)] : [h, h]; }
+  function intervalo(aba){ aba = aba || A.aba; const h = hojeSP(); return aba === 'amanha' ? [somaDias(h, 1), somaDias(h, 1)] : aba === 'semana' ? [somaDias(h, 2), somaDias(h, 7)] : [h, h]; }
 
   async function carregarExtras(forcar){
     if (!forcar && Date.now() - A.carregadoEm < 60000) return;
@@ -18263,8 +18263,8 @@ function limparErrosLocais() {
   function closerDe(lead, ag){
     return A.closers.find(c => ag && c.id === ag.closer_id) || A.closers.find(c => c.nome && c.nome === lead?.closer_nome) || A.closers.find(c => String(c.colaborador_id) === String(user.id));
   }
-  function itens(){
-    const [de, ate] = intervalo();
+  function itens(aba){
+    const [de, ate] = intervalo(aba);
     const meu = l => user.papel === 'admin' || l.closer_nome === user.nome || l.sdr_id === user.id;
     const lista = [];
     for (const l of leads) {
@@ -18352,8 +18352,8 @@ function limparErrosLocais() {
     const desc = panel.querySelector('p'); if (desc) desc.textContent = 'Consultorias e calls em ordem cronológica. Entre na reunião, leia o briefing e registre o resultado em um clique.';
     if (dateEl) dateEl.textContent = typeof formatDate === 'function' ? formatDate(hojeSP()) : hojeSP();
     const its = itens();
-    const abas = [['hoje', 'Hoje'], ['amanha', 'Amanhã'], ['semana', 'Próximos 7 dias']];
-    let html = `<div class="ag-tabs">${abas.map(([k, t]) => `<button class="${A.aba === k ? 'on' : ''}" onclick="agAba('${k}')">${t}</button>`).join('')}</div>`;
+    const abas = [['hoje', 'Hoje', 'Consultorias e calls de hoje'], ['amanha', 'Amanhã', 'Consultorias e calls de amanhã'], ['semana', 'Próximos dias', 'De depois de amanhã até 7 dias à frente']];
+    let html = `<div class="ag-tabs">${abas.map(([k, t, d]) => { const n = k === A.aba ? its.length : itens(k).length; return `<button class="${A.aba === k ? 'on' : ''}" title="${d}" onclick="agAba('${k}')">${t}${n ? ` · ${n}` : ''}</button>`; }).join('')}</div>`;
     if (!its.length) html += `<p class="empty" style="padding:8px 0">${A.aba === 'hoje' ? 'Nenhum agendamento para hoje. 🎉' : 'Nenhum agendamento neste período.'}</p>`;
     else if (A.aba === 'semana') {
       let dia = '';
