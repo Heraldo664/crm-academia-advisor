@@ -36,7 +36,7 @@
   .wpp{display:block;margin-top:16px;text-align:center;color:var(--tx2);font-size:14px}
   .wpp a{color:var(--acc);font-weight:700}
   .fut{margin-top:22px}
-  .fut .rot{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tx2);font-weight:800;margin-bottom:6px}
+  .fut .rot{font-size:22px;color:var(--acc);font-weight:800;margin-bottom:6px;padding-left:12px;border-left:4px solid var(--acc)}
   .fut .int{font-size:15px;line-height:1.55;color:var(--tx2);margin-bottom:14px}
   .fut .int i{color:var(--tx)}
   .carta{border-radius:14px;overflow:hidden;background:#fff;color:#111;box-shadow:0 10px 40px rgba(0,0,0,.45);opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .7s ease}
@@ -65,6 +65,7 @@ const API = 'https://spnhtjqwafqubgybyobx.supabase.co/functions/v1/aa-diagnostic
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 const id = new URLSearchParams(location.search).get('c') || '';
 const $c = document.getElementById('c');
+const cap = s => { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 let S = null;
 function api(acao, keepalive){
@@ -97,7 +98,7 @@ function futuro(){
   const f = S.futuro; if (!f) return '';
   const linha = (k, v) => v ? `<tr><td>${k}</td><td>${esc(v)}</td></tr>` : '';
   return `<div class="fut">
-    <div class="rot">Enquanto espera, imagine</div>
+    <div class="rot">Agora, imagine…</div>
     <p class="int">Chega de abrir o e-mail e ler <i>"agradecemos sua participação, mas seguiremos com outros candidatos"</i>. Daqui a alguns meses, a mensagem pode ser esta:</p>
     <div class="carta" id="carta">
       <div class="cab" style="background:${esc(f.cor)};color:${esc(f.cor_texto)}">${f.banco ? esc(f.banco) + ' · ' : ''}Boas-vindas ao time</div>
@@ -122,7 +123,7 @@ function contagem(){
   if (min > 60 * 24) el.innerHTML = `Faltam <b>${Math.floor(min / 1440)} dia${Math.floor(min / 1440) > 1 ? 's' : ''}</b>`;
   else if (min > 60) el.innerHTML = `Começa em <b>${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}</b>`;
   else if (min > 0) el.innerHTML = `Começa em <b>${min} min</b>`;
-  else el.innerHTML = `<b>Está na hora!</b> ${esc(S.closer)} está esperando você.`;
+  else el.innerHTML = `<b>Está na hora!</b> ${esc(cap(S.closer))} está esperando você.`;
   if (bt) bt.classList.toggle('pulsa', min <= 10);
 }
 function render(){
@@ -138,10 +139,11 @@ function render(){
     $c.innerHTML = `<div class="msg"><div class="ic">✅</div><h1>Esta consultoria já aconteceu</h1><p class="sub">Qualquer dúvida sobre os próximos passos, fale com a gente.</p></div>${ajuda()}`; return;
   }
   $c.innerHTML = `<h1>${ola}sua consultoria de carreira</h1>
-    <p class="sub">${esc(S.closer)} vai entender o que está te travando e montar com você um plano de ação para conquistar sua vaga ou promoção.</p>
+    <p class="sub">${esc(cap(S.closer))} vai entender o que está te travando e montar com você um plano de ação para conquistar sua vaga ou promoção.</p>
     <div class="info"><div><span>Data</span><b>${fmt(ini, { weekday: 'long', day: 'numeric', month: 'long' })}</b></div>
       <div><span>Horário</span><b>${fmt(ini, { hour: '2-digit', minute: '2-digit' })} (Brasília)</b></div>
-      <div><span>Com</span><b>${esc(S.closer)}</b></div></div>
+      <div><span>Formato</span><b>Videochamada</b></div>
+      <div><span>Com</span><b>${S.closer === 'um Advisor' ? 'Um Advisor da Academia' : esc(S.closer)}</b></div></div>
     <p class="cd" id="cd"></p>
     <button class="entrar" id="bt" onclick="entrar()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>Entrar na consultoria</button>
     ${dicaPlataforma(S.link)}

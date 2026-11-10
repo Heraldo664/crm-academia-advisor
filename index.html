@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.6'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.9'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17351,6 +17351,8 @@ function limparErrosLocais() {
      lead, WhatsApp oficial na ficha e a seção "Automação" no Admin.
      =================================================================== -->
 <style>
+  .aa-btw{background:transparent!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.8)!important;font-weight:800!important}
+  .aa-btw:hover{background:rgba(255,255,255,.08)!important;border-color:#fff!important}
   .aa-badge{display:inline-block;font-size:12px;font-weight:800;padding:1px 7px;border-radius:20px;margin-left:4px;vertical-align:middle}
   .aa-A{background:rgba(34,201,123,.18);color:#22c97b}.aa-B{background:rgba(245,166,35,.18);color:#f5a623}.aa-C{background:rgba(140,140,160,.18);color:#9aa0b4}
   .aa-box{border:1px solid rgba(197,240,24,.35);background:rgba(197,240,24,.04);border-radius:12px;padding:12px 14px;margin:10px 0 14px}
@@ -17406,12 +17408,14 @@ function limparErrosLocais() {
     if (!lead || !lead.id) { wa.innerHTML = ''; dg.innerHTML = ''; return; }
     const id = lead.id;
     wa.innerHTML = `<div class="aa-wa">
-      <textarea id="aa-wa-txt" placeholder="Responder pelo WhatsApp oficial (só funciona até 24 h depois da última mensagem do lead)"></textarea>
+      <textarea id="aa-wa-txt" placeholder="Responder pelo WhatsApp oficial · Enter envia, Shift+Enter quebra a linha (funciona até 24 h depois da última mensagem do lead)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aaEnviarManual('${id}')}"></textarea>
       <div class="aa-row">
         <button type="button" class="btn btn-primary btn-sm" onclick="aaEnviarManual('${id}')">Enviar pelo WhatsApp oficial</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('assumir','${id}')">Assumir conversa (pausar IA)</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('devolver','${id}')">Devolver para a IA</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('noshow','${id}')">No-show: oferecer reagendamento</button>
+        ${(lead.automacao_whatsapp_status && lead.automacao_whatsapp_status !== 'ativa')
+          ? `<button type="button" class="btn btn-sm aa-btw" title="A IA lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaAcaoLead('devolver','${id}')">▶ Devolver para a IA</button>`
+          : `<button type="button" class="btn btn-sm aa-btw" title="A IA para de responder nesta conversa e você assume" onclick="aaAcaoLead('assumir','${id}')">⏸ Pausar IA e assumir</button>`}
+        ${lead.status === 'Fechado' ? `<button type="button" class="btn btn-sm aa-btw" title="O aluno foi aprovado ou promovido: registra a conquista e a Bia parabeniza, pede um depoimento em vídeo e envia o link de indicação" onclick="aaConquista('${id}')">🏆 Registrar conquista</button>` : ''}
+        <button type="button" class="btn btn-sm aa-btw" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaAcaoLead('noshow','${id}')">No-show: oferecer novo horário</button>
         <span id="aa-wa-msg" style="font-size:13px"></span>
       </div></div>`;
     const r = lead.respostas || {};
@@ -17435,6 +17439,14 @@ function limparErrosLocais() {
     try { await aaCall('aa-whatsapp', 'enviar_manual', { lead_id: id, texto }); el.value = ''; msg.innerHTML = '<span class="aa-ok">Enviado. IA pausada nesta conversa.</span>';
       const lead = leads.find(l => l.id === id); if (lead) { lead.automacao_whatsapp_status = 'pausada_humano'; renderWhatsappConversa(lead); } }
     catch (e) { msg.innerHTML = `<span class="aa-no">${aaEsc(e.message)}</span>`; }
+  };
+  window.aaConquista = async function(id){
+    const tipo = confirm('O aluno foi PROMOVIDO?\n\nOK = promovido · Cancelar = aprovado/contratado') ? 'promovido' : 'aprovado';
+    const cargo = prompt('Cargo conquistado (ex.: Especialista de Investimentos):', '') || '';
+    const instituicao = prompt('Banco ou instituição (ex.: Itaú):', '') || '';
+    const msg = document.getElementById('aa-wa-msg');
+    try { const r = await aaCall('aa-whatsapp', 'conquista', { lead_id: id, tipo, cargo, instituicao }); if (msg) msg.innerHTML = `<span class="aa-ok">🏆 Registrado. A Bia parabenizou e enviou o link de indicação: ${aaEsc(r.link)}</span>`; }
+    catch (e) { if (msg) msg.innerHTML = `<span class="aa-no">${aaEsc(e.message)}</span>`; else alert(e.message); }
   };
   window.aaAcaoLead = async function(acao, id){
     const msg = document.getElementById('aa-wa-msg');
@@ -17741,6 +17753,30 @@ function limparErrosLocais() {
   .sau .ok{background:rgba(34,201,123,.15);color:#22c97b}.sau .an{background:rgba(245,166,35,.15);color:#f5a623}.sau .no{background:rgba(255,107,107,.15);color:#ff6b6b}
   .sau label{display:block;font-size:13px;margin-top:10px;color:var(--text-secondary,#9aa)}
   .sau a{color:#C5F018}
+  .aai-tel{font-weight:800!important}
+  .aai-tel.sem{color:#ff6b6b!important;border-color:rgba(255,107,107,.85)!important}
+  .aai-tel.ok{color:#22c97b!important;border-color:rgba(34,201,123,.9)!important}
+  .aai-tel.pedido{color:#f5a623!important;border-color:rgba(245,166,35,.85)!important}
+  .aai-telok{color:#22c97b;font-size:13px;margin-left:5px}
+  .aai-m.cit{cursor:pointer}
+  .aai-m.cit:hover{filter:brightness(1.12)}
+  .aai-q{border-left:3px solid #C5F018;background:rgba(0,0,0,.22);border-radius:6px;padding:4px 8px;margin:0 0 5px;font-size:12.5px;opacity:.9;max-height:56px;overflow:hidden;white-space:normal}
+  .aai-resp{display:flex;align-items:center;gap:10px;background:rgba(197,240,24,.08);border-left:3px solid #C5F018;border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:13px}
+  .aai-resp div{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .aai-resp button{background:none;border:0;color:inherit;font-size:16px;cursor:pointer}
+  .aai-saude{display:flex;flex-direction:column;gap:2px}
+  .aai-saude b{font-size:13px;color:#fff}
+  .aai-saude small{font-size:12px;font-weight:700}
+  .aai-saude em{font-style:normal;font-size:11.5px;color:#9aa3b2;font-weight:600}
+  .aai-call{position:fixed;top:86px;left:50%;transform:translateX(-50%);z-index:10000;background:#0f1a12;border:1.5px solid #22c97b;border-radius:16px;padding:14px 18px;min-width:330px;box-shadow:0 14px 50px rgba(0,0,0,.6);display:flex;align-items:center;gap:14px;color:#fff}
+  .aai-call .av{width:46px;height:46px;border-radius:50%;background:#22c97b;color:#0b0b0b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:none}
+  .aai-call.toca .av{animation:aaiPulso 1.2s infinite}
+  @keyframes aaiPulso{0%{box-shadow:0 0 0 0 rgba(34,201,123,.7)}70%{box-shadow:0 0 0 16px rgba(34,201,123,0)}100%{box-shadow:0 0 0 0 rgba(34,201,123,0)}}
+  .aai-call .tx{flex:1;min-width:0}
+  .aai-call .tx b{display:block;font-size:15px}
+  .aai-call .tx span{font-size:13px;color:#b8c2cf}
+  .aai-call button{border:0;border-radius:999px;width:44px;height:44px;font-size:19px;cursor:pointer;color:#fff;flex:none}
+  .aai-call .vd{background:#22c97b}.aai-call .vm{background:#e5484d}.aai-call .ci{background:#2a3242}.aai-call .ci.on{background:#f5a623}
   .aai-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
   .aai-modal>div{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;width:100%;max-width:440px}
   .aai-modal input,.aai-modal select,.aai-modal textarea{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:8px;color:inherit;padding:9px 10px;font:inherit;margin-top:4px}
@@ -17782,6 +17818,7 @@ function limparErrosLocais() {
     if (d.toDateString() === hoje.toDateString()) return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
     const ontem = new Date(Date.now() - 864e5); if (d.toDateString() === ontem.toDateString()) return 'Ontem';
     return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' }); }
+  const podeLigar = l => l && ['temporaria', 'permanente'].includes(l.wa_ligar_status) && (!l.wa_ligar_ate || new Date(l.wa_ligar_ate) > new Date());
   const iaPausada = l => l && l.automacao_whatsapp_status === 'pausada_humano';
   const meu = l => l && user && (String(l.sdr_id ?? l.responsavel_id ?? '') === String(user.id) || (l.closer_nome && l.closer_nome === user.nome) || (l.sdr_nome && l.sdr_nome === user.nome));
 
@@ -17836,7 +17873,7 @@ function limparErrosLocais() {
     try {
       const ids = [...new Set(st.msgs.map(x => x.lead_id))].filter(Boolean).slice(0, 150);
       if (ids.length) {
-        const fr = await get('leads', `?id=in.(${ids.join(',')})&select=id,nome,telefone,status,automacao_whatsapp_status,opt_out,faixa,score,perfil_playbook,produto_sugerido,ultima_msg_lead_em`).catch(() => []);
+        const fr = await get('leads', `?id=in.(${ids.join(',')})&select=*`).catch(() => []);
         (fr || []).forEach(n => { const i = (typeof leads !== 'undefined') ? leads.findIndex(l => String(l.id) === String(n.id)) : -1; if (i >= 0) Object.assign(leads[i], n); else if (st.extra[n.id]) Object.assign(st.extra[n.id], n); });
       }
     } catch (e) {}
@@ -17874,7 +17911,7 @@ function limparErrosLocais() {
         <div class="aai-side-h">
           <input id="aai-busca" placeholder="Buscar por nome ou telefone" oninput="aaiBusca(this.value)">
           <div class="aai-f" id="aai-f"></div>
-          <button class="aai-saude" id="aai-saude" onclick="aaiSaude()" title="Qualidade do número, nome exibido, perfil e status dos modelos na Meta">● WhatsApp oficial · ver saúde e perfil</button>
+          <button class="aai-saude" id="aai-saude" onclick="aaiSaude()" title="Clique para ver a qualidade do número e os modelos, e para cadastrar o perfil da empresa e o link de boas-vindas"><b>⚙️ WhatsApp oficial: perfil e saúde</b><small id="aai-saude-st">● carregando…</small><em>Clique para ver e cadastrar perfil, site e link de boas-vindas</em></button>
         </div>
         <div class="aai-list" id="aai-list"><div class="aai-vazio">Carregando...</div></div>
       </aside></div>`;
@@ -17912,7 +17949,7 @@ function limparErrosLocais() {
       return `<div class="aai-c ${String(st.sel) === String(c.id) ? 'sel' : ''}" onclick="aaiAbrir('${esc(c.id)}')" title="${esc(l.nome || '')}">
         <div class="aai-av ${fx ? 'f' + esc(fx) : ''}">${esc((l.nome || '?').trim().charAt(0).toUpperCase())}<i class="${estado}"></i></div>
         <div class="aai-cb">
-          <div class="aai-cn"><span class="aai-nome">${esc(l.nome || l.telefone || 'Sem nome')}</span><span class="aai-ct ${c.naoLidas ? 'nova' : ''}">${hora(u.enviada_em)}</span></div>
+          <div class="aai-cn"><span class="aai-nome">${esc(l.nome || l.telefone || 'Sem nome')}${podeLigar(l) ? '<span class="aai-telok" title="Autorizou ligações pelo WhatsApp">📞</span>' : ''}</span><span class="aai-ct ${c.naoLidas ? 'nova' : ''}">${hora(u.enviada_em)}</span></div>
           <div class="aai-l2"><div class="aai-cp ${c.naoLidas ? 'nova' : ''}">${esc(quem + (u.texto || ''))}</div>${c.naoLidas ? `<span class="aai-un">${c.naoLidas}</span>` : ''}</div>
           <div class="aai-meta">${meta}</div>
         </div></div>`;
@@ -17932,6 +17969,7 @@ function limparErrosLocais() {
     const th0 = document.getElementById('aai-th');
     const noFim = !th0 || th0.scrollHeight - th0.scrollTop - th0.clientHeight < 60;
     const rascunho = document.getElementById('aai-txt') ? document.getElementById('aai-txt').value : '';
+    const tFoco = document.activeElement && document.activeElement.id === 'aai-txt' ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
     const msgs = await get('whatsapp_conversas', `?lead_id=eq.${encodeURIComponent(st.sel)}&select=*&order=enviada_em.asc&limit=500`).catch(() => []) || [];
     if (String(l.id) !== String(st.sel)) return;
     const assinatura = st.sel + '|' + msgs.length + '|' + (msgs.length ? msgs[msgs.length - 1].enviada_em : '') + '|' + (l.automacao_whatsapp_status || '') + '|' + (l.status || '') + '|' + Math.floor(Date.now() / 60000);
@@ -17959,7 +17997,9 @@ function limparErrosLocais() {
         else midia = `<a href="${u}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Abrir arquivo</a>`;
       }
       const corpo = midia ? (midia + (/^🎤 Áudio$|^📷 Imagem$|^🎬 Vídeo$/.test(tx) ? '' : `<div>${esc(tx)}</div>`)) : esc(tx);
-      return sep + `<div class="aai-m ${cls}">${corpo}<small>${esc(autor)}${hr}</small></div>`;
+      const q = m.resposta_a_texto ? `<div class="aai-q">↩ ${esc(String(m.resposta_a_texto).slice(0, 160))}</div>` : '';
+      const pode = m.wa_message_id ? ` cit" data-wa="${esc(m.wa_message_id)}" data-tx="${esc(String(tx).slice(0, 200))}" title="Clique para responder a esta mensagem` : '';
+      return sep + `<div class="aai-m ${cls}${pode}">${q}${corpo}<small>${esc(autor)}${hr}</small></div>`;
     }).join('');
     const pausada = iaPausada(l);
     const podeResp = restante > 0 && !l.opt_out;
@@ -17976,11 +18016,14 @@ function limparErrosLocais() {
           ${pausada ? `<button class="btn btn-primary btn-sm" title="A IA lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a IA</button>` : `<button class="btn btn-primary btn-sm" title="A IA para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar IA e assumir</button>`}
           <button class="btn btn-sm aai-bt" title="Abre o cadastro completo do lead no CRM" onclick="aaiFicha()">Abrir ficha</button>
           <button class="btn btn-sm aai-bt" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaiAcao('noshow')">No-show</button>
+          <button class="btn btn-sm aai-bt aai-tel ${podeLigar(l) ? 'ok' : l.wa_ligar_status === 'pedido' ? 'pedido' : 'sem'}" title="${podeLigar(l) ? 'O lead autorizou: clique para ligar agora pelo WhatsApp (use fone e microfone)' : l.wa_ligar_status === 'pedido' ? 'Pedido de permissão enviado: aguardando o lead tocar em Permitir. Clique para conferir.' : 'O lead ainda não autorizou ligações: clique para enviar o pedido de permissão'}" onclick="aaiLigar()">📞 Ligar</button>
+          <button class="btn btn-sm aai-bt" title="Gera o link de pagamento no Asaas e envia ao lead pelo WhatsApp. Quando ele pagar, o lead vira Fechado sozinho e a Bia começa o acompanhamento do aluno." onclick="aaiCobrar()">💳 Cobrar</button>
           <button class="btn btn-sm aai-bt" title="Você ligou e o lead não atendeu: envia o modelo &quot;Tentei te ligar&quot; com o seu nome (funciona mesmo fora da janela de 24 h)" onclick="aaiModelo('aa_tentei_ligar')">📞 Tentei ligar</button>
         </div>
       </div>
       <div class="aai-th" id="aai-th">${bolhas || '<div class="aai-vazio">Sem mensagens.</div>'}</div>
       <div class="aai-comp">
+        ${st.resp && st.resp.lead === st.sel ? `<div class="aai-resp"><b>↩</b><div>Respondendo a: <i>${esc(st.resp.texto)}</i></div><button title="Cancelar resposta" onclick="aaiCitar(null)">✕</button></div>` : ''}
         <div class="aai-bar">
           <button class="aai-ic" title="Anexar arquivo (foto, PDF, vídeo, documento)" onclick="aaiAnexar()" ${podeResp ? '' : 'disabled'}><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><span>Arquivo</span></button>
           <button class="aai-ic" title="Chamada de vídeo: envia o link da sala e abre a reunião" onclick="aaiVideo()" ${podeResp ? '' : 'disabled'}><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span>Vídeo</span></button>
@@ -18001,6 +18044,13 @@ function limparErrosLocais() {
       </div>`;
     ligarMic();
     const t = document.getElementById('aai-txt'); if (t && rascunho) { t.value = rascunho; window.aaiTroca && aaiTroca(); }
+    if (t && tFoco) { t.focus(); try { t.setSelectionRange(tFoco[0], tFoco[1]); } catch (e) {} }
+    const thx = document.getElementById('aai-th');
+    if (thx && !thx.dataset.cit) { thx.dataset.cit = '1'; thx.addEventListener('click', ev => {
+      if (ev.target.closest('button,audio,a,input,textarea')) return;
+      const b = ev.target.closest('.aai-m.cit'); if (!b) return;
+      window.aaiCitar({ id: b.dataset.wa, texto: b.dataset.tx });
+    }); }
     const th = document.getElementById('aai-th'); if (th && (rolar || noFim)) th.scrollTop = th.scrollHeight;
   }
 
@@ -18039,8 +18089,9 @@ function limparErrosLocais() {
     const texto = (t.value || '').trim(); if (!texto || st.enviando) return;
     st.enviando = true; msg.textContent = 'Enviando...';
     try {
-      await call('enviar_manual', { lead_id: st.sel, texto });
-      t.value = '';
+      const rsp = st.resp && st.resp.lead === st.sel ? st.resp : null;
+      await call('enviar_manual', { lead_id: st.sel, texto, ...(rsp ? { resposta_a: rsp.id, resposta_a_texto: rsp.texto } : {}) });
+      t.value = ''; st.resp = null;
       const l = leadDe(st.sel); if (l) l.automacao_whatsapp_status = 'pausada_humano';
       await atualizar(true);
     } catch (e) { const m2 = document.getElementById('aai-msg'); if (m2) m2.innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; }
@@ -18174,8 +18225,8 @@ function limparErrosLocais() {
       const q = QUAL[(j.numero && j.numero.quality_rating) || 'UNKNOWN'] || QUAL.UNKNOWN;
       const pend = (j.modelos || []).filter(m => m.status === 'PENDING').length, ruins = (j.modelos || []).filter(m => ['REJECTED', 'PAUSED', 'DISABLED'].includes(m.status)).length;
       b.className = 'aai-saude ' + (ruins ? 'r' : q[2]);
-      b.textContent = `● Qualidade ${q[0].split(':')[0].toLowerCase()} · ${(j.modelos || []).filter(m => m.status === 'APPROVED').length} modelos ativos${pend ? ` · ${pend} em análise` : ''}${ruins ? ` · ${ruins} com problema` : ''}`;
-    } catch (e) { b.textContent = '● WhatsApp oficial · ver saúde e perfil'; }
+      const stEl = document.getElementById('aai-saude-st'); if (stEl) stEl.textContent = `● Qualidade ${q[0].split(':')[0].toLowerCase()} · ${(j.modelos || []).filter(m => m.status === 'APPROVED').length} modelos ativos${pend ? ` · ${pend} em análise` : ''}${ruins ? ` · ${ruins} com problema` : ''}`;
+    } catch (e) { const stEl = document.getElementById('aai-saude-st'); if (stEl) stEl.textContent = '● não consegui consultar a Meta agora'; }
   }
   window.aaiSaude = async () => {
     const m = document.createElement('div'); m.className = 'aai-modal';
@@ -18199,6 +18250,9 @@ function limparErrosLocais() {
       </div>
       ${n.quality_rating === 'YELLOW' || n.quality_rating === 'RED' ? '<p style="color:#f5a623;font-size:13px;margin-top:8px">A qualidade caiu: muitas pessoas bloquearam ou denunciaram mensagens. Reduza envios de Marketing e me avise para ajustarmos o ritmo.</p>' : ''}
       ${j.numero_erro ? `<p style="color:#ff6b6b;font-size:13px">${esc(j.numero_erro)}</p>` : ''}
+      <h4>Ligações pelo WhatsApp</h4>
+      <div class="kv"><span>Status</span><b>${j.ligacoes && String(j.ligacoes.status).toUpperCase() === 'ENABLED' ? '<span class="pill ok">Ativadas</span>' : '<span class="pill an">Desativadas</span>'}</b></div>
+      ${adm && !(j.ligacoes && String(j.ligacoes.status).toUpperCase() === 'ENABLED') ? '<button class="btn btn-sm aai-bt" style="margin-top:8px" id="lg-at">📞 Ativar ligações no número</button> <span class="aai-info" id="lg-msg"></span>' : ''}
       <h4>Modelos de mensagem</h4>
       ${mods ? `<table>${mods}</table>` : `<p style="font-size:13px">${esc(j.modelos_erro || 'Nenhum modelo encontrado.')}</p>`}
       <p style="font-size:13px;margin-top:8px"><a href="${mgr}/message-templates/${ids}" target="_blank" rel="noopener">Abrir os modelos na Meta ↗</a></p>
@@ -18214,6 +18268,8 @@ function limparErrosLocais() {
       ${campo('bv', 'Link enviado no modelo de boas-vindas quando o Closer marca "Matriculou" (área do aluno, grupo ou página de boas-vindas)', j.url_boas_vindas, 300)}
       ${adm ? '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><span id="pf-msg" class="aai-info"></span><button class="btn btn-primary btn-sm" id="pf-ok">Salvar perfil e link</button></div>' : '<p class="aai-info" style="margin-top:10px">Só o admin pode alterar o perfil.</p>'}`;
     m.querySelector('#sx').onclick = () => m.remove();
+    const lgAt = m.querySelector('#lg-at');
+    if (lgAt) lgAt.onclick = async () => { lgAt.disabled = true; try { await call('ligacoes_ativar', {}); m.querySelector('#lg-msg').textContent = '✅ Ligações ativadas.'; } catch (e) { m.querySelector('#lg-msg').innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; lgAt.disabled = false; } };
     const ok = m.querySelector('#pf-ok');
     if (ok) ok.onclick = async () => {
       const v = k => m.querySelector('#pf-' + k).value.trim();
@@ -18225,6 +18281,148 @@ function limparErrosLocais() {
       ok.disabled = false; ok.textContent = 'Salvar perfil e link';
     };
   };
+
+
+  // ------------------------------------------------ cobrança (Asaas)
+  window.aaiCobrar = () => {
+    const l = leadDe(st.sel); if (!l) return;
+    const m = document.createElement('div'); m.className = 'aai-modal';
+    const prog = l.programa || (/mba/i.test(l.produto_sugerido || '') ? 'MBA Advisory, Wealth & Private Banking' : 'Formação Banker & Advisor');
+    m.innerHTML = `<div><h3 style="margin:0 0 4px">💳 Cobrar matrícula</h3><p class="aai-info" style="margin:0 0 10px">${esc(l.nome || '')}</p>
+      <label class="aai-info">Programa<input id="cb-p" value="${esc(prog)}"></label>
+      <label class="aai-info">Valor total (R$)<input id="cb-v" inputmode="decimal" placeholder="ex.: 14.997,00" value="${esc(l.valor_oportunidade || '')}"></label>
+      <label class="aai-info">Forma de pagamento<select id="cb-f"><option value="1">Cliente escolhe: Pix, boleto ou cartão à vista</option><option value="12" selected>Cartão parcelado</option></select></label>
+      <label class="aai-info" id="cb-pl">Parcelas no cartão (até)<select id="cb-n">${[2,3,4,5,6,7,8,9,10,11,12].map(n => `<option ${n === 12 ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label class="aai-info">Link válido por (dias)<input id="cb-d" type="number" min="1" max="30" value="2"></label>
+      <label class="aai-info" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="cb-e" checked style="width:auto;margin:0"> Enviar o link ao lead pelo WhatsApp agora</label>
+      <div id="cb-r" class="aai-info" style="margin-top:10px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-ghost btn-sm" id="cb-x">Fechar</button><button class="btn btn-primary btn-sm" id="cb-ok">Gerar link</button></div></div>`;
+    document.body.appendChild(m);
+    const f = m.querySelector('#cb-f'), pl = m.querySelector('#cb-pl'); f.onchange = () => { pl.style.display = f.value === '1' ? 'none' : ''; };
+    m.querySelector('#cb-x').onclick = () => m.remove();
+    m.querySelector('#cb-ok').onclick = async ev => {
+      const b = ev.target; b.disabled = true; b.textContent = 'Gerando…';
+      try {
+        const r = await call('cobrar', { lead_id: st.sel, programa: m.querySelector('#cb-p').value.trim(), valor: m.querySelector('#cb-v').value, parcelas: f.value === '1' ? 1 : Number(m.querySelector('#cb-n').value), validade_dias: Number(m.querySelector('#cb-d').value || 2), enviar: m.querySelector('#cb-e').checked });
+        m.querySelector('#cb-r').innerHTML = `✅ Link gerado${r.enviado ? ' e enviado no WhatsApp' : (m.querySelector('#cb-e').checked ? ' (não consegui enviar: a janela de 24 h está fechada; copie e mande por outro canal)' : '')}:<br><a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:#C5F018;word-break:break-all">${esc(r.url)}</a><br><button class="btn btn-sm aai-bt" style="margin-top:8px" onclick="navigator.clipboard.writeText('${esc(r.url)}');this.textContent='Copiado'">Copiar link</button><br><small>Quando o pagamento cair, o lead vira <b>Fechado</b> sozinho. Se não pagar em 1 hora, a Bia lembra.</small>`;
+        b.textContent = 'Gerado'; st.assinatura = ''; atualizar(true);
+      } catch (e) { m.querySelector('#cb-r').innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; b.disabled = false; b.textContent = 'Gerar link'; }
+    };
+  };
+  // ------------------------------------------------ responder citando
+  window.aaiCitar = c => {
+    st.resp = c ? { ...c, lead: st.sel } : null; st.assinatura = ''; renderThread(false).then(() => { const t = document.getElementById('aai-txt'); if (t && !t.disabled) t.focus(); });
+  };
+
+  // ------------------------------------------------ ligações pelo WhatsApp (voz)
+  const LG = { pc: null, stream: null, id: null, lead: null, timer: null, ini: 0, mudo: false, vistas: {}, toque: null };
+  function somToque(on){
+    clearInterval(LG.toque); LG.toque = null;
+    if (on) { const tocar = () => { try { ctxSom = ctxSom || new (window.AudioContext || window.webkitAudioContext)(); [0, 0.45].forEach(t0 => { const o = ctxSom.createOscillator(), g = ctxSom.createGain(); o.frequency.value = 660; g.gain.setValueAtTime(0.0001, ctxSom.currentTime + t0); g.gain.exponentialRampToValueAtTime(0.3, ctxSom.currentTime + t0 + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, ctxSom.currentTime + t0 + 0.38); o.connect(g); g.connect(ctxSom.destination); o.start(ctxSom.currentTime + t0); o.stop(ctxSom.currentTime + t0 + 0.4); }); } catch (e) {} };
+      tocar(); LG.toque = setInterval(tocar, 2200); }
+  }
+  function painel(nome, txt, botoes, tocando){
+    let el = document.getElementById('aai-call');
+    if (!el) { el = document.createElement('div'); el.id = 'aai-call'; el.className = 'aai-call'; document.body.appendChild(el); }
+    el.classList.toggle('toca', !!tocando); delete el.dataset.fim;
+    el.innerHTML = `<div class="av">📞</div><div class="tx"><b>${esc(nome)}</b><span id="aai-call-st">${esc(txt)}</span></div>${botoes}<audio id="aai-call-au" autoplay></audio>`;
+    if (LG.remoto) el.querySelector('#aai-call-au').srcObject = LG.remoto;
+    return el;
+  }
+  function fecharPainel(msg){
+    somToque(false); clearInterval(LG.timer); LG.timer = null;
+    try { LG.pc && LG.pc.close(); } catch (e) {} try { LG.stream && LG.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    LG.pc = null; LG.stream = null; LG.remoto = null;
+    const el = document.getElementById('aai-call');
+    if (el && msg) { el.classList.remove('toca'); el.dataset.fim = '1'; const s2 = el.querySelector('#aai-call-st'); if (s2) s2.textContent = msg; el.querySelectorAll('button').forEach(b => b.remove()); setTimeout(() => { if (el.dataset.fim === '1') el.remove(); }, 2500); }
+    else if (el) el.remove();
+    LG.id = null; st.assinatura = '';
+  }
+  async function novaConexao(){
+    LG.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    LG.pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    LG.stream.getTracks().forEach(t => LG.pc.addTrack(t, LG.stream));
+    LG.pc.ontrack = e => { LG.remoto = e.streams[0]; const a = document.getElementById('aai-call-au'); if (a) a.srcObject = LG.remoto; };
+    LG.pc.onconnectionstatechange = () => { if (LG.pc && LG.pc.connectionState === 'connected') emLigacao(); if (LG.pc && ['failed'].includes(LG.pc.connectionState)) window.aaiDesligar('Falha na conexão de áudio.'); };
+  }
+  function esperarIce(){
+    return new Promise(ok => { if (LG.pc.iceGatheringState === 'complete') return ok(); const f = () => { if (LG.pc && LG.pc.iceGatheringState === 'complete') { LG.pc.removeEventListener('icegatheringstatechange', f); ok(); } }; LG.pc.addEventListener('icegatheringstatechange', f); setTimeout(ok, 3000); });
+  }
+  function botoesLigacao(){ return `<button class="ci ${LG.mudo ? 'on' : ''}" title="Mudo" onclick="aaiMudo()">${LG.mudo ? '🔇' : '🎙'}</button><button class="vm" title="Desligar" onclick="aaiDesligar()">⛔</button>`; }
+  function emLigacao(){
+    if (LG.ini) return; LG.ini = Date.now(); somToque(false);
+    const nome = LG.lead ? (LG.lead.nome || LG.lead.telefone) : 'Lead';
+    painel(nome, 'Em ligação · 0:00', botoesLigacao(), false);
+    clearInterval(LG.timer); LG.timer = setInterval(() => { const s2 = document.getElementById('aai-call-st'); const t = Math.floor((Date.now() - LG.ini) / 1000); if (s2) s2.textContent = `Em ligação · ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; vigiar(); }, 1000);
+  }
+  let vigiando = false;
+  async function vigiar(){   // a Meta avisa quando o lead desliga
+    if (vigiando || !LG.id) return; vigiando = true;
+    try { const r = await get('aa_chamadas', `?id=eq.${encodeURIComponent(LG.id)}&select=status`); const s2 = r && r[0] && r[0].status;
+      if (['encerrada', 'perdida', 'recusada', 'nao_atendida'].includes(s2)) fecharPainel(s2 === 'nao_atendida' ? 'O lead não atendeu.' : s2 === 'recusada' ? 'O lead recusou a ligação.' : 'Ligação encerrada.'); }
+    catch (e) {} finally { setTimeout(() => { vigiando = false; }, 2500); }
+  }
+  window.aaiMudo = () => { LG.mudo = !LG.mudo; try { LG.stream.getAudioTracks().forEach(t => t.enabled = !LG.mudo); } catch (e) {} const el = document.querySelector('#aai-call .ci'); if (el) { el.classList.toggle('on', LG.mudo); el.textContent = LG.mudo ? '🔇' : '🎙'; } };
+  window.aaiDesligar = async motivo => { const id = LG.id; fecharPainel(typeof motivo === 'string' ? motivo : 'Ligação encerrada.'); if (id) call('desligar', { call_id: id }).catch(() => {}); };
+  window.aaiLigar = async () => {
+    const l = leadDe(st.sel); if (!l) return;
+    if (LG.pc) return alert('Já existe uma ligação em andamento.');
+    if (!podeLigar(l)) {
+      try { const s2 = await call('ligar_status', { lead_id: st.sel }); if (s2.pode_ligar) { l.wa_ligar_status = s2.ate ? 'temporaria' : 'permanente'; l.wa_ligar_ate = s2.ate; st.assinatura = ''; renderThread(false); renderLista(); } else {
+        if (!confirm(`${l.nome || 'O lead'} ainda não autorizou ligações pelo WhatsApp.\n\nEnviar agora o pedido "Podemos te ligar aqui pelo WhatsApp?" com o botão Permitir?\n\nQuando ele aceitar, o botão Ligar fica verde.`)) return;
+        await call('ligar_permissao', { lead_id: st.sel }); l.wa_ligar_status = 'pedido'; st.assinatura = ''; await atualizar(true); aviso('📞 Pedido de permissão enviado. O botão fica verde quando o lead aceitar.'); return; } }
+      catch (e) { alert(e.message); return; }
+    }
+    LG.lead = l; LG.ini = 0; LG.mudo = false;
+    painel(l.nome || l.telefone, 'Preparando o microfone…', `<button class="vm" title="Cancelar" onclick="aaiDesligar()">⛔</button>`, true);
+    try {
+      await novaConexao();
+      const of = await LG.pc.createOffer(); await LG.pc.setLocalDescription(of); await esperarIce();
+      const r = await call('ligar', { lead_id: st.sel, sdp: LG.pc.localDescription.sdp });
+      LG.id = r.call_id; const s2 = document.getElementById('aai-call-st'); if (s2) s2.textContent = 'Chamando no WhatsApp…';
+      const t0 = Date.now();
+      while (LG.pc && !LG.pc.remoteDescription && Date.now() - t0 < 60000) {
+        await new Promise(ok => setTimeout(ok, 1000));
+        const rr = await get('aa_chamadas', `?id=eq.${encodeURIComponent(LG.id)}&select=status,sdp_resposta`).catch(() => []);
+        const c = rr && rr[0]; if (!c) continue;
+        if (['encerrada', 'nao_atendida', 'recusada'].includes(c.status)) { fecharPainel(c.status === 'recusada' ? 'O lead recusou a ligação.' : 'O lead não atendeu.'); return; }
+        if (c.sdp_resposta && LG.pc) await LG.pc.setRemoteDescription({ type: 'answer', sdp: c.sdp_resposta });
+      }
+      if (LG.pc && !LG.pc.remoteDescription) window.aaiDesligar('O lead não atendeu.');
+      else { clearInterval(LG.timer); LG.timer = setInterval(vigiar, 2500); }
+    } catch (e) { fecharPainel(); alert(/Permission|NotAllowed/i.test(String(e && e.name || e)) ? 'Libere o microfone no navegador para ligar.' : e.message); }
+  };
+  // ligações recebidas: tocam em qualquer tela do CRM
+  async function verTocando(){
+    if (!user || user.papel === 'mentor' || LG.pc) return;
+    let rr = [];
+    try { rr = await get('aa_chamadas', `?status=eq.tocando&iniciada_em=gte.${new Date(Date.now() - 90e3).toISOString()}&select=id,lead_id,telefone,sdp_oferta&order=iniciada_em.desc&limit=1`) || []; } catch (e) { return; }
+    const c = rr[0];
+    const el = document.getElementById('aai-call');
+    if (!c) { if (el && el.dataset.recebendo) { delete el.dataset.recebendo; fecharPainel(); } return; }
+    if (LG.vistas[c.id] === 'recusou') return;
+    if (el && el.dataset.recebendo === c.id) return;
+    const l = leadDe(c.lead_id) || { nome: c.telefone, id: c.lead_id };
+    LG.lead = l; LG.oferta = c;
+    const p = painel(`${l.nome || c.telefone} está ligando`, 'Ligação pelo WhatsApp oficial', `<button class="vd" title="Atender" onclick="aaiAtender()">📞</button><button class="vm" title="Recusar" onclick="aaiRecusar()">⛔</button>`, true);
+    p.dataset.recebendo = c.id; somToque(true);
+    try { if (window.Notification && Notification.permission === 'granted') { const n = new Notification('📞 Ligação no WhatsApp', { body: `${l.nome || c.telefone} está ligando. Clique para atender no CRM.`, tag: 'lg-' + c.id, requireInteraction: true }); n.onclick = () => { window.focus(); n.close(); }; } } catch (e) {}
+  }
+  window.aaiAtender = async () => {
+    const c = LG.oferta; if (!c) return; somToque(false);
+    const el = document.getElementById('aai-call'); if (el) delete el.dataset.recebendo;
+    painel(LG.lead.nome || c.telefone, 'Conectando…', `<button class="vm" title="Desligar" onclick="aaiDesligar()">⛔</button>`, false);
+    try {
+      await novaConexao(); LG.id = c.id; LG.ini = 0; LG.mudo = false;
+      await LG.pc.setRemoteDescription({ type: 'offer', sdp: c.sdp_oferta });
+      const an = await LG.pc.createAnswer(); await LG.pc.setLocalDescription(an); await esperarIce();
+      await call('atender', { call_id: c.id, sdp: LG.pc.localDescription.sdp, lead_id: c.lead_id });
+      clearInterval(LG.timer); LG.timer = setInterval(vigiar, 2500);
+      if (c.lead_id) { try { navigateTo('conversas'); aaiAbrir(String(c.lead_id)); } catch (e) {} }
+    } catch (e) { fecharPainel(); alert(e.message); }
+  };
+  window.aaiRecusar = async () => { const c = LG.oferta; LG.vistas[c.id] = 'recusou'; fecharPainel(); call('recusar', { call_id: c.id }).catch(() => {}); };
+  setInterval(() => { if (typeof user !== 'undefined' && user) verTocando(); }, 4000);
   window.aaiArquivoEscolhido = input => {
     const f = input.files && input.files[0]; if (!f) return;
     if (f.size > 16 * 1024 * 1024) { aviso('O arquivo passa de 16 MB. Envie um arquivo menor.', true); return; }
@@ -18590,6 +18788,157 @@ function limparErrosLocais() {
   try { renderCloserAgenda = window.renderCloserAgenda; } catch (e) {}
   setInterval(() => { if (!user) return; if (!document.hidden) renderNova(); verificarAlertas(); }, 30000);
   setInterval(() => { if (user) carregarExtras(true); }, 120000);
+})();
+</script>
+
+<!-- ===================================================================
+     MÓDULO FUNIL (painel comercial) · v2 · dentro de Admin
+     Conversão por etapa, por origem, por Closer e por faixa; tempo até a
+     primeira resposta; no-show; receita. Só para admin.
+     =================================================================== -->
+<style>
+  .afn-sec{border:1.5px solid rgba(197,240,24,.35);border-radius:14px;padding:1.25rem;margin-bottom:18px;background:rgba(197,240,24,.03)}
+  .afn-cab{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .afn-cab .tit{font-size:18px;font-weight:800;color:#d9f56b;cursor:pointer}
+  .afn{padding:14px 0 4px}
+  .afn-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .afn-top h2{margin:0;font-size:24px}
+  .afn-top select{background:var(--surface);color:inherit;border:1px solid var(--border);border-radius:10px;padding:9px 12px;font:inherit;font-weight:700}
+  .afn-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .afn-k{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
+  .afn-k span{display:block;font-size:12px;color:var(--text-secondary,#9aa);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .afn-k b{display:block;font-size:26px;margin-top:4px}
+  .afn-k small{font-size:12px;color:var(--text-secondary,#9aa)}
+  .afn-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+  .afn-box h3{margin:0 0 12px;font-size:16px}
+  .afn-bar{display:grid;grid-template-columns:150px 1fr 120px;gap:10px;align-items:center;margin:7px 0;font-size:14px}
+  .afn-bar .t{height:26px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden}
+  .afn-bar .t i{display:block;height:100%;background:linear-gradient(90deg,#C5F018,#7dbb00);border-radius:7px}
+  .afn-bar em{font-style:normal;text-align:right;font-weight:800}
+  .afn-bar em small{font-weight:600;color:var(--text-secondary,#9aa);margin-left:6px}
+  .afn table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .afn th{text-align:left;font-size:12px;color:var(--text-secondary,#9aa);font-weight:800;padding:7px 8px;border-bottom:1px solid var(--border)}
+  .afn td{padding:8px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .afn td.n{text-align:right;font-variant-numeric:tabular-nums}
+  .afn .bom{color:#22c97b;font-weight:800}.afn .mal{color:#ff6b6b;font-weight:800}
+  .afn-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:1000px){.afn-grid{grid-template-columns:1fr}.afn-bar{grid-template-columns:110px 1fr 100px}}
+  .afn-dica{font-size:12.5px;color:var(--text-secondary,#9aa);margin-top:8px}
+</style>
+<script>
+(function(){
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const RANK = { 'Contatar':0, 'Contatado':1, 'Respondeu':2, 'Diagnóstico Agendado':3, 'Diagnóstico Realizado':4, 'Proposta Enviada':5, 'Compra Agendada':6, 'Fechado':7, 'Cancelou (<7 d)':7 };
+  const num = v => { const n = Number(String(v ?? '').replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  const st = { dias: 30 };
+
+  function origemDe(l){
+    const u = l.utm || {};
+    if (u.utm_source === 'indicacao') return 'Indicação de aluno';
+    if (u.utm_source) return `${u.utm_source}${u.utm_campaign ? ' · ' + u.utm_campaign : ''}`;
+    return l.form_nome || l.origem || 'Sem origem';
+  }
+  async function carregar(){
+    const desde = new Date(Date.now() - st.dias * 86400e3).toISOString();
+    const [ls, ags, cls, msgs] = await Promise.all([
+      getAll('leads', `?select=id,status,faixa,score,closer_nome,form_nome,origem,utm,criado_em,valor_oportunidade,programa&criado_em=gte.${desde}`),
+      getAll('aa_agendamentos', `?select=lead_id,closer_id,status,inicio&criado_em=gte.${new Date(Date.now() - (st.dias + 45) * 86400e3).toISOString()}`).catch(() => []),
+      get('aa_closers', '?select=id,nome').catch(() => []),
+      getAll('whatsapp_conversas', `?select=lead_id,remetente,enviada_em&enviada_em=gte.${desde}&remetente=neq.sistema&order=enviada_em.asc`).catch(() => []),
+    ]);
+    return { ls, ags, cls, msgs };
+  }
+  function calcular(d){
+    const ag = {}, real = {}, ns = {}, closerAg = {};
+    for (const a of d.ags) { const k = String(a.lead_id); ag[k] = true; if (a.status === 'realizado') real[k] = true; if (a.status === 'no_show') ns[k] = true; closerAg[k] = a.closer_id; }
+    const nomeCloser = {}; for (const c of d.cls || []) nomeCloser[c.id] = c.nome;
+    const falou = {}, primeiraSaida = {};
+    for (const m of d.msgs) { const k = String(m.lead_id); if (m.remetente === 'lead') falou[k] = true; else if (!primeiraSaida[k]) primeiraSaida[k] = m.enviada_em; }
+    const linhas = d.ls.map(l => {
+      const k = String(l.id), r = RANK[l.status] ?? -1;
+      const fechou = l.status === 'Fechado' || l.status === 'Cancelou (<7 d)';
+      const o = {
+        l, origem: origemDe(l), faixa: (l.faixa || '-').toUpperCase(), closer: l.closer_nome || nomeCloser[closerAg[k]] || '',
+        conversou: !!falou[k] || r >= 2, agendou: !!ag[k] || r >= 3, compareceu: !!real[k] || r >= 4, noshow: !!ns[k] && !real[k],
+        proposta: r >= 5, fechou, cancelou: l.status === 'Cancelou (<7 d)', receita: l.status === 'Fechado' ? num(l.valor_oportunidade) : 0,
+      };
+      if (primeiraSaida[k] && l.criado_em) { const min = (new Date(primeiraSaida[k]) - new Date(l.criado_em)) / 60000; if (min >= 0 && min < 7 * 1440) o.resp = min; }
+      return o;
+    });
+    return linhas;
+  }
+  function soma(ls){
+    const s = { n: ls.length, conv: 0, ag: 0, comp: 0, ns: 0, prop: 0, fech: 0, canc: 0, rec: 0 };
+    for (const o of ls) { s.conv += o.conversou; s.ag += o.agendou; s.comp += o.compareceu; s.ns += o.noshow; s.prop += o.proposta; s.fech += o.fechou; s.canc += o.cancelou; s.rec += o.receita; }
+    return s;
+  }
+  function agrupar(ls, chave){
+    const g = {}; for (const o of ls) { const k = o[chave] || '—'; (g[k] = g[k] || []).push(o); }
+    return Object.entries(g).map(([k, v]) => [k, soma(v)]).sort((a, b) => b[1].fech - a[1].fech || b[1].n - a[1].n);
+  }
+  function mediana(v){ if (!v.length) return null; const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; }
+  function fmtMin(m){ if (m == null) return '—'; if (m < 1) return '< 1 min'; if (m < 60) return Math.round(m) + ' min'; return (m / 60).toFixed(1).replace('.', ',') + ' h'; }
+
+  function secao(){
+    const pg = document.getElementById('page-admin'); if (!pg) return null;
+    let sc = document.getElementById('afn-sec');
+    if (!sc) {
+      sc = document.createElement('div'); sc.id = 'afn-sec'; sc.className = 'afn-sec';
+      const hdr = pg.querySelector('.page-header');
+      (hdr ? hdr : pg.firstChild).insertAdjacentElement(hdr ? 'afterend' : 'beforebegin', sc);
+    }
+    return sc;
+  }
+  function aberto(){ try { return localStorage.getItem('afn_fechado') !== '1'; } catch (e) { return true; } }
+  window.afnAlternar = () => { const c = document.getElementById('afn-corpo'); if (!c) return; const fechar = c.style.display !== 'none'; c.style.display = fechar ? 'none' : ''; try { localStorage.setItem('afn_fechado', fechar ? '1' : '0'); } catch (e) {} const sg = document.getElementById('afn-seta'); if (sg) sg.textContent = fechar ? '▶' : '▼'; if (!fechar && !c.dataset.ok) render(); };
+  async function render(){
+    if (!user || user.papel !== 'admin') return;
+    const sc = secao(); if (!sc) return;
+    const ab = aberto();
+    sc.innerHTML = `<div class="afn-cab"><span class="tit" onclick="afnAlternar()"><span id="afn-seta">${ab ? '▼' : '▶'}</span> 📊 Funil comercial</span>
+      <select id="afn-p" onchange="afnPeriodo(this.value)" style="background:var(--surface);color:inherit;border:1px solid var(--border);border-radius:10px;padding:8px 12px;font:inherit;font-weight:700">${[[7,'Últimos 7 dias'],[30,'Últimos 30 dias'],[90,'Últimos 90 dias'],[180,'Últimos 6 meses']].map(([v, t]) => `<option value="${v}" ${st.dias == v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+      <div id="afn-corpo" style="${ab ? '' : 'display:none'}"><div class="afn"><div class="afn-box">Carregando…</div></div></div>`;
+    if (!ab) return;
+    const corpo = sc.querySelector('#afn-corpo'); corpo.dataset.ok = '1';
+    let d; try { d = await carregar(); } catch (e) { corpo.querySelector('.afn-box').innerHTML = `<span class="mal">${esc(e.message)}</span>`; return; }
+    const ls = calcular(d), t = soma(ls);
+    const resp = mediana(ls.map(o => o.resp).filter(v => v != null));
+    const kpi = (rot, val, sub) => `<div class="afn-k"><span>${rot}</span><b>${val}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+    const etapas = [['Leads', t.n], ['Conversaram', t.conv], ['Agendaram', t.ag], ['Compareceram', t.comp], ['Receberam proposta', t.prop], ['Fecharam', t.fech]];
+    const barras = etapas.map(([rot, v], i) => `<div class="afn-bar"><span>${rot}</span><div class="t"><i style="width:${Math.max(2, pct(v, t.n || 1))}%"></i></div><em>${v}<small>${i ? pct(v, etapas[i - 1][1]) + '% da etapa anterior' : ''}</small></em></div>`).join('');
+    const tab = (titulo, linhas, col1, dica) => `<div class="afn-box"><h3>${titulo}</h3><table><tr><th>${col1}</th><th class="n">Leads</th><th class="n">Agendou</th><th class="n">Compareceu</th><th class="n">No-show</th><th class="n">Vendas</th><th class="n">Lead → venda</th><th class="n">Consultoria → venda</th><th class="n">Receita</th></tr>
+      ${linhas.map(([k, s]) => `<tr><td>${esc(k)}</td><td class="n">${s.n}</td><td class="n">${s.ag} <small>(${pct(s.ag, s.n)}%)</small></td><td class="n">${s.comp}</td><td class="n ${pct(s.ns, s.ag) > 30 ? 'mal' : ''}">${pct(s.ns, s.ag)}%</td><td class="n"><b>${s.fech}</b></td><td class="n">${pct(s.fech, s.n)}%</td><td class="n ${pct(s.fech, s.comp) >= 30 ? 'bom' : ''}">${pct(s.fech, s.comp)}%</td><td class="n">${brl(s.rec)}</td></tr>`).join('') || '<tr><td colspan="9">Sem dados no período.</td></tr>'}</table>${dica ? `<div class="afn-dica">${dica}</div>` : ''}</div>`;
+    // semanas
+    const sem = {}; for (const o of ls) { const dt = new Date(o.l.criado_em); const seg = new Date(dt); seg.setDate(dt.getDate() - ((dt.getDay() + 6) % 7)); const k = seg.toISOString().slice(0, 10); (sem[k] = sem[k] || []).push(o); }
+    const semanas = Object.entries(sem).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12).map(([k, v]) => [new Date(k + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), soma(v)]);
+    corpo.querySelector('.afn').innerHTML = `
+      <div class="afn-kpis">
+        ${kpi('Leads', t.n)}
+        ${kpi('1ª resposta (mediana)', fmtMin(resp), 'do cadastro à 1ª mensagem')}
+        ${kpi('Agendamento', pct(t.ag, t.n) + '%', `${t.ag} agendaram`)}
+        ${kpi('Comparecimento', pct(t.comp, t.ag) + '%', `no-show: ${pct(t.ns, t.ag)}%`)}
+        ${kpi('Consultoria → venda', pct(t.fech, t.comp) + '%', `${t.fech} vendas`)}
+        ${kpi('Receita', brl(t.rec), t.canc ? `${t.canc} cancelaram em 7 dias` : 'sem cancelamentos')}
+      </div>
+      <div class="afn-box"><h3>Funil do período (leads que entraram nos últimos ${st.dias} dias)</h3>${barras}
+        <div class="afn-dica">Leia de cima para baixo: a etapa com a maior queda é onde está o dinheiro parado.</div></div>
+      ${tab('Por origem (anúncio, campanha, formulário, indicação)', agrupar(ls, 'origem'), 'Origem', 'Corte verba de origens com muitos leads e nenhuma venda; aumente onde "Lead → venda" é maior.')}
+      <div class="afn-grid">
+        ${tab('Por Closer', agrupar(ls.filter(o => o.agendou), 'closer'), 'Closer', 'Compare "Consultoria → venda" e no-show entre os Closers.')}
+        ${tab('Por faixa da Bia (A, B, C)', agrupar(ls, 'faixa'), 'Faixa', 'Se a faixa A não converte mais que a B, a nota da Bia precisa de ajuste.')}
+      </div>
+      ${tab('Semana a semana (pela semana de entrada do lead)', semanas, 'Semana de')}`;
+  }
+  window.afnPeriodo = v => { st.dias = Number(v); render(); };
+
+  const _ras = window.renderAdminSeguro;
+  if (typeof _ras === 'function') {
+    window.renderAdminSeguro = function(){ const r = _ras.apply(this, arguments); try { render(); } catch (e) { console.error(e); } return r; };
+    try { renderAdminSeguro = window.renderAdminSeguro; } catch (e) {}
+  }
+  try { if (typeof user !== 'undefined' && user && document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) render(); } catch (e) {}
 })();
 </script>
 </body>
