@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.12'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.13'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17419,7 +17419,7 @@ function limparErrosLocais() {
         <span id="aa-wa-msg" style="font-size:13px"></span>
       </div></div>`;
     const r = lead.respostas || {};
-    const rot = { momento:'Momento', instituicao_atual:'Instituição atual', cargo_atual:'Cargo atual', tempo_cargo:'Tempo no cargo', cargo_desejado:'Vaga desejada', instituicao_desejada:'Instituição desejada', certificacao:'Certificação', processos:'Processos sem avançar', tempo_tentando:'Tentando há', travas:'Travas', preparo:'Preparo', formacao:'Formação', prazo:'Prazo', urgencia:'Urgência (0-10)', renda:'Renda', orientacao:'Quer orientação?', intencao:'Intenção (resposta no chat)', motivo_espera:'Motivo para esperar', entrevista:'Entrevista marcada', b35:'Case B35', impacto:'Como afeta você e a família', cenario:'Daqui a 12 meses, se nada mudar', frase:'Nas palavras do lead', visao:'O que muda com a conquista' };
+    const rot = { momento:'Momento', instituicao_atual:'Instituição atual', cargo_atual:'Cargo atual', tempo_cargo:'Tempo no cargo', cargo_desejado:'Vaga desejada', instituicao_desejada:'Instituição desejada', certificacao:'Certificação', processos:'Processos sem avançar', tempo_tentando:'Tentando há', travas:'Travas', preparo:'Preparo', formacao:'Formação', prazo:'Prazo', urgencia:'Urgência (0-10)', renda:'Renda', orientacao:'Quer orientação?', intencao:'Intenção (resposta no chat)', motivo_espera:'Motivo para esperar', entrevista:'Entrevista marcada', b35:'Case B35', impacto:'Como afeta você e a família', cenario:'Daqui a 12 meses, se nada mudar', frase:'Nas palavras do lead', visao:'O que muda com a conquista', investimento:'Disposto a investir', codigo:'Código do chat' };
     const linhas = Object.keys(rot).filter(k => r[k] !== undefined && r[k] !== '' && r[k] !== false && r[k] !== null).map(k => `<b>${rot[k]}</b><span>${aaEsc(Array.isArray(r[k]) ? r[k].join(' · ') : r[k])}</span>`).join('');
     if (!lead.faixa && !linhas) { dg.innerHTML = `<div class="aa-box"><h4>Diagnóstico automático</h4><span style="color:var(--muted)">Ainda sem diagnóstico para este lead.</span> <button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('recalcular','${id}')">Calcular agora</button></div>`; return; }
     dg.innerHTML = `<div class="aa-box"><h4>Diagnóstico automático ${aaFaixaBadge(lead)}</h4>
