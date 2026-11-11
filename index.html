@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.9'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.10'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17705,6 +17705,9 @@ function limparErrosLocais() {
   .aai-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
   .aai-head h3{margin:0;font-size:17px}
   .aai-sub{font-size:12.5px;color:var(--muted)}
+  .aai-sub2{display:flex;gap:8px;align-items:center;margin:4px 0 2px}
+  .aai-st{font-size:14px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);padding:3px 10px;border-radius:999px}
+  .aai-prog{font-size:12px;font-weight:700;color:#e8eaf0;border:1px solid rgba(255,255,255,.25);padding:3px 9px;border-radius:999px;letter-spacing:.5px}
   .aai-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
   .aai-th{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.12)}
   .aai-m{max-width:72%;padding:8px 11px 5px;border-radius:12px;font-size:14.5px;line-height:1.42;white-space:pre-wrap;word-wrap:break-word}
@@ -17956,6 +17959,16 @@ function limparErrosLocais() {
     }).join('');
     atualizarContador(lista.reduce((s, c) => s + (c.naoLidas ? 1 : 0), 0));
   }
+  function corStatus(s) {
+    s = String(s || '').toLowerCase();
+    if (/fechad|matricul|ganho/.test(s)) return '#22e584';
+    if (/agendad|confirmad/.test(s)) return '#3fa9ff';
+    if (/negocia|proposta|checkout/.test(s)) return '#ffb020';
+    if (/perdid|no.?show|desist|cancel/.test(s)) return '#ff5c5c';
+    if (/contat|novo/.test(s)) return '#c58bff';
+    return '#3fa9ff';
+  }
+
   function atualizarContador(n){
     const b = document.getElementById('nav-conversas'); if (!b) return;
     let s = b.querySelector('.aai-un'); 
@@ -18010,7 +18023,7 @@ function limparErrosLocais() {
       <div class="aai-head">
         <button class="btn btn-ghost btn-sm aai-back" onclick="aaiVoltar()">← Contatos</button>
         <div><h3>${esc(l.nome || 'Sem nome')} ${window.aaFaixaBadge ? aaFaixaBadge(l) : ''}</h3>
-          <div class="aai-sub">${esc(l.telefone || '')}${l.status ? ' · ' + esc(l.status) : ''}${l.perfil_playbook ? ' · ' + esc(l.perfil_playbook) : ''}${l.produto_sugerido ? ' · ' + esc(l.produto_sugerido) : ''}</div>
+          <div class="aai-sub aai-sub2">${l.status ? `<span class="aai-st" style="--c:${corStatus(l.status)}">${esc(l.status)}</span>` : ''}${(l.produto_sugerido || l.programa) ? `<span class="aai-prog">${/mba/i.test(l.programa || l.produto_sugerido || '') ? 'MBA' : 'FBA'}</span>` : ''}</div>
           <div class="aai-sub">${pausada ? '<b style="color:#f5a623">⏸ IA pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 IA respondendo sozinha</b>'}${l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : ''}</div></div>
         <div class="aai-acts">
           ${pausada ? `<button class="btn btn-primary btn-sm" title="A IA lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a IA</button>` : `<button class="btn btn-primary btn-sm" title="A IA para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar IA e assumir</button>`}
