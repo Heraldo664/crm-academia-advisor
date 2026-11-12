@@ -96,7 +96,9 @@ function render(){
   const slotsTipo = (S.slots || []).map(x => ({ ...x, horarios: x.horarios.filter(h => !lib || Date.parse(h.inicio) >= lib) })).filter(x => x.horarios.length);
   if (!slotsTipo.some(x => x.data === dia)) dia = slotsTipo[0] ? slotsTipo[0].data : null;
   const d = slotsTipo.find(x => x.data === dia);
-  const aviso = lib && lib > Date.now() ? '<p class="sub" style="margin:0 0 12px;color:var(--acc)">Entre uma ' + (tipo === 'mentoria' ? 'mentoria' : 'simulação') + ' e a próxima há um intervalo de ' + ((S.intervalo_dias || {})[tipo] || 30) + ' dias, para você aplicar o plano de ação. A próxima pode ser a partir de ' + new Date(lib).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + '.</p>' : '';
+  const libMat = S.liberacao && Date.parse(S.liberacao) > Date.now() && lib === Date.parse(S.liberacao);
+  const aviso = libMat ? '<p class="sub" style="margin:0 0 12px;color:var(--acc)">As mentorias e simulações são liberadas a partir do 8º dia da sua matrícula. Você já pode escolher um horário a partir de ' + new Date(lib).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + '. Enquanto isso, comece pelas aulas da plataforma.</p>'
+    : lib && lib > Date.now() ? '<p class="sub" style="margin:0 0 12px;color:var(--acc)">Entre uma ' + (tipo === 'mentoria' ? 'mentoria' : 'simulação') + ' e a próxima há um intervalo de ' + ((S.intervalo_dias || {})[tipo] || 30) + ' dias, para você aplicar o plano de ação. A próxima pode ser a partir de ' + new Date(lib).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + '.</p>' : '';
   const agendar = !temDireito
     ? '<div class="card"><h2>Seus direitos foram utilizados</h2><p class="sub">Você já usou todas as suas mentorias e simulações. Se precisar de algo, fale com a gente no WhatsApp.</p></div>'
     : '<div class="card"><h2>Agendar</h2>'

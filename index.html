@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.18'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.19'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17412,8 +17412,8 @@ function limparErrosLocais() {
       <div class="aa-row">
         <button type="button" class="btn btn-primary btn-sm" onclick="aaEnviarManual('${id}')">Enviar pelo WhatsApp oficial</button>
         ${(lead.automacao_whatsapp_status && lead.automacao_whatsapp_status !== 'ativa')
-          ? `<button type="button" class="btn btn-sm aa-btw" title="A IA lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaAcaoLead('devolver','${id}')">▶ Devolver para a IA</button>`
-          : `<button type="button" class="btn btn-sm aa-btw" title="A IA para de responder nesta conversa e você assume" onclick="aaAcaoLead('assumir','${id}')">⏸ Pausar IA e assumir</button>`}
+          ? `<button type="button" class="btn btn-sm aa-btw" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaAcaoLead('devolver','${id}')">▶ Devolver para a Bia</button>`
+          : `<button type="button" class="btn btn-sm aa-btw" title="A Bia para de responder nesta conversa e você assume" onclick="aaAcaoLead('assumir','${id}')">⏸ Pausar Bia e assumir</button>`}
         ${lead.status === 'Fechado' ? `<button type="button" class="btn btn-sm aa-btw" title="O aluno foi aprovado ou promovido: registra a conquista e a Bia parabeniza, pede um depoimento em vídeo e envia o link de indicação" onclick="aaConquista('${id}')">🏆 Registrar conquista</button>` : ''}
         <button type="button" class="btn btn-sm aa-btw" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaAcaoLead('noshow','${id}')">No-show: oferecer novo horário</button>
         <span id="aa-wa-msg" style="font-size:13px"></span>
@@ -17436,7 +17436,7 @@ function limparErrosLocais() {
     const el = document.getElementById('aa-wa-txt'), msg = document.getElementById('aa-wa-msg');
     const texto = (el.value || '').trim(); if (!texto) return;
     msg.textContent = 'Enviando...';
-    try { await aaCall('aa-whatsapp', 'enviar_manual', { lead_id: id, texto }); el.value = ''; msg.innerHTML = '<span class="aa-ok">Enviado. IA pausada nesta conversa.</span>';
+    try { await aaCall('aa-whatsapp', 'enviar_manual', { lead_id: id, texto }); el.value = ''; msg.innerHTML = '<span class="aa-ok">Enviado. Bia pausada nesta conversa.</span>';
       const lead = leads.find(l => l.id === id); if (lead) { lead.automacao_whatsapp_status = 'pausada_humano'; renderWhatsappConversa(lead); } }
     catch (e) { msg.innerHTML = `<span class="aa-no">${aaEsc(e.message)}</span>`; }
   };
@@ -17504,7 +17504,7 @@ function limparErrosLocais() {
     const evs = st ? Object.entries(st.ultimos).map(([k,v]) => `<tr><td>${k}</td><td>${v ? new Date(v.criado_em).toLocaleString('pt-BR') : '<span style="color:var(--muted)">nunca</span>'}</td><td style="font-size:12px;color:var(--muted)">${v && v.dados && Object.keys(v.dados).length ? aaEsc(JSON.stringify(v.dados).slice(0,160)) : ''}</td></tr>`).join('') : '';
     return `<div class="aa-grid2">
       <div><label>Automação de envios</label><select id="aa-g-auto"><option value="0" ${!geral.automacao_ligada?'selected':''}>Desligada (só números de teste)</option><option value="1" ${geral.automacao_ligada?'selected':''}>LIGADA para todos os leads</option></select></div>
-      <div><label>IA respondendo no WhatsApp</label><select id="aa-g-ia"><option value="1" ${geral.ia_ligada?'selected':''}>Ligada</option><option value="0" ${!geral.ia_ligada?'selected':''}>Desligada</option></select></div>
+      <div><label>Bia respondendo no WhatsApp</label><select id="aa-g-ia"><option value="1" ${geral.ia_ligada?'selected':''}>Ligada</option><option value="0" ${!geral.ia_ligada?'selected':''}>Desligada</option></select></div>
       <div><label>Números de teste (separe por vírgula)</label><input id="aa-g-teste" value="${aaEsc((geral.numeros_teste||[]).join(', '))}"></div>
       <div><label>Nome que assina a abordagem (sem SDR)</label><input id="aa-g-ass" value="${aaEsc(geral.assinatura_sdr||'')}"></div>
       <div><label>Link do chat de diagnóstico</label><input id="aa-g-url" value="${aaEsc(geral.url_diagnostico||'')}"></div>
@@ -17868,7 +17868,7 @@ function limparErrosLocais() {
     if (primeiro && novos.every(x => Date.now() - new Date(x.enviada_em).getTime() > 10 * 60000)) return; // só alertas recentes ao abrir o CRM
     bips();
     const l = leadDe(novos[0].lead_id);
-    try { if (window.Notification && Notification.permission === 'granted') { const n = new Notification('Conversa precisa de você', { body: `${l ? l.nome : 'Lead'}: ${String(novos[0].texto || '').replace(/^(Atenção da equipe|IA pausada): /, '').slice(0, 140)}`, tag: 'aa-' + novos[0].lead_id, requireInteraction: true }); n.onclick = () => { try { window.focus(); navigateTo('conversas'); aaiAbrir(String(novos[0].lead_id)); } catch (e) {} n.close(); }; } } catch (e) {}
+    try { if (window.Notification && Notification.permission === 'granted') { const n = new Notification('Conversa precisa de você', { body: `${l ? l.nome : 'Lead'}: ${String(novos[0].texto || '').replace(/^(Atenção da equipe|IA pausada|Bia pausada): /, '').slice(0, 140)}`, tag: 'aa-' + novos[0].lead_id, requireInteraction: true }); n.onclick = () => { try { window.focus(); navigateTo('conversas'); aaiAbrir(String(novos[0].lead_id)); } catch (e) {} n.close(); }; } } catch (e) {}
   }
   // ------------------------------------------------ painel "IA pausada: lead esperando você" (aparece em qualquer tela)
   // Entrar: abre a conversa e some até o lead mandar outra mensagem. Depois: some por 1 hora e volta se ninguém entrar.
@@ -17904,7 +17904,7 @@ function limparErrosLocais() {
       #aa-pausadas .pz-e{background:#22c97b;border:0;color:#08130d}
       #aa-pausadas .pz-d{background:transparent;border:1px solid rgba(255,255,255,.35);color:#e8eaf0}
     </style>
-    <div class="pz-h">⏸ IA pausada: lead esperando você <span>${lista.length} ${lista.length > 1 ? 'conversas' : 'conversa'}</span></div>
+    <div class="pz-h">⏸ Bia pausada: lead esperando você <span>${lista.length} ${lista.length > 1 ? 'conversas' : 'conversa'}</span></div>
     <div class="pz-l">${lista.map(x => `<div class="pz-i">
       <div class="pz-n">${esc(x.l.nome || x.l.telefone || 'Lead')}<small>${tempo(x.m.enviada_em)}</small></div>
       <div class="pz-t">${esc(String(x.m.texto || '').slice(0, 120))}</div>
@@ -17966,7 +17966,7 @@ function limparErrosLocais() {
     if (pg.dataset.ok) return;
     pg.dataset.ok = '1';
     pg.innerHTML = `<div class="aai" id="aai">
-      <section class="aai-main" id="aai-main"><div class="aai-vazio">Escolha uma conversa na lista à esquerda.<br><br>Aqui você acompanha o que a IA está falando, assume a conversa quando quiser e responde pelo WhatsApp oficial.</div></section>
+      <section class="aai-main" id="aai-main"><div class="aai-vazio">Escolha uma conversa na lista à esquerda.<br><br>Aqui você acompanha o que a Bia está falando, assume a conversa quando quiser e responde pelo WhatsApp oficial.</div></section>
       <aside class="aai-side">
         <div class="aai-side-h">
           <input id="aai-busca" placeholder="Buscar por nome ou telefone" oninput="aaiBusca(this.value)">
@@ -17982,8 +17982,8 @@ function limparErrosLocais() {
     const f = [
       ['todas', 'Todas', 'Todas as conversas do WhatsApp oficial'],
       ['naolidas', 'Não lidas', 'Conversas com mensagens do lead que você ainda não abriu'],
-      ['humano', 'Atenção', 'Precisa de você: a IA sinalizou (bips) ou está pausada e alguém da equipe precisa responder'],
-      ['ia', 'IA', 'Conversas em que a IA está respondendo sozinha'],
+      ['humano', 'Atenção', 'Precisa de você: a Bia sinalizou (bips) ou está pausada e alguém da equipe precisa responder'],
+      ['ia', 'Bia', 'Conversas em que a Bia está respondendo sozinha'],
       ['minhas', 'Meus', 'Só os leads em que você é o SDR ou o Closer responsável'],
     ];
     const salvo = st.filtro; const cont = {};
@@ -17998,12 +17998,12 @@ function limparErrosLocais() {
     if (!lista.length) { el.innerHTML = `<div class="aai-vazio">${st.msgs.length ? 'Nenhuma conversa neste filtro.' : 'Ainda não há conversas.<br>Elas aparecem aqui assim que o WhatsApp oficial começar a enviar e receber mensagens.'}</div>`; atualizarContador(0); return; }
     el.innerHTML = lista.map(c => {
       const l = c.lead, u = c.ultima;
-      const quem = u.remetente === 'lead' ? '' : u.remetente === 'humano' ? 'Você: ' : u.remetente === 'sistema' ? '⚠ ' : 'IA: ';
+      const quem = u.remetente === 'lead' ? '' : u.remetente === 'humano' ? 'Você: ' : u.remetente === 'sistema' ? '⚠ ' : 'Bia: ';
       const fx = (l.faixa || '').toUpperCase();
       const estado = c.alerta ? 'alerta' : iaPausada(l) ? 'hum' : 'ia';
       const meta = [
         fx ? `<span class="fx ${esc(fx)}">${esc(fx)}${l.score != null ? ' · ' + esc(l.score) : ''}</span>` : '',
-        c.alerta ? '<span class="al">● Precisa de você</span>' : iaPausada(l) ? '<span class="eq">⏸ Equipe no comando</span>' : '<span class="ok">● IA respondendo</span>',
+        c.alerta ? '<span class="al">● Precisa de você</span>' : iaPausada(l) ? '<span class="eq">⏸ Equipe no comando</span>' : '<span class="ok">● Bia respondendo</span>',
         l.status ? `<span>· ${esc(l.status)}</span>` : '',
       ].join('');
       return `<div class="aai-c ${String(st.sel) === String(c.id) ? 'sel' : ''}" onclick="aaiAbrir('${esc(c.id)}')" title="${esc(l.nome || '')}">
@@ -18057,7 +18057,7 @@ function limparErrosLocais() {
       const hr = new Date(m.enviada_em).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
       if (m.remetente === 'sistema' || m.tipo === 'sistema') return sep + `<div class="aai-m aai-sis">${esc(m.texto)}<small>${hr}</small></div>`;
       const cls = m.remetente === 'lead' ? 'aai-lead' : m.remetente === 'humano' ? 'aai-hum' : 'aai-ia';
-      const autor = m.remetente === 'lead' ? '' : m.remetente === 'humano' ? (m.autor_nome || 'Equipe') + ' · ' : (m.tipo === 'template' ? 'Automação (modelo) · ' : 'IA · ');
+      const autor = m.remetente === 'lead' ? '' : m.remetente === 'humano' ? (m.autor_nome || 'Equipe') + ' · ' : (m.tipo === 'template' ? 'Automação (modelo) · ' : 'Bia · ');
       const tx = m.tipo === 'audio' && !m.texto ? '🎤 Áudio' : (m.texto || `[${m.tipo || 'mensagem'}]`);
       let midia = '';
       if (m.midia_url) {
@@ -18082,9 +18082,9 @@ function limparErrosLocais() {
         <button class="btn btn-ghost btn-sm aai-back" onclick="aaiVoltar()">← Contatos</button>
         <div><h3>${esc(l.nome || 'Sem nome')} ${window.aaFaixaBadge ? aaFaixaBadge(l) : ''}</h3>
           <div class="aai-sub aai-sub2">${l.status ? `<span class="aai-st" style="--c:${corStatus(l.status)}">${esc(l.status)}</span>` : ''}${(l.produto_sugerido || l.programa) ? `<span class="aai-prog">${/mba/i.test(l.programa || l.produto_sugerido || '') ? 'MBA' : 'FBA'}</span>` : ''}</div>
-          <div class="aai-sub">${pausada ? '<b style="color:#f5a623">⏸ IA pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 IA respondendo sozinha</b>'}${l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : ''}</div></div>
+          <div class="aai-sub">${pausada ? '<b style="color:#f5a623">⏸ Bia pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 Bia respondendo sozinha</b>'}${l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : ''}</div></div>
         <div class="aai-acts">
-          ${pausada ? `<button class="btn btn-primary btn-sm" title="A IA lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a IA</button>` : `<button class="btn btn-primary btn-sm" title="A IA para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar IA e assumir</button>`}
+          ${pausada ? `<button class="btn btn-primary btn-sm" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a Bia</button>` : `<button class="btn btn-primary btn-sm" title="A Bia para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar Bia e assumir</button>`}
           <button class="btn btn-sm aai-bt" title="Abre o cadastro completo do lead no CRM" onclick="aaiFicha()">Abrir ficha</button>
           <button class="btn btn-sm aai-bt" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaiAcao('noshow')">No-show</button>
           <button class="btn btn-sm aai-bt" title="Gera o link de pagamento no Asaas e envia ao lead pelo WhatsApp. Quando ele pagar, o lead vira Fechado sozinho e a Bia começa o acompanhamento do aluno." onclick="aaiCobrar()">💳 Cobrar</button>
@@ -18105,7 +18105,7 @@ function limparErrosLocais() {
           <div id="aai-lock" class="aai-lock" style="display:none">🔒<small>⬆</small></div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span class="aai-info">${janela}${restante > 0 ? ' Ao responder, a IA pausa nesta conversa.' : ''}</span>
+          <span class="aai-info">${janela}${restante > 0 ? ' Ao responder, a Bia pausa nesta conversa.' : ''}</span>
           ${restante <= 0 && !l.opt_out ? (st.msgs.some(m => m.remetente === 'lead')
             ? `<button class="btn btn-sm aai-bt" title="Envia o modelo aprovado &quot;Ficou pendente a nossa conversa…&quot;. Quando o lead responder, a janela reabre e a Bia continua." onclick="aaiModelo('aa_retomar_conversa')">💬 Retomar conversa</button>`
             : `<button class="btn btn-sm aai-bt" title="Envia o modelo de primeiro contato com os botões &quot;Já trabalho em banco&quot; e &quot;Quero entrar no banco&quot;" onclick="aaiModelo('aa_primeiro_contato')">👋 Primeiro contato</button>`) : ''}
