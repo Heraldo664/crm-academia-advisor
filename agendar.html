@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0B0B">
+<title>Agendar mentoria · Academia Advisor</title>
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0B0B0B;--card:#141414;--line:#262626;--tx:#F5F5F2;--tx2:#A3A39E;--acc:#C5F018}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;justify-content:center;padding:28px 16px;-webkit-font-smoothing:antialiased}
+  .wrap{width:100%;max-width:620px}
+  .top{display:flex;align-items:center;gap:10px;font-weight:800;margin-bottom:18px}
+  .top img{width:32px;height:32px;border-radius:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 20px;margin-bottom:16px}
+  h1{font-size:23px;margin:0 0 6px}
+  h2{font-size:17px;margin:0 0 12px}
+  .sub{color:var(--tx2);margin:0 0 4px;line-height:1.5}
+  .dir{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .dir div{border:1px solid var(--line);border-radius:14px;padding:14px}
+  .dir b{display:block;font-size:26px}
+  .dir span{color:var(--tx2);font-size:13.5px}
+  .tipos{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .tipos button{flex:1;min-width:150px;border:2px solid var(--line);background:transparent;color:var(--tx);border-radius:12px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .tipos button.on{border-color:var(--acc);background:rgba(197,240,24,.1)}
+  .tipos button:disabled{opacity:.4;cursor:not-allowed}
+  .dias{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+  .dias button{flex:0 0 auto;border:1.5px solid var(--line);background:transparent;color:var(--tx);border-radius:12px;padding:9px 12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;min-width:62px}
+  .dias button small{display:block;color:var(--tx2);font-weight:700;font-size:11.5px}
+  .dias button.on{border-color:var(--acc);background:var(--acc);color:#0b0b0b}
+  .dias button.on small{color:#0b0b0b}
+  .horas{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+  .horas button{border:1.5px solid var(--line);background:transparent;color:var(--tx);border-radius:10px;padding:11px 0;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+  .horas button.on{border-color:var(--acc);background:rgba(197,240,24,.12)}
+  .btn{display:block;width:100%;margin-top:16px;border:0;border-radius:12px;background:var(--acc);color:#0b0b0b;font-weight:800;font-size:17px;padding:15px;cursor:pointer;font-family:inherit;text-align:center;text-decoration:none}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .ag{border-top:1px solid var(--line);padding:13px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .ag:first-of-type{border-top:0}
+  .ag .q{flex:1;min-width:200px}
+  .ag .q b{display:block}
+  .ag .q span{color:var(--tx2);font-size:13.5px}
+  .ag a,.ag button{border-radius:10px;padding:8px 14px;font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;text-decoration:none}
+  .ag a{background:#22c97b;color:#08130d}
+  .ag button{background:transparent;border:1px solid var(--line);color:var(--tx2)}
+  .tag{display:inline-block;font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;margin-left:6px;border:1px solid var(--line);color:var(--tx2)}
+  .msg{margin-top:12px;font-weight:700}
+  .erro{color:#ff7b7b}.ok{color:var(--acc)}
+  .vazio{color:var(--tx2);padding:8px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><img src="/icon-192.png" alt="">Academia Advisor</div>
+  <div id="app"><div class="card"><p class="sub">Carregando os seus agendamentos...</p></div></div>
+</div>
+<script>
+const API = 'https://spnhtjqwafqubgybyobx.supabase.co/functions/v1/aa-diagnostico';
+const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
+const T = new URLSearchParams(location.search).get('t') || '';
+const NOME = { mentoria: 'Mentoria individual', simulacao: 'Simulação de entrevista' };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const cap = s => { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); };
+const quando = iso => cap(new Date(iso).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+let S = null, tipo = null, dia = null, ini = null, msg = '';
+function api(acao, extra){
+  return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: ANON, Authorization: 'Bearer ' + ANON }, body: JSON.stringify({ acao, t: T, ...(extra || {}) }) })
+    .then(r => r.json()).catch(() => ({ erro: 'Sem conexão. Verifique a internet e tente de novo.' }));
+}
+async function carregar(){
+  S = await api('aluno_info');
+  if (!S.erro) {
+    if (!tipo || !S.restantes[tipo]) tipo = S.restantes.mentoria > 0 ? 'mentoria' : S.restantes.simulacao > 0 ? 'simulacao' : null;
+    if (!dia || !(S.slots || []).some(d => d.data === dia)) dia = (S.slots && S.slots[0] && S.slots[0].data) || null;
+  }
+  render();
+}
+function render(){
+  const app = document.getElementById('app');
+  if (!T) { app.innerHTML = '<div class="card"><h1>Link incompleto</h1><p class="sub">Abra esta página pelo botão de agendamento da plataforma.</p></div>'; return; }
+  if (S.erro) { app.innerHTML = '<div class="card"><h1>Não foi possível abrir</h1><p class="sub">' + esc(S.erro) + '</p></div>'; return; }
+  const ativos = (S.agendamentos || []).filter(a => ['agendado', 'confirmado'].includes(a.status) && Date.parse(a.inicio) > Date.now() - 3600e3);
+  const lim = S.cancelar_ate_horas || 12;
+  const minhas = ativos.length ? ativos.map(a => {
+    const podeCancelar = Date.parse(a.inicio) - Date.now() > lim * 3600e3;
+    return '<div class="ag"><div class="q"><b>' + esc(NOME[a.tipo] || 'Mentoria') + '</b><span>' + esc(quando(a.inicio)) + (a.com ? ' · com ' + esc(a.com) : '') + '</span></div>'
+      + (a.link ? '<a href="' + esc(a.link) + '" target="_blank" rel="noopener">Entrar</a>' : '')
+      + (podeCancelar ? '<button onclick="cancelar(\'' + esc(a.id) + '\')">Cancelar</button>' : '') + '</div>';
+  }).join('') : '<div class="vazio">Nenhum agendamento marcado.</div>';
+  const temDireito = S.restantes.mentoria > 0 || S.restantes.simulacao > 0;
+  const d = (S.slots || []).find(x => x.data === dia);
+  const agendar = !temDireito
+    ? '<div class="card"><h2>Seus direitos foram utilizados</h2><p class="sub">Você já usou todas as suas mentorias e simulações. Se precisar de algo, fale com a gente no WhatsApp.</p></div>'
+    : '<div class="card"><h2>Agendar</h2>'
+      + '<div class="tipos">' + ['mentoria', 'simulacao'].map(t => '<button class="' + (tipo === t ? 'on' : '') + '" ' + (S.restantes[t] > 0 ? '' : 'disabled') + ' onclick="setTipo(\'' + t + '\')">' + NOME[t] + '<br><span style="font-weight:600;font-size:12.5px;color:var(--tx2)">' + (S.restantes[t] > 0 ? S.restantes[t] + ' de ' + S.total[t] + ' disponível' : 'já utilizadas') + '</span></button>').join('') + '</div>'
+      + ((S.slots || []).length ? '<div class="dias">' + S.slots.map(x => { const dt = new Date(x.data + 'T12:00:00-03:00'); return '<button class="' + (x.data === dia ? 'on' : '') + '" onclick="setDia(\'' + x.data + '\')"><small>' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][dt.getUTCDay()] + '</small>' + String(dt.getUTCDate()).padStart(2, '0') + '/' + String(dt.getUTCMonth() + 1).padStart(2, '0') + '</button>'; }).join('') + '</div>'
+        + '<div class="horas">' + (d ? d.horarios.map(h => '<button class="' + (h.inicio === ini ? 'on' : '') + '" onclick="setHora(\'' + h.inicio + '\')">' + h.hora + '</button>').join('') : '') + '</div>'
+        + '<button class="btn" id="conf" ' + (tipo && ini ? '' : 'disabled') + ' onclick="confirmar()">' + (tipo && ini ? 'Confirmar ' + NOME[tipo].toLowerCase() + ' · ' + esc(quando(ini)) : 'Escolha o dia e o horário') + '</button>'
+        : '<p class="sub">Não há horários livres nos próximos dias. Tente de novo amanhã ou fale com a gente no WhatsApp.</p>')
+      + (msg ? '<div class="msg ' + (msg.startsWith('✅') ? 'ok' : 'erro') + '">' + esc(msg) + '</div>' : '') + '</div>';
+  document.getElementById('app').innerHTML =
+    '<div class="card"><h1>Olá, ' + esc(S.nome || 'aluno') + '!</h1><p class="sub">Aqui você agenda as suas mentorias individuais e simulações de entrevista' + (S.programa ? ' da ' + esc(S.programa) : '') + '.</p>'
+    + '<div class="dir"><div><b>' + S.restantes.mentoria + ' de ' + S.total.mentoria + '</b><span>mentorias disponíveis</span></div><div><b>' + S.restantes.simulacao + ' de ' + S.total.simulacao + '</b><span>simulações disponíveis</span></div></div></div>'
+    + '<div class="card"><h2>Seus agendamentos</h2>' + minhas + (ativos.length ? '<p class="sub" style="margin-top:8px;font-size:13px">Para cancelar, faça com pelo menos ' + lim + ' horas de antecedência: o direito volta para você.</p>' : '') + '</div>'
+    + agendar;
+}
+function setTipo(t){ tipo = t; msg = ''; render(); }
+function setDia(x){ dia = x; ini = null; msg = ''; render(); }
+function setHora(i){ ini = i; msg = ''; render(); }
+async function confirmar(){
+  const b = document.getElementById('conf'); if (b) { b.disabled = true; b.textContent = 'Agendando...'; }
+  const r = await api('aluno_agendar', { tipo, inicio: ini });
+  if (r.erro) { msg = r.erro; ini = null; await carregar(); return; }
+  msg = '✅ ' + NOME[r.tipo] + ' confirmada: ' + quando(r.inicio) + (r.com ? ', com ' + r.com : '') + '. Você também recebe a confirmação por e-mail.';
+  ini = null; await carregar();
+}
+async function cancelar(id){
+  if (!confirm('Cancelar este agendamento? O direito volta para você.')) return;
+  const r = await api('aluno_cancelar', { id });
+  msg = r.erro ? r.erro : '✅ Agendamento cancelado. O direito voltou para você.';
+  await carregar();
+}
+carregar();
+</script>
+</body>
+</html>

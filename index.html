@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.16'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.17'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -19024,5 +19024,163 @@ function limparErrosLocais() {
   try { if (typeof user !== 'undefined' && user && document.getElementById('page-admin') && document.getElementById('page-admin').classList.contains('active')) render(); } catch (e) {}
 })();
 </script>
+<!-- ===================================================================
+     MENTORIAS E SIMULAÇÕES (agendadas pelos alunos; ficam em aa_agendamentos com tipo mentoria/simulacao)
+     Botão "Mentoria" no topo: número grande com os agendamentos dos
+     próximos 7 dias, bipe 1 hora antes e painel com aluno, direitos e link.
+     =================================================================== -->
+<style>
+  #instagram-btn{display:none!important}
+  .mt-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 18px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:#fff;font-size:15px;font-weight:800;cursor:pointer;flex-shrink:0;white-space:nowrap;margin:0 auto 0 6px}
+  .mt-btn:hover{background:var(--surface3);border-color:#ffffff44}
+  .mt-num{display:none;min-width:30px;height:30px;padding:0 8px;border-radius:15px;background:#C5F018;color:#0b0b0b;font-size:19px;font-weight:900;align-items:center;justify-content:center;line-height:1}
+  .mt-num.on{display:inline-flex}
+  .mt-num.agora{background:#ff9f43;color:#160c00;animation:mtPulse 1s infinite}
+  @keyframes mtPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  .mt-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:flex-start;justify-content:center;padding:60px 14px;overflow:auto}
+  .mt-box{width:min(860px,100%);background:#161b26;border:1px solid var(--border);border-radius:16px;color:#e8eaf0;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .mt-hd{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)}
+  .mt-hd h3{margin:0;font-size:20px}
+  .mt-hd button{margin-left:auto;background:transparent;border:1px solid var(--border);color:#fff;border-radius:10px;padding:6px 12px;cursor:pointer;font-weight:700}
+  .mt-tabs{display:flex;gap:10px;padding:14px 20px 0}
+  .mt-tabs button{border:2px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:12px;padding:9px 20px;font-weight:800;font-size:15px;cursor:pointer}
+  .mt-tabs button.on{background:#C5F018;color:#0b0b0b;border-color:#C5F018}
+  .mt-lista{padding:8px 20px 20px}
+  .mt-dia{font-size:12.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+  .mt-it{display:grid;grid-template-columns:70px 1fr;gap:14px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}
+  .mt-h{font-size:20px;font-weight:900}
+  .mt-h small{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-top:2px}
+  .mt-nome{font-size:17px;font-weight:800;cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,.25);text-underline-offset:3px}
+  .mt-tag{display:inline-block;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;margin-left:8px;vertical-align:2px}
+  .mt-tag.m{background:rgba(63,169,255,.16);color:#6cc0ff;border:1px solid rgba(63,169,255,.45)}
+  .mt-tag.s{background:rgba(197,240,24,.14);color:#C5F018;border:1px solid rgba(197,240,24,.45)}
+  .mt-tag.c{background:rgba(255,92,92,.14);color:#ff7b7b;border:1px solid rgba(255,92,92,.45)}
+  .mt-sub{font-size:13.5px;color:#b9c0cf;margin:4px 0 9px}
+  .mt-acts{display:flex;gap:8px;flex-wrap:wrap}
+  .mt-acts a,.mt-acts button{border-radius:9px;padding:7px 14px;font-weight:800;font-size:13.5px;cursor:pointer;text-decoration:none;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}
+  .mt-acts .ent{background:#22c97b;border:0;color:#08130d}
+  .mt-vazio{padding:30px 0;text-align:center;color:var(--muted)}
+</style>
+<script>
+(function(){
+  const MT = { lista: [], direitos: {}, aba: 'proximas', aberto: false };
+  const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const hora = d => new Date(d).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+  const diaRot = d => new Date(d).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', day: '2-digit', month: '2-digit' });
+  const ativo = m => !/cancel/i.test(m.status || '');
+
+  function criarBotao(){
+    if (document.getElementById('mt-btn')) return;
+    const nav = document.getElementById('topbar-nav'); if (!nav) return;
+    const b = document.createElement('button');
+    b.id = 'mt-btn'; b.className = 'mt-btn'; b.title = 'Mentorias e simulações agendadas pelos alunos';
+    b.innerHTML = 'Mentoria <span class="mt-num" id="mt-num"></span>';
+    b.onclick = () => abrir();
+    nav.parentNode.insertBefore(b, nav.nextSibling);   // logo depois dos botões do menu
+  }
+
+  async function carregar(){
+    if (typeof user === 'undefined' || !user) return;
+    const desde = new Date(Date.now() - 7 * 86400e3).toISOString();
+    const ate = new Date(Date.now() + 30 * 86400e3).toISOString();
+    const [ags, cls, dirCfg] = await Promise.all([
+      get('aa_agendamentos', `?select=id,lead_id,closer_id,tipo,inicio,fim,status,sala_link,observacao&tipo=in.(mentoria,simulacao)&inicio=gte.${encodeURIComponent(desde)}&inicio=lte.${encodeURIComponent(ate)}&order=inicio.asc`).catch(() => null),
+      get('aa_closers', '?select=id,nome,colaborador_id').catch(() => []),
+      get('aa_config', '?chave=eq.direitos&select=valor').catch(() => []),
+    ]);
+    if (!ags) return;
+    const cfgDir = (dirCfg && dirCfg[0] && dirCfg[0].valor) || {};
+    const ids = [...new Set(ags.map(m => m.lead_id).filter(Boolean))];
+    const [lds, todos] = ids.length ? await Promise.all([
+      get('leads', `?id=in.(${ids.join(',')})&select=id,nome,telefone,email,programa`).catch(() => []),
+      get('aa_agendamentos', `?select=id,lead_id,tipo,inicio,status&tipo=in.(mentoria,simulacao)&lead_id=in.(${ids.join(',')})&order=inicio.asc`).catch(() => []),
+    ]) : [[], []];
+    const leadDe = id => (lds || []).find(l => String(l.id) === String(id)) || {};
+    const closerDe = id => (cls || []).find(c => c.id === id) || {};
+    // número de cada agendamento (1º, 2º...) e direitos usados por aluno
+    MT.direitos = {}; const ordem = {};
+    for (const t of todos || []) {
+      if (!ativo(t)) continue;
+      const d = MT.direitos[t.lead_id] || (MT.direitos[t.lead_id] = { mentoria: 0, simulacao: 0 });
+      d[t.tipo] = (d[t.tipo] || 0) + 1; ordem[t.id] = d[t.tipo];
+    }
+    MT.total = id => { const p = /mba/i.test(leadDe(id).programa || '') ? cfgDir.mba : cfgDir.formacao; return { mentoria: (p && p.mentoria) || 2, simulacao: (p && p.simulacao) || 2 }; };
+    MT.lista = ags.map(a => { const cl = closerDe(a.closer_id), l = leadDe(a.lead_id); return { ...a, aluno_nome: l.nome, telefone: l.telefone, mentor: cl.nome, colaborador_id: cl.colaborador_id, link: a.sala_link, numero: ordem[a.id] || null }; })
+      .filter(m => { try { return user.papel === 'admin' || String(m.colaborador_id) === String(user.id); } catch (e) { return true; } });
+    badge(); alertar();
+    if (MT.aberto) render();
+  }
+
+  function proximas(){ const agora = Date.now(); return MT.lista.filter(m => ativo(m) && Date.parse(m.inicio) > agora - 60 * 60e3); }
+  function badge(){
+    const el = document.getElementById('mt-num'); if (!el) return;
+    const agora = Date.now();
+    const semana = MT.lista.filter(m => ativo(m) && Date.parse(m.inicio) > agora && Date.parse(m.inicio) < agora + 7 * 86400e3);
+    const emBreve = semana.some(m => Date.parse(m.inicio) - agora <= 60 * 60e3);
+    el.textContent = semana.length; el.classList.toggle('on', semana.length > 0); el.classList.toggle('agora', emBreve);
+    const b = document.getElementById('mt-btn'); if (b) b.title = semana.length ? `${semana.length} mentoria(s)/simulação(ões) nos próximos 7 dias${emBreve ? ' · uma começa em menos de 1 hora' : ''}` : 'Nenhuma mentoria agendada nos próximos 7 dias';
+  }
+  // bipe e notificação 1 hora antes (uma vez por agendamento, por navegador)
+  function alertar(){
+    let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('mt_alertados') || '{}'); } catch (e) {}
+    const agora = Date.now();
+    for (const m of MT.lista) {
+      const falta = Date.parse(m.inicio) - agora;
+      if (!ativo(m) || falta <= 0 || falta > 60 * 60e3 || vistos[m.id + m.inicio]) continue;
+      vistos[m.id + m.inicio] = 1; try { localStorage.setItem('mt_alertados', JSON.stringify(vistos)); } catch (e) {}
+      try { window.aaBips && window.aaBips(); } catch (e) {}
+      const txt = `${m.tipo === 'simulacao' ? 'Simulação' : 'Mentoria'} com ${m.aluno_nome || 'aluno'} às ${hora(m.inicio)}${m.mentor ? ' (' + m.mentor + ')' : ''}`;
+      try { if (window.Notification && Notification.permission === 'granted') { const n = new Notification('⏰ Começa em 1 hora', { body: txt, tag: 'mt-' + m.id, requireInteraction: true }); n.onclick = () => { window.focus(); abrir(); n.close(); }; } } catch (e) {}
+      try { if (typeof showToast === 'function') showToast('⏰ ' + txt); } catch (e) {}
+    }
+  }
+
+  function abrir(){ MT.aberto = true; render(); carregar(); }
+  window.mtFechar = () => { MT.aberto = false; const o = document.getElementById('mt-ov'); if (o) o.remove(); };
+  window.mtAba = a => { MT.aba = a; render(); };
+  window.mtAluno = async id => {
+    if (!id) return;
+    mtFechar();
+    try {
+      if (typeof leads !== 'undefined' && leads.find(l => String(l.id) === String(id))) { editLead(id); return; }
+      const r = await get('leads', `?id=eq.${id}&select=*`); if (r && r[0]) openLeadModal(r[0]);
+    } catch (e) {}
+  };
+  window.mtWhats = id => { mtFechar(); try { navigateTo('conversas'); setTimeout(() => { try { aaiAbrir(String(id)); } catch (e) {} }, 200); } catch (e) {} };
+
+  function render(){
+    let ov = document.getElementById('mt-ov');
+    if (!ov) { ov = document.createElement('div'); ov.id = 'mt-ov'; ov.className = 'mt-ov'; ov.onclick = e => { if (e.target === ov) mtFechar(); }; document.body.appendChild(ov); }
+    const agora = Date.now();
+    const lista = MT.aba === 'proximas' ? proximas() : MT.lista.filter(m => Date.parse(m.inicio) <= agora - 60 * 60e3 || !ativo(m)).reverse();
+    let html = '', dia = '';
+    for (const m of lista) {
+      const d = diaRot(m.inicio);
+      if (d !== dia) { dia = d; html += `<div class="mt-dia">${esc(d)}</div>`; }
+      const dir = MT.direitos[m.lead_id] || { mentoria: 0, simulacao: 0 }, tot = MT.total ? MT.total(m.lead_id) : { mentoria: 2, simulacao: 2 };
+      const falta = Date.parse(m.inicio) - agora;
+      html += `<div class="mt-it"><div class="mt-h">${hora(m.inicio)}<small>${falta > 0 && falta < 86400e3 ? (falta < 3600e3 ? 'em ' + Math.max(1, Math.round(falta / 60e3)) + ' min' : 'em ' + Math.floor(falta / 3600e3) + 'h') : ''}</small></div>
+        <div><span class="mt-nome" onclick="mtAluno('${esc(m.lead_id || '')}')" title="Abrir cadastro do aluno">${esc(m.aluno_nome || 'Aluno')}</span>
+          <span class="mt-tag ${m.tipo === 'simulacao' ? 's' : 'm'}">${m.tipo === 'simulacao' ? 'Simulação' : 'Mentoria'}${m.numero ? ' ' + m.numero + '/' + tot[m.tipo === 'simulacao' ? 'simulacao' : 'mentoria'] : ''}</span>${!ativo(m) ? '<span class="mt-tag c">Cancelada</span>' : ''}
+          <div class="mt-sub">${m.mentor ? 'Com ' + esc(m.mentor) + ' · ' : ''}Direitos usados: mentorias ${dir.mentoria}/${tot.mentoria} · simulações ${dir.simulacao}/${tot.simulacao}${m.observacao ? ' · ' + esc(m.observacao) : ''}</div>
+          <div class="mt-acts">${m.link ? `<a class="ent" href="${esc(m.link)}" target="_blank" rel="noopener">▶ Entrar</a>` : ''}${m.lead_id ? `<button onclick="mtAluno('${esc(m.lead_id)}')">Cadastro</button><button onclick="mtWhats('${esc(m.lead_id)}')">💬 WhatsApp</button>` : ''}</div>
+        </div></div>`;
+    }
+    const nP = proximas().length;
+    ov.innerHTML = `<div class="mt-box"><div class="mt-hd"><h3>🎓 Mentorias e simulações</h3><button onclick="mtFechar()">Fechar</button></div>
+      <div class="mt-tabs"><button class="${MT.aba === 'proximas' ? 'on' : ''}" onclick="mtAba('proximas')">Próximas${nP ? ' · ' + nP : ''}</button><button class="${MT.aba === 'passadas' ? 'on' : ''}" onclick="mtAba('passadas')">Últimos 7 dias</button></div>
+      <div class="mt-lista">${html || `<div class="mt-vazio">${MT.aba === 'proximas' ? 'Nenhuma mentoria ou simulação agendada.' : 'Nada nos últimos 7 dias.'}</div>`}</div></div>`;
+  }
+
+  function iniciar(){
+    criarBotao();
+    carregar();
+    setInterval(() => { if (document.hidden) { alertar(); badge(); return; } criarBotao(); carregar(); }, 60000);
+  }
+  // espera o login do CRM
+  const espera = setInterval(() => { if (typeof user !== 'undefined' && user && document.querySelector('.topbar-user')) { clearInterval(espera); iniciar(); } }, 1000);
+})();
+</script>
+
 </body>
 </html>
