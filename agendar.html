@@ -91,12 +91,17 @@ function render(){
       + (podeCancelar ? '<button onclick="cancelar(\'' + esc(a.id) + '\')">Cancelar</button>' : '') + '</div>';
   }).join('') : '<div class="vazio">Nenhum agendamento marcado.</div>';
   const temDireito = S.restantes.mentoria > 0 || S.restantes.simulacao > 0;
-  const d = (S.slots || []).find(x => x.data === dia);
+  // intervalo mínimo entre mentorias: só mostra dias a partir da data liberada para o tipo escolhido
+  const lib = tipo && S.a_partir && S.a_partir[tipo] ? Date.parse(S.a_partir[tipo]) : 0;
+  const slotsTipo = (S.slots || []).map(x => ({ ...x, horarios: x.horarios.filter(h => !lib || Date.parse(h.inicio) >= lib) })).filter(x => x.horarios.length);
+  if (!slotsTipo.some(x => x.data === dia)) dia = slotsTipo[0] ? slotsTipo[0].data : null;
+  const d = slotsTipo.find(x => x.data === dia);
+  const aviso = lib && lib > Date.now() ? '<p class="sub" style="margin:0 0 12px;color:var(--acc)">Entre uma ' + (tipo === 'mentoria' ? 'mentoria' : 'simulação') + ' e a próxima há um intervalo de ' + ((S.intervalo_dias || {})[tipo] || 30) + ' dias, para você aplicar o plano de ação. A próxima pode ser a partir de ' + new Date(lib).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }) + '.</p>' : '';
   const agendar = !temDireito
     ? '<div class="card"><h2>Seus direitos foram utilizados</h2><p class="sub">Você já usou todas as suas mentorias e simulações. Se precisar de algo, fale com a gente no WhatsApp.</p></div>'
     : '<div class="card"><h2>Agendar</h2>'
       + '<div class="tipos">' + ['mentoria', 'simulacao'].map(t => '<button class="' + (tipo === t ? 'on' : '') + '" ' + (S.restantes[t] > 0 ? '' : 'disabled') + ' onclick="setTipo(\'' + t + '\')">' + NOME[t] + '<br><span style="font-weight:600;font-size:12.5px;color:var(--tx2)">' + (S.restantes[t] > 0 ? S.restantes[t] + ' de ' + S.total[t] + ' disponível' : 'já utilizadas') + '</span></button>').join('') + '</div>'
-      + ((S.slots || []).length ? '<div class="dias">' + S.slots.map(x => { const dt = new Date(x.data + 'T12:00:00-03:00'); return '<button class="' + (x.data === dia ? 'on' : '') + '" onclick="setDia(\'' + x.data + '\')"><small>' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][dt.getUTCDay()] + '</small>' + String(dt.getUTCDate()).padStart(2, '0') + '/' + String(dt.getUTCMonth() + 1).padStart(2, '0') + '</button>'; }).join('') + '</div>'
+      + aviso + (slotsTipo.length ? '<div class="dias">' + slotsTipo.map(x => { const dt = new Date(x.data + 'T12:00:00-03:00'); return '<button class="' + (x.data === dia ? 'on' : '') + '" onclick="setDia(\'' + x.data + '\')"><small>' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][dt.getUTCDay()] + '</small>' + String(dt.getUTCDate()).padStart(2, '0') + '/' + String(dt.getUTCMonth() + 1).padStart(2, '0') + '</button>'; }).join('') + '</div>'
         + '<div class="horas">' + (d ? d.horarios.map(h => '<button class="' + (h.inicio === ini ? 'on' : '') + '" onclick="setHora(\'' + h.inicio + '\')">' + h.hora + '</button>').join('') : '') + '</div>'
         + '<button class="btn" id="conf" ' + (tipo && ini ? '' : 'disabled') + ' onclick="confirmar()">' + (tipo && ini ? 'Confirmar ' + NOME[tipo].toLowerCase() + ' · ' + esc(quando(ini)) : 'Escolha o dia e o horário') + '</button>'
         : '<p class="sub">Não há horários livres nos próximos dias. Tente de novo amanhã ou fale com a gente no WhatsApp.</p>')
