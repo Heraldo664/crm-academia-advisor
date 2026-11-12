@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.17'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.18'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18926,7 +18926,7 @@ function limparErrosLocais() {
   async function carregar(){
     const desde = new Date(Date.now() - st.dias * 86400e3).toISOString();
     const [ls, ags, cls, msgs] = await Promise.all([
-      getAll('leads', `?select=id,status,faixa,score,closer_nome,form_nome,origem,utm,criado_em,valor_oportunidade,programa&criado_em=gte.${desde}`),
+      getAll('leads', `?select=id,status,faixa,score,closer_nome,form_nome,origem,utm,criado_em,valor_oportunidade,programa&criado_em=gte.${desde}&or=(respostas->>_importado.is.null,respostas->>_importado.neq.true)`),
       getAll('aa_agendamentos', `?select=lead_id,closer_id,status,inicio&criado_em=gte.${new Date(Date.now() - (st.dias + 45) * 86400e3).toISOString()}`).catch(() => []),
       get('aa_closers', '?select=id,nome').catch(() => []),
       getAll('whatsapp_conversas', `?select=lead_id,remetente,enviada_em&enviada_em=gte.${desde}&remetente=neq.sistema&order=enviada_em.asc`).catch(() => []),
@@ -19182,5 +19182,17 @@ function limparErrosLocais() {
 })();
 </script>
 
+<script>
+/* Alunos antigos importados da plataforma (respostas._importado) não são vendas novas:
+   os painéis de métricas calculam sem eles (eles continuam normalmente na lista de Leads). */
+(function(){
+  const semImportados = l => !(l && l.respostas && (l.respostas._importado === true || l.respostas._importado === 'true'));
+  ['renderDashboard', 'renderDashboardExecutivo', 'renderDashGeral', 'renderDashHojeEMes', 'renderDashIndividual'].forEach(function(n){
+    const f = window[n]; if (typeof f !== 'function' || f._semImp) return;
+    const g = function(){ const orig = leads; leads = orig.filter(semImportados); try { return f.apply(this, arguments); } finally { leads = orig; } };
+    g._semImp = true; window[n] = g;
+  });
+})();
+</script>
 </body>
 </html>
