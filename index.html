@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.21'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.22'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18764,7 +18764,7 @@ function limparErrosLocais() {
         <div class="ag-nome">${esc(l.nome || 'Lead')} ${faixa} ${chipConfirmacao(it)}${it.ag?.lead_entrou_em && !it.realizado && Date.now() - new Date(it.ag.lead_entrou_em) < 3 * 3600e3 ? `<span class="ag-chip ag-ok" title="O lead tocou em Entrar na consultoria">🟢 Entrou na sala às ${new Date(it.ag.lead_entrou_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}</span>` : ''}</div>
         <div class="ag-sub">${esc(it.tipo === 'diag' ? '🩺 Consultoria de diagnóstico' : '📞 Call de fechamento')}${sub ? ' · ' + esc(sub) : ''}</div>
         <div class="ag-acts">
-          ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener" class="btn btn-sm ag-entrar ${min <= 10 && min > -45 && !it.realizado ? 'pulsa' : ''}">▶ Entrar na reunião</a>`
+          ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener" onclick="agEntrou('${lid}', ${it.tipo === 'call' ? 'true' : 'false'})" class="btn btn-sm ag-entrar ${min <= 10 && min > -45 && !it.realizado ? 'pulsa' : ''}">▶ Entrar na reunião</a>`
                  : `<button class="btn btn-ghost btn-sm ag-sem-link" onclick="agSemLink()">▶ Entrar na reunião</button>`}
           <button class="btn btn-ghost btn-sm" onclick="agBrief('${esc(chave)}')">📋 Briefing</button>
           <button class="btn btn-ghost btn-sm" onclick="agWhats('${lid}')">💬 WhatsApp</button>
@@ -18817,6 +18817,8 @@ function limparErrosLocais() {
   window.agReagendar = async id => { if (!confirm('Enviar ao lead 2 novos horários pelo WhatsApp para reagendar?')) return; try { await call('reagendar', { lead_id: id }); A.carregadoEm = 0; carregarExtras(true); alert('Horários enviados ao lead.'); } catch (e) { alert(e.message); } };
   window.agNoShow = async id => { if (!confirm('Marcar no-show e enviar ao lead 2 opções de novo horário?')) return; try { await call('noshow', { lead_id: id }); A.carregadoEm = 0; carregarExtras(true); } catch (e) { alert(e.message); } };
 
+  // o Closer clicou em "Entrar na reunião": 1 h depois, se ninguém registrar o resultado, a consultoria vira "Diagnóstico Realizado"
+  window.agEntrou = (leadId, ehCall) => { if (!ehCall) call('reuniao_entrou', { lead_id: leadId }).catch(() => {}); };
   window.agResultado = (leadId, tarefaId) => {
     const l = leads.find(x => String(x.id) === String(leadId)) || {};
     const progs = [...(document.querySelectorAll('#l-programa option') || [])].map(o => o.value).filter(Boolean);
@@ -18826,7 +18828,10 @@ function limparErrosLocais() {
       <h3 style="margin:0">Resultado da consultoria</h3>
       <div class="ag-sub">${esc(l.nome || '')}</div>
       <div class="ag-op">
-        <label><input type="radio" name="agr" value="matriculou">🎉 Matriculou</label>
+        <label><input type="radio" name="agr" value="realizado">✅ Realizada (ainda sem decisão)</label>
+        <label><input type="radio" name="agr" value="noshow">🚫 Não compareceu (no-show)</label>
+        <label><input type="radio" name="agr" value="cancelar_consultoria">❌ Lead cancelou (liberar o horário)</label>
+        <label><input type="radio" name="agr" value="matriculou">🎉 Matriculou (Fechado)</label>
         <label><input type="radio" name="agr" value="proposta">📄 Proposta enviada</label>
         <label><input type="radio" name="agr" value="pensar">🤔 Vai pensar</label>
         <label><input type="radio" name="agr" value="perdeu">✖ Não fechou</label>
@@ -18840,7 +18845,8 @@ function limparErrosLocais() {
     const amanha = somaDias(hojeSP(), 1);
     m.querySelectorAll('input[name=agr]').forEach(r => r.onchange = () => {
       const v = r.value;
-      campos.innerHTML = v === 'matriculou' ? `<div class="campo">Programa<select id="agr-prog">${(progs.length ? progs : ['Formação Banker & Advisor', 'MBA Advisory, Wealth & Private Banking']).map(p => `<option>${esc(p)}</option>`).join('')}</select></div><div class="campo">Valor da venda (R$)<input id="agr-valor" inputmode="decimal" placeholder="Ex: 3.997"></div>`
+      campos.innerHTML = (v === 'realizado' || v === 'noshow' || v === 'cancelar_consultoria') ? `<div class="ag-sub">${v === 'cancelar_consultoria' ? 'Cancela a consultoria e libera o horário na agenda (inclusive no Google). A Bia continua a conversa e remarca quando o lead chamar.' : v === 'noshow' ? 'A Bia manda 2 novos horários para o lead pelo WhatsApp.' : 'A Bia faz o acompanhamento pós-consultoria a partir de amanhã. Registre a decisão depois, quando houver.'}</div>`
+        : v === 'matriculou' ? `<div class="campo">Programa<select id="agr-prog">${(progs.length ? progs : ['Formação Banker & Advisor', 'MBA Advisory, Wealth & Private Banking']).map(p => `<option>${esc(p)}</option>`).join('')}</select></div><div class="campo">Valor da venda (R$)<input id="agr-valor" inputmode="decimal" placeholder="Ex: 3.997"></div>`
         : v === 'proposta' ? `<div class="campo">Data de retorno combinada<input type="date" id="agr-data" value="${somaDias(hojeSP(), 2)}" min="${amanha}"></div><div class="ag-sub" style="margin-top:6px">Cria as tarefas de follow-up em D+1 e na data de retorno.</div>`
         : v === 'pensar' ? `<div class="campo">O que ele quer pensar?<select id="agr-mot"><option>Investimento</option><option>Momento / tempo</option><option>Falar com cônjuge ou família</option><option>Comparar com outras opções</option><option>Confiança / resultado</option><option>Outro</option></select></div><div class="ag-sub" style="margin-top:6px">Cria as tarefas de follow-up em D+1 e D+3.</div>`
         : `<div class="campo">Motivo<select id="agr-mot">${(motivos.length ? motivos : [['outro', 'Outro']]).map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('')}</select></div><label class="campo" style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="agr-nutrir" checked style="width:auto;margin:0">Enviar para nutrição (aulas e depoimentos gratuitos pelo WhatsApp)</label>`;
@@ -18850,6 +18856,18 @@ function limparErrosLocais() {
       const sel = m.querySelector('input[name=agr]:checked'); if (!sel) { alert('Escolha o resultado.'); return; }
       const q = id => m.querySelector('#' + id);
       const dados = { lead_id: leadId, tipo: sel.value, obs: q('agr-obs').value.trim() };
+      if (sel.value === 'realizado' || sel.value === 'noshow' || sel.value === 'cancelar_consultoria') {
+        ev.target.disabled = true; ev.target.textContent = 'Salvando…';
+        try {
+          await call(sel.value, { lead_id: leadId, obs: q('agr-obs').value.trim() });
+          if (tarefaId) await patch('tarefas', { concluida: true, status_reuniao: sel.value === 'realizado' ? 'compareceu' : 'faltou' }, `id=eq.${tarefaId}`).catch(() => {});
+          const fr = await get('leads', `?id=eq.${leadId}&select=*`).catch(() => []);
+          if (fr && fr[0]) { const i = leads.findIndex(x => String(x.id) === String(leadId)); if (i >= 0) leads[i] = fr[0]; }
+          m.remove(); A.carregadoEm = 0; carregarExtras(true);
+          if (typeof renderLeadsTable === 'function') renderLeadsTable();
+        } catch (e) { alert(e.message); ev.target.disabled = false; ev.target.textContent = 'Salvar resultado'; }
+        return;
+      }
       if (sel.value === 'matriculou') { dados.programa = q('agr-prog').value; dados.valor = q('agr-valor').value.trim(); }
       if (sel.value === 'proposta') dados.data_retorno = q('agr-data').value;
       if (sel.value === 'pensar' || sel.value === 'perdeu') dados.motivo = q('agr-mot').value;
