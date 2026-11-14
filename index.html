@@ -7223,6 +7223,7 @@ window.__initGuiaMentor = init;
     </div>
 
     <input type="hidden" id="l-id">
+    <div id="aa-resumo-closer"></div>
     <div id="l-err" class="err"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modal-lead')">Cancelar</button>
@@ -7601,7 +7602,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.24'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.25'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17358,6 +17359,15 @@ function limparErrosLocais() {
   .aa-box{border:1px solid rgba(197,240,24,.35);background:rgba(197,240,24,.04);border-radius:12px;padding:12px 14px;margin:10px 0 14px}
   .aa-box h4{font-size:15px;font-weight:800;margin:0 0 8px;color:#d9f56b}
   .aa-pre{white-space:pre-wrap;font-size:14px;line-height:1.45;color:var(--text,#e6e6e6)}
+  .aa-rc{margin:18px 0 6px;padding:18px 20px;border:1px solid var(--border,#2c3446);border-radius:14px;background:rgba(255,255,255,.02)}
+  .aa-rc h3{margin:0 0 6px;font-size:20px}
+  .aa-rc h3 span{font-weight:500;color:var(--muted);font-size:16px;margin-left:6px}
+  .aa-rc-sec{margin:16px 0 8px;font-size:13px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+  .aa-rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .aa-rc-item{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px}
+  .aa-rc-item.largo{grid-column:1/-1}
+  .aa-rc-k{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+  .aa-rc-v{font-size:16.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
   .aa-kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13.5px;margin:6px 0}
   .aa-kv b{color:var(--muted,#9aa)}
   .aa-wa{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px}
@@ -17427,10 +17437,33 @@ function limparErrosLocais() {
       <b>Custo de esperar</b><span>${lead.gap_mensal ? 'R$ ' + Number(lead.gap_mensal).toLocaleString('pt-BR') + '/mês' : '-'}</span>
       <b>Dor nas palavras do lead</b><span>${lead.dor_palavras ? '“' + aaEsc(lead.dor_palavras) + '”' : '-'}</span>
       ${lead.pendentes && lead.pendentes.length ? `<b>Ainda falta saber</b><span>${aaEsc(lead.pendentes.join(', '))}</span>` : ''}</div>
-      ${lead.resumo_closer ? `<details open><summary style="cursor:pointer;font-weight:700;margin:8px 0">Resumo para o Closer</summary><div class="aa-pre">${aaEsc(lead.resumo_closer)}</div></details>` : ''}
+      ${lead.resumo_closer ? `<div style="margin:8px 0;color:var(--muted);font-size:13px">📋 O Resumo para o Closer está logo abaixo do cadastro.</div>` : ''}
       ${lead.espelho ? `<details><summary style="cursor:pointer;font-weight:700;margin:8px 0">Espelho que o lead viu</summary><div class="aa-pre">${aaEsc(lead.espelho)}</div></details>` : ''}
       ${linhas ? `<details><summary style="cursor:pointer;font-weight:700;margin:8px 0">Todas as respostas</summary><div class="aa-kv">${linhas}</div></details>` : ''}
       <div class="aa-row" style="margin-top:8px"><button type="button" class="btn btn-ghost btn-sm" onclick="aaAcaoLead('recalcular','${id}')">Recalcular</button></div></div>`;
+    aaResumoCloser(lead);
+  }
+  // Resumo para o Closer: largura total, abaixo do cadastro, em cartões legíveis
+  function aaResumoCloser(lead){
+    const box = document.getElementById('aa-resumo-closer'); if (!box) return;
+    const txt = String((lead && lead.resumo_closer) || '').trim();
+    if (!txt) { box.innerHTML = ''; return; }
+    const vazio = v => !v || /^[-–\s]*$/.test(v) || /^-\/10$/.test(v.trim()) || /^-\.?$/.test(v.trim());
+    const link = v => aaEsc(v).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    const bia = [], diag = [];
+    let alvo = diag;
+    txt.split('\n').forEach(linha => {
+      linha = linha.trim(); if (!linha) { alvo = diag; return; }
+      if (/^RESUMO DA BIA/i.test(linha)) { alvo = bia; return; }
+      if (linha.startsWith('•')) { const t = linha.slice(1).trim(), k = t.indexOf(': '); if (k > 0) bia.push([t.slice(0, k), t.slice(k + 2)]); else bia.push(['', t]); return; }
+      linha.split(/\.\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ][^:.]{1,45}:\s)/).forEach(seg => {
+        const k = seg.indexOf(': '); if (k > 0) diag.push([seg.slice(0, k).trim(), seg.slice(k + 2).replace(/\.$/, '').trim()]); else if (seg.trim()) diag.push(['', seg.trim()]);
+      });
+    });
+    const cards = arr => arr.filter(([, v]) => !vazio(v)).map(([k, v]) => `<div class="aa-rc-item${v.length > 90 ? ' largo' : ''}">${k ? `<div class="aa-rc-k">${aaEsc(k)}</div>` : ''}<div class="aa-rc-v">${link(v)}</div></div>`).join('');
+    box.innerHTML = `<div class="aa-rc"><h3>📋 Resumo para o Closer <span>${aaEsc(lead.nome || '')}</span></h3>
+      ${bia.length ? `<div class="aa-rc-sec">Da conversa com a Bia (WhatsApp)</div><div class="aa-rc-grid">${cards(bia)}</div>` : ''}
+      ${diag.length ? `<div class="aa-rc-sec">Do diagnóstico automático</div><div class="aa-rc-grid">${cards(diag)}</div>` : ''}</div>`;
   }
   window.aaEnviarManual = async function(id){
     const el = document.getElementById('aa-wa-txt'), msg = document.getElementById('aa-wa-msg');
