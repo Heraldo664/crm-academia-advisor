@@ -7602,7 +7602,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.25'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.26'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -8907,24 +8907,30 @@ function renderDashboardExecutivo() {
 function renderCentralObjecoes() {
   const el = document.getElementById('dash-objecoes');
   if (!el) return;
-  const perdidos = leads.filter(l => l.status === 'Perdido' && l.motivo_perda);
+  // duplicados não são perda de venda: ficam fora do ranking
+  const todos = leads.filter(l => l.status === 'Perdido' && l.motivo_perda);
+  const dup = todos.filter(l => /^duplicad/i.test(String(l.motivo_perda))).length;
+  const perdidos = todos.filter(l => !/^duplicad/i.test(String(l.motivo_perda)));
   if (!perdidos.length) {
-    el.innerHTML = '<div class="empty">Nenhuma perda registrada ainda.</div>';
+    el.innerHTML = '<div class="empty">Nenhuma perda registrada ainda.</div>' + (dup ? `<div style="color:var(--muted);font-size:14px;margin-top:6px">${dup} lead(s) duplicado(s) não entram no ranking.</div>` : '');
     return;
   }
+  const nomes = {};
+  document.querySelectorAll('#l-motivo-perda option').forEach(o => { if (o.value) nomes[o.value] = o.textContent.trim(); });
+  const rotulo = mv => nomes[mv] || String(mv).replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
   const contagem = {};
   perdidos.forEach(l => { const mv = l.motivo_perda; contagem[mv] = (contagem[mv]||0)+1; });
   const sorted = Object.entries(contagem).sort((a,b) => b[1]-a[1]);
   const total = perdidos.length;
   const maxVal = sorted[0][1];
-  el.innerHTML = sorted.map(([motivo, count], i) => {
+  const linhas = sorted.map(([motivo, count], i) => {
     const pct = Math.round(count/total*100);
     const barPct = Math.round(count/maxVal*100);
     const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}º`;
-    return `<div style="display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;margin-bottom:10px">
+    return `<div style="display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;margin-bottom:10px;min-height:46px">
       <div style="font-size:18px;text-align:center">${medal}</div>
       <div>
-        <div style="font-size:18px;font-weight:600;margin-bottom:4px">${motivo}</div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">${String(rotulo(motivo)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</div>
         <div style="background:var(--surface3);border-radius:4px;height:6px">
           <div style="height:6px;border-radius:4px;background:var(--red);width:${barPct}%;transition:width .5s"></div>
         </div>
@@ -8932,6 +8938,9 @@ function renderCentralObjecoes() {
       <div style="font-size:18px;font-weight:700;color:var(--red);white-space:nowrap">${count} <span style="color:var(--muted);font-weight:400">(${pct}%)</span></div>
     </div>`;
   }).join('');
+  // mostra os 6 primeiros; o restante aparece rolando a lista
+  el.innerHTML = `<div style="max-height:${6 * 56}px;overflow-y:auto;padding-right:6px">${linhas}</div>`
+    + `<div style="color:var(--muted);font-size:14px;margin-top:8px">${total} perda(s)${sorted.length > 6 ? ` · ${sorted.length} motivos, role para ver todos` : ''}${dup ? ` · ${dup} duplicado(s) fora do ranking` : ''}</div>`;
 }
 
 function renderMapaProdutividade() {
