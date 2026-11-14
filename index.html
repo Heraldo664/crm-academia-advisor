@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.23'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.24'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18100,14 +18100,14 @@ function limparErrosLocais() {
         <button class="btn btn-ghost btn-sm aai-back" onclick="aaiVoltar()">← Contatos</button>
         <div><h3>${esc(l.nome || 'Sem nome')} ${window.aaFaixaBadge ? aaFaixaBadge(l) : ''}</h3>
           <div class="aai-sub aai-sub2">${l.status ? `<span class="aai-st" style="--c:${corStatus(l.status)}">${esc(l.status)}</span>` : ''}${(l.produto_sugerido || l.programa) ? `<span class="aai-prog">${/mba/i.test(l.programa || l.produto_sugerido || '') ? 'MBA' : 'FBA'}</span>` : ''}</div>
-          <div class="aai-sub">${pausada ? '<b style="color:#f5a623">⏸ Bia pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 Bia respondendo sozinha</b>'}${l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : ''}</div></div>
+          <div class="aai-sub">${l.respostas && l.respostas._bloqueado ? '<b style="color:#ff6b6b">⛔ Contato bloqueado</b>' : (pausada ? '<b style="color:#f5a623">⏸ Bia pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 Bia respondendo sozinha</b>') + (l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : '')}</div></div>
         <div class="aai-acts">
           ${pausada ? `<button class="btn btn-primary btn-sm" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a Bia</button>` : `<button class="btn btn-primary btn-sm" title="A Bia para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar Bia e assumir</button>`}
           <button class="btn btn-sm aai-bt" title="Abre o cadastro completo do lead no CRM" onclick="aaiFicha()">Abrir ficha</button>
           <button class="btn btn-sm aai-bt" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaiAcao('noshow')">No-show</button>
           <button class="btn btn-sm aai-bt" title="Gera o link de pagamento no Asaas e envia ao lead pelo WhatsApp. Quando ele pagar, o lead vira Fechado sozinho e a Bia começa o acompanhamento do aluno." onclick="aaiCobrar()">💳 Cobrar</button>
           <button class="btn btn-sm aai-bt" title="Você ligou e o lead não atendeu: envia o modelo &quot;Tentei te ligar&quot; com o seu nome (funciona mesmo fora da janela de 24 h)" onclick="aaiModelo('aa_tentei_ligar')">📞 Tentei ligar</button>
-          <button class="btn btn-sm aai-bt aai-lixo" title="Excluir a conversa ou o cadastro inteiro deste lead" onclick="aaiExcluir()">🗑️</button>
+          <button class="btn btn-sm aai-bt aai-lixo" title="Bloquear o contato, excluir a conversa ou o cadastro" onclick="aaiExcluir()">🗑️</button>
         </div>
       </div>
       <div class="aai-th" id="aai-th">${bolhas || '<div class="aai-vazio">Sem mensagens.</div>'}</div>
@@ -18186,7 +18186,9 @@ function limparErrosLocais() {
     const l = leadDe(st.sel); if (!l) return;
     document.getElementById('aai-del')?.remove();
     const d = document.createElement('div'); d.id = 'aai-del';
-    d.innerHTML = `<div class="aai-del-bx"><h4>Excluir — ${esc(l.nome || l.telefone || 'lead')}</h4>
+    const bloq = !!(l.respostas && l.respostas._bloqueado);
+    d.innerHTML = `<div class="aai-del-bx"><h4>Bloquear ou excluir — ${esc(l.nome || l.telefone || 'lead')}</h4>
+      ${bloq ? '<button class="btn btn-sm aai-bt" data-o="desbloquear">✅ Desbloquear contato</button>' : '<button class="btn btn-sm aai-bt aai-del-forte" data-o="bloquear">⛔ Bloquear contato (não consegue mais mandar mensagem)</button>'}
       <button class="btn btn-sm aai-bt" data-o="conversa">🗨️ Excluir só a conversa (mensagens)</button>
       <button class="btn btn-sm aai-bt aai-del-forte" data-o="lead">🗑️ Excluir o cadastro inteiro (lead, conversa, agenda e histórico)</button>
       <button class="btn btn-sm btn-ghost" data-o="">Cancelar</button><p class="aai-del-msg"></p></div>`;
@@ -18194,6 +18196,18 @@ function limparErrosLocais() {
     d.onclick = async ev => {
       const o = ev.target.closest('button')?.dataset.o; if (o === undefined) { if (ev.target === d) d.remove(); return; }
       if (!o) return d.remove();
+      if (o === 'bloquear' || o === 'desbloquear') {
+        if (o === 'bloquear' && !confirm(`Bloquear ${l.nome || 'este contato'}? Ele não consegue mais mandar mensagem para o WhatsApp da Academia, a Bia para de falar com ele e nenhuma automação é enviada.`)) return;
+        const m = d.querySelector('.aai-del-msg'); m.textContent = o === 'bloquear' ? 'Bloqueando...' : 'Desbloqueando...';
+        try {
+          const r = await call(o, { lead_id: l.id });
+          const fr = await get('leads', `?id=eq.${l.id}&select=*`).catch(() => []);
+          if (fr && fr[0]) { const i = leads.findIndex(x => String(x.id) === String(l.id)); if (i >= 0) leads[i] = fr[0]; else st.extra[l.id] = fr[0]; }
+          if (r.aviso && o === 'bloquear') alert('Bloqueado no CRM: a Bia e as automações pararam. No WhatsApp: ' + r.aviso + '. Se ele escrever de novo, o sistema completa o bloqueio na hora.');
+          d.remove(); st.assinatura = ''; await atualizar(true);
+        } catch (e) { m.textContent = e.message; }
+        return;
+      }
       const txt = o === 'lead' ? `Excluir DEFINITIVAMENTE o cadastro de ${l.nome || 'este lead'}? Isso apaga lead, conversa, agendamentos e histórico, e não dá para desfazer.` : `Excluir todas as mensagens da conversa com ${l.nome || 'este lead'}? O cadastro continua no CRM.`;
       if (!confirm(txt)) return;
       const m = d.querySelector('.aai-del-msg'); m.textContent = 'Excluindo...';
