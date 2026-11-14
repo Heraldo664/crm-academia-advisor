@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.22'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.23'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -19273,28 +19273,42 @@ function limparErrosLocais() {
   #aa-player input{width:100%;accent-color:#22c97b;margin:3px 0 0}
 </style>
 <script>
-// Player de áudio fixo: o áudio continua tocando mesmo quando a conversa atualiza, chega mensagem nova ou você troca de conversa.
+// Áudio em segundo plano: toca normalmente no balão; ao mudar de conversa, continua tocando no player do canto;
+// ao voltar para a conversa, o player some e o áudio segue no próprio balão.
 (function () {
   const P = new Audio(); P.preload = 'auto';
-  let src = '', leadId = '', nome = '', pipWin = null;
+  let cur = null;          // { el, src, leadId, nome }
+  let modo = '';           // 'bolha' (tocando no balão) | 'barra' (tocando no player do canto)
+  let pipWin = null;
   const bar = document.createElement('div'); bar.id = 'aa-player';
   bar.innerHTML = `<button class="pp" title="Tocar / pausar">⏸</button>
-    <div class="nm"><b title="Abrir a conversa"></b><small>0:00 / 0:00</small><input type="range" min="0" max="1000" value="0"></div>
-    <button class="vel" title="Velocidade">1x</button><button class="pip" title="Abrir em janela flutuante (fica por cima de outros programas)">⧉</button><button class="x" title="Fechar">✕</button>`;
+    <div class="nm"><b title="Voltar para a conversa"></b><small>0:00 / 0:00</small><input type="range" min="0" max="1000" value="0"></div>
+    <button class="vel" title="Velocidade">1x</button><button class="pip" title="Abrir em janela flutuante (fica por cima de outros programas)">⧉</button><button class="x" title="Parar">✕</button>`;
   const $ = q => bar.querySelector(q);
   const fmt = t => isFinite(t) ? `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}` : '0:00';
-  const marcarLista = () => { window.aaTocandoLead = (!P.paused && leadId) ? leadId : ''; document.querySelectorAll('.aai-c').forEach(el => {
-    const id = (el.getAttribute('onclick') || '').match(/aaiAbrir\('([^']+)'\)/)?.[1]; const tem = el.querySelector('.aai-tocando');
-    if (id && id === window.aaTocandoLead && !tem) el.querySelector('.aai-nome')?.insertAdjacentHTML('beforeend', '<span class="aai-tocando" title="Áudio desta conversa tocando">🔊</span>');
-    if ((!id || id !== window.aaTocandoLead) && tem) tem.remove(); }); };
+  const leadAberto = () => (document.querySelector('.aai-c.sel')?.getAttribute('onclick') || '').match(/aaiAbrir\('([^']+)'\)/)?.[1] || '';
+  const nomeAberto = () => (document.querySelector('.aai-head h3')?.childNodes[0]?.textContent || document.querySelector('.aai-c.sel')?.getAttribute('title') || 'Áudio').trim();
+  const srcDe = a => a.currentSrc || a.src || '';
+  const acharBolha = src => [...document.querySelectorAll('#aai-th audio, audio')].find(x => x !== P && x.isConnected && srcDe(x) === src);
+  const tocando = () => cur && ((modo === 'bolha' && cur.el && !cur.el.paused) || (modo === 'barra' && !P.paused));
+  const marcarLista = () => {
+    window.aaTocandoLead = tocando() ? cur.leadId : '';
+    document.querySelectorAll('.aai-c').forEach(el => {
+      const id = (el.getAttribute('onclick') || '').match(/aaiAbrir\('([^']+)'\)/)?.[1]; const tem = el.querySelector('.aai-tocando');
+      if (id && id === window.aaTocandoLead && !tem) el.querySelector('.aai-nome')?.insertAdjacentHTML('beforeend', '<span class="aai-tocando" title="Áudio desta conversa tocando">🔊</span>');
+      if ((!id || id !== window.aaTocandoLead) && tem) tem.remove();
+    });
+  };
+  const mostrarBarra = v => { if (pipWin) return; bar.style.display = v ? 'flex' : 'none'; };
   const atualizar = () => { $('.pp').textContent = P.paused ? '▶' : '⏸'; $('small').textContent = `${fmt(P.currentTime)} / ${fmt(P.duration)}`;
     if (P.duration) $('input').value = Math.round(P.currentTime / P.duration * 1000); marcarLista(); };
-  ['timeupdate', 'play', 'pause', 'loadedmetadata', 'ended'].forEach(e => P.addEventListener(e, atualizar));
+  ['timeupdate', 'play', 'pause', 'loadedmetadata'].forEach(e => P.addEventListener(e, atualizar));
+  P.addEventListener('ended', () => { cur = null; modo = ''; mostrarBarra(false); marcarLista(); if (pipWin) pipWin.close(); });
   $('.pp').onclick = () => P.paused ? P.play() : P.pause();
   $('input').oninput = e => { if (P.duration) P.currentTime = e.target.value / 1000 * P.duration; };
   $('.vel').onclick = () => { const v = { 1: 1.5, 1.5: 2, 2: 1 }[P.playbackRate] || 1; P.playbackRate = v; $('.vel').textContent = v + 'x'; };
-  $('.x').onclick = () => { P.pause(); bar.style.display = 'none'; window.aaTocandoLead = ''; marcarLista(); if (pipWin) pipWin.close(); };
-  $('b').onclick = () => { if (leadId && window.aaiAbrir) { if (typeof navigateTo === 'function') { try { navigateTo('conversas'); } catch (_) {} } window.aaiAbrir(leadId); } };
+  $('.x').onclick = () => { P.pause(); cur = null; modo = ''; mostrarBarra(false); marcarLista(); if (pipWin) pipWin.close(); };
+  $('b').onclick = () => { if (cur && cur.leadId && window.aaiAbrir) { if (typeof navigateTo === 'function' && !document.getElementById('aai')) { try { navigateTo('conversas'); } catch (_) {} } window.aaiAbrir(cur.leadId); } };
   $('.pip').onclick = async () => {
     if (!('documentPictureInPicture' in window)) { alert('A janela flutuante funciona no Google Chrome ou no Edge atualizados.'); return; }
     if (pipWin) return pipWin.close();
@@ -19303,27 +19317,52 @@ function limparErrosLocais() {
     pipWin.document.body.style.cssText = 'margin:0;background:#1b2130';
     bar.style.cssText = 'position:static;display:flex;width:auto;border-radius:0;box-shadow:none;border:0';
     pipWin.document.body.appendChild(bar);
-    pipWin.addEventListener('pagehide', () => { bar.style.cssText = 'display:flex'; document.body.appendChild(bar); pipWin = null; });
+    pipWin.addEventListener('pagehide', () => { bar.style.cssText = ''; document.body.appendChild(bar); pipWin = null; mostrarBarra(modo === 'barra'); });
   };
-  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(bar));
-  if (document.body) document.body.appendChild(bar);
-  // qualquer áudio de conversa que for tocado passa para o player fixo
+  const pôr = () => document.body && !bar.isConnected && !pipWin && document.body.appendChild(bar);
+  document.addEventListener('DOMContentLoaded', pôr); pôr();
+
+  // play no balão: toca ali mesmo (o player do canto some)
   document.addEventListener('play', e => {
     const a = e.target;
     if (!(a instanceof HTMLAudioElement) || a === P || a.id === 'aai-call-au' || a.autoplay) return;
-    const s = a.currentSrc || a.src; if (!s) return;
-    const t = a.currentTime; a.pause();
-    const sel = document.querySelector('.aai-c.sel'); const h = document.querySelector('.aai-head h3');
-    const novoLead = (sel?.getAttribute('onclick') || '').match(/aaiAbrir\('([^']+)'\)/)?.[1] || '';
-    const novoNome = (h?.childNodes[0]?.textContent || sel?.getAttribute('title') || 'Áudio').trim();
-    if (s !== src) { P.src = src = s; P.currentTime = t || 0; leadId = novoLead; nome = novoNome; }
-    $('b').textContent = '🎤 ' + nome; bar.style.display = 'flex';
-    P.play().catch(() => {});
-    if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Áudio de ' + nome, artist: 'CRM Academia Advisor' });
-      navigator.mediaSession.setActionHandler('play', () => P.play()); navigator.mediaSession.setActionHandler('pause', () => P.pause()); } catch (_) {} }
+    if (modo === 'barra' && cur && srcDe(a) !== cur.src) P.pause();      // outro áudio: para o que estava no canto
+    if (cur && cur.el && cur.el !== a && !cur.el.paused) cur.el.pause();
+    cur = { el: a, src: srcDe(a), leadId: leadAberto(), nome: nomeAberto() };
+    modo = 'bolha'; mostrarBarra(false); marcarLista();
+    if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Áudio de ' + cur.nome, artist: 'CRM Academia Advisor' }); } catch (_) {} }
   }, true);
-  // a lista de conversas é redesenhada a cada atualização: recoloca o 🔊
-  new MutationObserver(() => { if (window.aaTocandoLead) marcarLista(); }).observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('pause', e => { if (cur && e.target === cur.el && cur.el.isConnected) marcarLista(); }, true);
+  document.addEventListener('ended', e => { if (cur && e.target === cur.el) { cur = null; modo = ''; marcarLista(); } }, true);
+
+  // a conversa foi redesenhada ou trocada
+  new MutationObserver(() => {
+    if (cur && modo === 'bolha' && cur.el && !cur.el.isConnected) {
+      const t = cur.el.currentTime, estavaTocando = !cur.el.ended && (cur.el.paused === false || cur.tocandoAntes !== false);
+      const mesma = acharBolha(cur.src);
+      if (mesma) {   // mesma conversa redesenhada (chegou mensagem nova): segue no balão novo
+        cur.el = mesma; try { mesma.currentTime = t; } catch (_) {}
+        if (estavaTocando) mesma.play().catch(() => {});
+      } else if (estavaTocando) {   // mudou de conversa: segue no player do canto
+        P.src = cur.src; P.playbackRate = 1; $('.vel').textContent = '1x';
+        P.addEventListener('loadedmetadata', function f() { P.removeEventListener('loadedmetadata', f); try { P.currentTime = t; } catch (_) {} }, { once: true });
+        try { P.currentTime = t; } catch (_) {}
+        P.play().catch(() => {});
+        modo = 'barra'; $('b').textContent = '🎤 ' + cur.nome; mostrarBarra(true);
+      } else { cur = null; modo = ''; }
+    } else if (cur && modo === 'barra' && cur.leadId && cur.leadId === leadAberto()) {   // voltou para a conversa: o player some e segue no balão
+      const el = acharBolha(cur.src);
+      if (el) {
+        const t = P.currentTime, ia = !P.paused; P.pause();
+        cur.el = el; modo = 'bolha'; mostrarBarra(false); if (pipWin) pipWin.close();
+        try { el.currentTime = t; } catch (_) {}
+        if (ia) el.play().catch(() => {});
+      }
+    }
+    if (cur || window.aaTocandoLead) marcarLista();
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  // guarda se o balão estava tocando no instante anterior à troca (o navegador pausa o áudio removido da tela)
+  setInterval(() => { if (cur && modo === 'bolha' && cur.el && cur.el.isConnected) cur.tocandoAntes = !cur.el.paused; }, 250);
 })();
 </script>
 
