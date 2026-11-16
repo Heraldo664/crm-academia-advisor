@@ -7602,7 +7602,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.26'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.28'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -12243,25 +12243,69 @@ async function saveTarefa() {
   }
 }
 
+// Próximos Eventos: montado sozinho a partir da automação (agenda da Bia, conversas e diagnóstico).
+// Tarefas manuais antigas ou de leads já resolvidos saem do quadro automaticamente.
+let _evAgs = null, _evAgsEm = 0, _evAgsCarregando = false;
+async function evCarregarAgs() {
+  if (_evAgsCarregando || Date.now() - _evAgsEm < 3600e3) return;   // agenda da Bia: no máximo 1 consulta por hora
+  _evAgsCarregando = true;
+  try {
+    const desde = new Date(Date.now() - 36 * 3600e3).toISOString();
+    _evAgs = await get('aa_agendamentos', `?select=id,lead_id,inicio,status,sala_link,tipo&inicio=gte.${encodeURIComponent(desde)}&status=in.(agendado,confirmado,realizado,no_show)&order=inicio.asc&limit=300`).catch(() => null);
+  } finally { _evAgsEm = Date.now(); _evAgsCarregando = false; }
+  renderEventsBoard();
+}
+setInterval(() => { if (document.getElementById('events-board')) { _evAgsEm = 0; evCarregarAgs(); } }, 3600e3);
+
 function renderEventsBoard() {
-  const visible = user.papel === 'admin' ? tarefas : tarefas.filter(t => t.colaborador_id === user.id);
+  if (!document.getElementById('events-board')) return;
+  if (!_evAgs) { evCarregarAgs(); }
+  const meu = l => user.papel === 'sdr' ? l.sdr_id === user.id : user.papel === 'closer' ? l.closer_nome === user.nome : true;
+  const leadPor = id => leads.find(l => String(l.id) === String(id));
+  const hojeStr = todayStr();
+  const limite = new Date(Date.now() - 3 * 86400e3).toISOString().slice(0, 10);
+  const resolvido = l => l && ['Fechado', 'Perdido'].includes(l.status);
   const groups = { aquecer: [], quente: [], call_fechamento: [] };
-  visible.filter(t => !t.concluida).forEach(t => { if (groups[t.tipo]) groups[t.tipo].push(t); });
 
-  // Auto-incluir leads com Diagnóstico Agendado em Calls
-  const idsComTarefa = new Set(groups.call_fechamento.map(t => t.lead_id));
-  leads.filter(l => {
-    if (user.papel === 'sdr') return l.sdr_id === user.id;
-    if (user.papel === 'closer') return l.closer_nome === user.nome;
-    return true;
-  }).filter(l => l.status === 'Diagnóstico Agendado' && l.data_diagnostico && !idsComTarefa.has(l.id))
-    .forEach(l => groups.call_fechamento.push({
-      _auto: true, lead_id: l.id, lead_nome: l.nome,
-      titulo: 'Diagnóstico agendado', data: l.data_diagnostico,
-      hora: l.hora_diagnostico || null, link_meet: null, link_calendly: null, status_reuniao: null,
-    }));
+  // 1) tarefas manuais ainda válidas (até 3 dias atrás e lead não resolvido)
+  const visible = user.papel === 'admin' ? tarefas : tarefas.filter(t => t.colaborador_id === user.id);
+  visible.filter(t => !t.concluida && groups[t.tipo] && (t.data || '') >= limite && !resolvido(leadPor(t.lead_id)))
+    .forEach(t => groups[t.tipo].push(t));
+  const jaTem = k => new Set(groups[k].map(t => String(t.lead_id)));
 
-  Object.values(groups).forEach(arr => arr.sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||''))));
+  // 2) Calls: consultorias da agenda da Bia (de ontem em diante)
+  const idsCall = jaTem('call_fechamento');
+  const srAg = { confirmado: 'confirmado', realizado: 'compareceu', no_show: 'nao_compareceu' };
+  (_evAgs || []).filter(a => (a.tipo || 'consultoria') === 'consultoria').forEach(a => {
+    const l = leadPor(a.lead_id); if (!l || !meu(l) || idsCall.has(String(a.lead_id))) return;
+    const d = new Date(a.inicio), ds = d.toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+    if (a.status === 'realizado' && ds < hojeStr) return;   // já aconteceu e foi registrada
+    idsCall.add(String(a.lead_id));
+    groups.call_fechamento.push({ _auto: true, lead_id: l.id, lead_nome: l.nome, titulo: a.status === 'realizado' ? 'Diagnóstico realizado' : a.status === 'no_show' ? 'Não compareceu: a Bia oferece novo horário' : 'Diagnóstico agendado pela Bia',
+      data: ds, hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }), link_meet: a.sala_link || null, link_calendly: null, status_reuniao: srAg[a.status] || null });
+  });
+  // agendados que ainda não apareceram na agenda (dados antigos)
+  leads.filter(l => meu(l) && l.status === 'Diagnóstico Agendado' && l.data_diagnostico && l.data_diagnostico >= hojeStr && !idsCall.has(String(l.id)))
+    .forEach(l => { idsCall.add(String(l.id)); groups.call_fechamento.push({ _auto: true, lead_id: l.id, lead_nome: l.nome, titulo: 'Diagnóstico agendado', data: l.data_diagnostico, hora: l.hora_diagnostico || null, link_meet: null, link_calendly: null, status_reuniao: null }); });
+
+  // 3) Quentes: quem a Bia marcou como quente/precisa de você, ou quer orientação e ainda não agendou
+  const ativos = leads.filter(l => meu(l) && !l.opt_out && !['Fechado', 'Perdido', 'Diagnóstico Agendado'].includes(l.status) && !idsCall.has(String(l.id)));
+  const recente = l => { const t = l.ultima_msg_lead_em || l.atualizado_em || l.criado_em; return t && Date.now() - Date.parse(t) < 14 * 86400e3; };
+  const idsQ = jaTem('quente');
+  ativos.filter(l => recente(l) && !idsQ.has(String(l.id)) && (l.faixa === 'A' || (l.respostas && (l.respostas.quer_orientacao || Number(l.respostas.urgencia) >= 4)) || ['Diagnóstico Realizado', 'Proposta Enviada'].includes(l.status)))
+    .forEach(l => { idsQ.add(String(l.id)); groups.quente.push({ _auto: true, lead_id: l.id, lead_nome: l.nome,
+      titulo: l.status === 'Proposta Enviada' ? 'Proposta enviada: acompanhar decisão' : l.status === 'Diagnóstico Realizado' ? 'Diagnóstico realizado: acompanhar decisão' : (l.respostas && l.respostas.quer_orientacao) ? 'Quer orientação: agendar consultoria' : 'Lead quente (' + (l.faixa || '') + ' · ' + (l.score ?? '-') + ')',
+      data: String(l.ultima_msg_lead_em || l.atualizado_em || l.criado_em || '').slice(0, 10) || hojeStr, hora: null }); });
+
+  // 4) Aquecer: conversas recentes com a Bia que ainda não viraram agendamento
+  const idsA = jaTem('aquecer');
+  ativos.filter(l => recente(l) && !idsQ.has(String(l.id)) && !idsA.has(String(l.id)) && ['Contatar', 'Contatado', 'Respondeu', 'Novo'].includes(l.status) && l.ultima_msg_lead_em)
+    .forEach(l => groups.aquecer.push({ _auto: true, lead_id: l.id, lead_nome: l.nome, titulo: (l.automacao_whatsapp_status || 'ativa') === 'ativa' ? 'Bia conversando' : 'Bia pausada: equipe no comando',
+      data: String(l.ultima_msg_lead_em).slice(0, 10), hora: new Date(l.ultima_msg_lead_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }) }));
+
+  groups.call_fechamento.sort((a,b) => (a.data+(a.hora||'')).localeCompare(b.data+(b.hora||'')));
+  groups.quente.sort((a,b) => (b.data+(b.hora||'')).localeCompare(a.data+(a.hora||'')));
+  groups.aquecer.sort((a,b) => (b.data+(b.hora||'')).localeCompare(a.data+(a.hora||'')));
 
   const cols = [
     { key: 'aquecer', title: '❄️ Leads pra aquecer' },
@@ -12290,10 +12334,10 @@ function renderEventsBoard() {
           const rd = t.data ? new Date(t.data + 'T00:00:00') : null;
           const diff = rd ? Math.round((rd - hoje) / 86400000) : null;
           return `
-          <div class="event-item ${c.key}" style="${t._auto ? 'border-style:dashed;opacity:.9' : ''}">
+          <div class="event-item ${c.key}">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
               <div>
-                <div class="event-lead">${t.lead_nome}${t._auto ? ' <span style="font-size:18px;color:var(--muted)">(auto)</span>' : ''}</div>
+                <div class="event-lead">${t.lead_nome}</div>
                 <div style="font-size:18px;color:var(--muted);margin-top:1px">${t.titulo}</div>
               </div>
               ${sr ? `<span class="badge ${sr.badge}" style="white-space:nowrap;flex-shrink:0">${sr.label}</span>` : ''}
@@ -19447,7 +19491,7 @@ function limparErrosLocais() {
       else { f.className = ''; f.innerHTML = ''; }
     } catch (_) {}
   };
-  setTimeout(aaCreditoChecar, 4000); setInterval(aaCreditoChecar, 120000);
+  setTimeout(aaCreditoChecar, 4000); setInterval(aaCreditoChecar, 15 * 60000);
 })();
 </script>
 </body>
