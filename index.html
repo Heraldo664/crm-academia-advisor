@@ -7602,7 +7602,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.29'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.30'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18198,7 +18198,8 @@ function limparErrosLocais() {
       const corpo = midia ? (midia + (/^🎤 Áudio$|^📷 Imagem$|^🎬 Vídeo$/.test(tx) ? '' : `<div>${linkar(tx)}</div>`)) : linkar(tx);
       const q = m.resposta_a_texto ? `<div class="aai-q">↩ ${esc(String(m.resposta_a_texto).slice(0, 160))}</div>` : '';
       const pode = m.wa_message_id ? ` cit" data-wa="${esc(m.wa_message_id)}" data-tx="${esc(String(tx).slice(0, 200))}" title="Clique para responder a esta mensagem` : '';
-      return sep + `<div class="aai-m ${cls}${pode}">${q}${corpo}<small>${esc(autor)}${hr}</small></div>`;
+      const tk = m.remetente === 'lead' ? '' : ({ sent: ' <span title="Enviada" style="opacity:.7">✓</span>', delivered: ' <span title="Entregue" style="opacity:.7">✓✓</span>', read: ' <span title="Lida" style="color:#53bdeb">✓✓</span>', failed: ' <span title="Não entregue: a Meta não entregou esta mensagem (número sem WhatsApp, bloqueio ou limite de marketing). Ligue ou mande e-mail." style="color:#ff6b6b;font-weight:800">❗ não entregue</span>' })[m.status_entrega] || '';
+      return sep + `<div class="aai-m ${cls}${pode}">${q}${corpo}<small>${esc(autor)}${hr}${tk}</small></div>`;
     }).join('');
     const pausada = iaPausada(l);
     const podeResp = restante > 0 && !l.opt_out;
@@ -19238,6 +19239,7 @@ function limparErrosLocais() {
   .mt-tag.m{background:rgba(63,169,255,.16);color:#6cc0ff;border:1px solid rgba(63,169,255,.45)}
   .mt-tag.s{background:rgba(197,240,24,.14);color:#C5F018;border:1px solid rgba(197,240,24,.45)}
   .mt-tag.c{background:rgba(255,92,92,.14);color:#ff7b7b;border:1px solid rgba(255,92,92,.45)}
+  .mt-tag.ok{background:rgba(34,201,123,.14);color:#3fdc8f;border:1px solid rgba(34,201,123,.45)}
   .mt-sub{font-size:13.5px;color:#b9c0cf;margin:4px 0 9px}
   .mt-acts{display:flex;gap:8px;flex-wrap:wrap}
   .mt-acts a,.mt-acts button{border-radius:9px;padding:7px 14px;font-weight:800;font-size:13.5px;cursor:pointer;text-decoration:none;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}
@@ -19294,7 +19296,7 @@ function limparErrosLocais() {
     if (MT.aberto) render();
   }
 
-  function proximas(){ const agora = Date.now(); return MT.lista.filter(m => ativo(m) && Date.parse(m.inicio) > agora - 60 * 60e3); }
+  function proximas(){ const agora = Date.now(); return MT.lista.filter(m => ativo(m) && !/realizado|no_show/.test(m.status || '') && Date.parse(m.inicio) > agora - 60 * 60e3); }
   function badge(){
     const el = document.getElementById('mt-num'); if (!el) return;
     const agora = Date.now();
@@ -19329,13 +19331,25 @@ function limparErrosLocais() {
       const r = await get('leads', `?id=eq.${id}&select=*`); if (r && r[0]) openLeadModal(r[0]);
     } catch (e) {}
   };
+  async function mtCall(acao, dados) {
+    const r = await fetch(SUPA_URL + '/functions/v1/aa-whatsapp', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY },
+      body: JSON.stringify({ acao, colaborador_id: user && user.id, session_token: user && user.session_token, ...dados }) });
+    const j = await r.json().catch(() => ({})); if (!r.ok || j.erro) throw new Error(j.erro || ('HTTP ' + r.status)); return j;
+  }
+  // mentor entrou na sala: 1 h depois, se ninguém marcar, vira "Realizada"
+  window.mtEntrou = id => { mtCall('mentoria_entrou', { ag_id: id }).catch(() => {}); };
+  window.mtResultado = async (id, res) => {
+    if (res === 'no_show' && !confirm('Marcar que o aluno NÃO compareceu? Pela regra, sem aviso com 1 dia de antecedência, essa mentoria/simulação conta como usada.')) return;
+    try { await mtCall('mentoria_resultado', { ag_id: id, resultado: res }); const m = MT.lista.find(x => String(x.id) === String(id)); if (m) m.status = res; render(); }
+    catch (e) { alert(e.message); }
+  };
   window.mtWhats = id => { mtFechar(); try { navigateTo('conversas'); setTimeout(() => { try { aaiAbrir(String(id)); } catch (e) {} }, 200); } catch (e) {} };
 
   function render(){
     let ov = document.getElementById('mt-ov');
     if (!ov) { ov = document.createElement('div'); ov.id = 'mt-ov'; ov.className = 'mt-ov'; ov.onclick = e => { if (e.target === ov) mtFechar(); }; document.body.appendChild(ov); }
     const agora = Date.now();
-    const lista = MT.aba === 'proximas' ? proximas() : MT.lista.filter(m => Date.parse(m.inicio) <= agora - 60 * 60e3 || !ativo(m)).reverse();
+    const lista = MT.aba === 'proximas' ? proximas() : MT.lista.filter(m => Date.parse(m.inicio) <= agora - 60 * 60e3 || !ativo(m) || /realizado|no_show/.test(m.status || '')).reverse();
     let html = '', dia = '';
     for (const m of lista) {
       const d = diaRot(m.inicio);
@@ -19346,7 +19360,7 @@ function limparErrosLocais() {
         <div><span class="mt-nome" onclick="mtAluno('${esc(m.lead_id || '')}')" title="Abrir cadastro do aluno">${esc(m.aluno_nome || 'Aluno')}</span>
           <span class="mt-tag ${m.tipo === 'simulacao' ? 's' : 'm'}">${m.tipo === 'simulacao' ? 'Simulação' : 'Mentoria'}${m.numero ? ' ' + m.numero + '/' + tot[m.tipo === 'simulacao' ? 'simulacao' : 'mentoria'] : ''}</span>${!ativo(m) ? '<span class="mt-tag c">Cancelada</span>' : ''}
           <div class="mt-sub">${m.mentor ? 'Com ' + esc(m.mentor) + ' · ' : ''}Direitos usados: mentorias ${dir.mentoria}/${tot.mentoria} · simulações ${dir.simulacao}/${tot.simulacao}${m.observacao ? ' · ' + esc(m.observacao) : ''}</div>
-          <div class="mt-acts">${m.link ? `<a class="ent" href="${esc(m.link)}" target="_blank" rel="noopener">▶ Entrar</a>` : ''}${m.lead_id ? `<button onclick="mtAluno('${esc(m.lead_id)}')">Cadastro</button><button onclick="mtWhats('${esc(m.lead_id)}')">💬 WhatsApp</button>` : ''}</div>
+          <div class="mt-acts">${m.link && ativo(m) && !/realizado|no_show/.test(m.status || '') ? `<a class="ent" href="${esc(m.link)}" target="_blank" rel="noopener" onclick="mtEntrou('${esc(m.id)}')">▶ Entrar</a>` : ''}${ativo(m) ? (m.status === 'realizado' ? '<span class="mt-tag ok">✅ Realizada</span>' : m.status === 'no_show' ? '<span class="mt-tag c">🚫 Não compareceu</span>' : (Date.parse(m.inicio) <= Date.now() + 15 * 60e3 ? `<button onclick="mtResultado('${esc(m.id)}','realizado')">✅ Realizada</button><button onclick="mtResultado('${esc(m.id)}','no_show')">🚫 Não compareceu</button>` : '')) : ''}${m.lead_id ? `<button onclick="mtAluno('${esc(m.lead_id)}')">Cadastro</button><button onclick="mtWhats('${esc(m.lead_id)}')">💬 WhatsApp</button>` : ''}</div>
         </div></div>`;
     }
     const nP = proximas().length;
