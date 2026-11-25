@@ -83,7 +83,7 @@ function render(){
   if (!T) { app.innerHTML = '<div class="card"><h1>Link incompleto</h1><p class="sub">Abra esta página pelo botão de agendamento da plataforma.</p></div>'; return; }
   if (S.erro) { app.innerHTML = '<div class="card"><h1>Não foi possível abrir</h1><p class="sub">' + esc(S.erro) + '</p></div>'; return; }
   const ativos = (S.agendamentos || []).filter(a => ['agendado', 'confirmado'].includes(a.status) && Date.parse(a.inicio) > Date.now() - 3600e3);
-  const lim = S.cancelar_ate_horas || 12;
+  const lim = S.cancelar_ate_horas || 24;
   const minhas = ativos.length ? ativos.map(a => {
     const podeCancelar = Date.parse(a.inicio) - Date.now() > lim * 3600e3;
     return '<div class="ag"><div class="q"><b>' + esc(NOME[a.tipo] || 'Mentoria') + '</b><span>' + esc(quando(a.inicio)) + (a.com ? ' · com ' + esc(a.com) : '') + '</span></div>'
@@ -111,7 +111,7 @@ function render(){
   document.getElementById('app').innerHTML =
     '<div class="card"><h1>Olá, ' + esc(S.nome || 'aluno') + '!</h1><p class="sub">Aqui você agenda as suas mentorias individuais e simulações de entrevista' + (S.programa ? ' da ' + esc(S.programa) : '') + '.</p>'
     + '<div class="dir"><div><b>' + S.restantes.mentoria + ' de ' + S.total.mentoria + '</b><span>mentorias disponíveis</span></div><div><b>' + S.restantes.simulacao + ' de ' + S.total.simulacao + '</b><span>simulações disponíveis</span></div></div></div>'
-    + '<div class="card"><h2>Seus agendamentos</h2>' + minhas + (ativos.length ? '<p class="sub" style="margin-top:8px;font-size:13px">Para cancelar, faça com pelo menos ' + lim + ' horas de antecedência: o direito volta para você.</p>' : '') + '</div>'
+    + '<div class="card"><h2>Seus agendamentos</h2>' + minhas + (ativos.length ? '<p class="sub" style="margin-top:8px;font-size:13px">Para cancelar ou remarcar, faça com pelo menos 1 dia (' + lim + ' horas) de antecedência: o direito volta para você. Sem aviso, a mentoria ou simulação em que você não comparecer conta como usada.</p>' : '') + '</div>'
     + agendar;
 }
 function setTipo(t){ tipo = t; msg = ''; render(); }
