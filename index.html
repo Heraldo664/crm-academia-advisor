@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.36'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.37'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18213,13 +18213,14 @@ function limparErrosLocais() {
       <div class="aai-head">
         <button class="btn btn-ghost btn-sm aai-back" onclick="aaiVoltar()">← Contatos</button>
         <div><h3>${esc(l.nome || 'Sem nome')} ${window.aaFaixaBadge ? aaFaixaBadge(l) : ''}</h3>
-          <div class="aai-sub aai-sub2">${l.status ? `<span class="aai-st" style="--c:${corStatus(l.status)}">${esc(l.status)}</span>` : ''}${(l.produto_sugerido || l.programa) ? `<span class="aai-prog">${/mba/i.test(l.programa || l.produto_sugerido || '') ? 'MBA' : 'FBA'}</span>` : ''}</div>
+          <div class="aai-sub aai-sub2">${l.status ? `<span class="aai-st" style="--c:${corStatus(l.status)}">${esc(l.status)}</span>` : ''}${(l.produto_sugerido || l.programa) ? `<span class="aai-prog">${/mba/i.test(l.programa || l.produto_sugerido || '') ? 'MBA' : 'FBA'}</span>` : ''}${l.respostas && l.respostas._pos_conquista ? `<span class="aai-prog" title="Combinado pós-conquista" style="border-color:#f5a623;color:#f5a623">🤝 ${esc({ aguardando: 'aguardando conquista', conquistou: 'conquistou', cobrado: 'lembrado', link_enviado: 'link enviado', pago: 'pago' }[l.respostas._pos_conquista.status] || '')}</span>` : ''}</div>
           <div class="aai-sub">${l.respostas && l.respostas._bloqueado ? '<b style="color:#ff6b6b">⛔ Contato bloqueado</b>' : (pausada ? '<b style="color:#f5a623">⏸ Bia pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 Bia respondendo sozinha</b>') + (l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : '')}</div></div>
         <div class="aai-acts">
           ${pausada ? `<button class="btn btn-primary btn-sm" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a Bia</button>` : `<button class="btn btn-primary btn-sm" title="A Bia para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar Bia e assumir</button>`}
           <button class="btn btn-sm aai-bt" title="Abre o cadastro completo do lead no CRM" onclick="aaiFicha()">Abrir ficha</button>
           <button class="btn btn-sm aai-bt" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaiAcao('noshow')">No-show</button>
           <button class="btn btn-sm aai-bt" title="Gera o link de pagamento no Asaas e envia ao lead pelo WhatsApp. Quando ele pagar, o lead vira Fechado sozinho e a Bia começa o acompanhamento do aluno." onclick="aaiCobrar()">💳 Cobrar</button>
+          <button class="btn btn-sm aai-bt" title="Condição exclusiva: parte do valor fica para depois da contratação ou promoção. O sistema avisa quando ele conquistar e a Bia lembra do combinado 10 dias depois." onclick="aaiPosConquista()">🤝 ${l.respostas && l.respostas._pos_conquista ? 'Combinado ✓' : 'Pós-conquista'}</button>
           <button class="btn btn-sm aai-bt" title="Você ligou e o lead não atendeu: envia o modelo &quot;Tentei te ligar&quot; com o seu nome (funciona mesmo fora da janela de 24 h)" onclick="aaiModelo('aa_tentei_ligar')">📞 Tentei ligar</button>
           <button class="btn btn-sm aai-bt aai-lixo" title="Bloquear o contato, excluir a conversa ou o cadastro" onclick="aaiExcluir()">🗑️</button>
         </div>
@@ -18564,6 +18565,31 @@ function limparErrosLocais() {
         b.textContent = 'Gerado'; st.assinatura = ''; atualizar(true);
       } catch (e) { m.querySelector('#cb-r').innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; b.disabled = false; b.textContent = 'Gerar link'; }
     };
+  };
+  // ------------------------------------------------ combinado pós-conquista (condição exclusiva)
+  window.aaiPosConquista = () => {
+    const l = leadDe(st.sel); if (!l) return;
+    const pc = (l.respostas && l.respostas._pos_conquista) || null;
+    const ST = { aguardando: 'Aguardando a conquista', conquistou: 'Conquistou: a Bia lembra do combinado 10 dias depois', cobrado: 'Combinado lembrado: aguardando a forma de pagamento', link_enviado: 'Link de pagamento enviado', pago: 'Pago ✅' };
+    const m = document.createElement('div'); m.className = 'aai-modal';
+    m.innerHTML = `<div><h3 style="margin:0 0 4px">🤝 Combinado pós-conquista</h3><p class="aai-info" style="margin:0 0 10px">${esc(l.nome || '')}${pc ? ` · <b>${esc(ST[pc.status] || pc.status || '')}</b>` : ''}</p>
+      <p class="aai-info" style="margin:0 0 8px">Condição exclusiva: a matrícula é paga agora e esta parte fica para depois da contratação ou promoção. Quando ele conquistar, o sistema avisa a equipe, a Bia parabeniza, pergunta em que ele precisa de apoio e pede até 3 indicações. 10 dias depois, ela lembra do combinado e pergunta se prefere pagar à vista ou em até 12x, e já envia o link.</p>
+      <label class="aai-info">Valor que fica para depois da conquista (R$)<input id="pc-v" inputmode="decimal" value="${esc(pc ? String(pc.valor).replace('.', ',') : '1.000,00')}"></label>
+      <label class="aai-info">Objetivo combinado (opcional)<input id="pc-o" placeholder="ex.: contratação como Gerente Alta Renda" value="${esc((pc && pc.objetivo) || '')}"></label>
+      <div id="pc-r" class="aai-info" style="margin-top:10px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">${pc ? '<button class="btn btn-ghost btn-sm" id="pc-del" style="margin-right:auto;color:#ff6b6b">Remover combinado</button>' : ''}<button class="btn btn-ghost btn-sm" id="pc-x">Fechar</button><button class="btn btn-primary btn-sm" id="pc-ok">Salvar</button></div></div>`;
+    document.body.appendChild(m);
+    m.querySelector('#pc-x').onclick = () => m.remove();
+    const salvar = async (dados, b) => {
+      b.disabled = true;
+      try {
+        const r = await call('pos_conquista', { lead_id: st.sel, ...dados });
+        l.respostas = { ...(l.respostas || {}) }; if (r.pos_conquista) l.respostas._pos_conquista = r.pos_conquista; else delete l.respostas._pos_conquista;
+        m.remove(); st.assinatura = ''; atualizar(true);
+      } catch (e) { m.querySelector('#pc-r').innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; b.disabled = false; }
+    };
+    m.querySelector('#pc-ok').onclick = ev => salvar({ valor: m.querySelector('#pc-v').value, objetivo: m.querySelector('#pc-o').value.trim() }, ev.target);
+    const del = m.querySelector('#pc-del'); if (del) del.onclick = ev => { if (confirm('Remover o combinado pós-conquista deste lead?')) salvar({ remover: true }, ev.target); };
   };
   // ------------------------------------------------ responder citando
   window.aaiCitar = c => {
