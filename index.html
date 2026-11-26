@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.37'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.38'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18181,7 +18181,8 @@ function limparErrosLocais() {
     // a pessoa respondeu depois da nossa mensagem = ela viu (mesmo com a confirmação de leitura desligada no WhatsApp dela)
     const ultLeadTs = ultLead ? new Date(ultLead.enviada_em).getTime() : 0;
     const tick = (n, cor, titulo) => ` <span class="aai-tick" title="${titulo}"><svg width="${n === 2 ? 18 : 12}" height="12" viewBox="0 0 ${n === 2 ? 18 : 12} 12" style="vertical-align:-2px"><path d="M1.5 6.5l3 3 6-7" fill="none" stroke="${cor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>${n === 2 ? `<path d="M7.5 9.5l7-7.5" fill="none" stroke="${cor}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>` : ''}</svg></span>`;
-    const bolhas = msgs.map(m => {
+    let idxUltLead = -1; msgs.forEach((x, k) => { if (x.remetente === 'lead' || (x.remetente !== 'sistema' && x.status_entrega === 'read')) idxUltLead = Math.max(idxUltLead, x.remetente === 'lead' ? k : k + 1); });
+    const bolhas = msgs.map((m, i) => {
       const d = new Date(m.enviada_em).toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'2-digit' });
       const sep = d !== dia ? `<div class="aai-dia">${esc(d)}</div>` : ''; dia = d;
       const hr = new Date(m.enviada_em).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
@@ -18200,8 +18201,9 @@ function limparErrosLocais() {
       const corpo = midia ? (midia + (/^🎤 Áudio$|^📷 Imagem$|^🎬 Vídeo$/.test(tx) ? '' : `<div>${linkar(tx)}</div>`)) : linkar(tx);
       const q = m.resposta_a_texto ? `<div class="aai-q">↩ ${esc(String(m.resposta_a_texto).slice(0, 160))}</div>` : '';
       const pode = m.wa_message_id ? ` cit" data-wa="${esc(m.wa_message_id)}" data-tx="${esc(String(tx).slice(0, 200))}" title="Clique para responder a esta mensagem` : '';
-      const stE = m.status_entrega && m.status_entrega !== 'failed' && ultLeadTs > new Date(m.enviada_em).getTime() ? 'read' : m.status_entrega;
-      const tk = m.remetente === 'lead' ? '' : ({ sent: tick(1, '#7b8a96', 'Enviada (ainda não chegou no celular da pessoa)'), delivered: tick(2, '#7b8a96', 'Entregue, ainda não visualizada'), read: tick(2, '#1d9bf0', 'Visualizada'), failed: ' <span title="Não entregue: a Meta não entregou esta mensagem (número sem WhatsApp, bloqueio ou limite de marketing). Ligue ou mande e-mail." style="color:#ff6b6b;font-weight:800">❗ não entregue</span>' })[m.status_entrega] || '';
+      // se a pessoa escreveu DEPOIS desta mensagem (posição na conversa ou horário), ela viu: azul, mesmo com a confirmação de leitura desligada
+      const stE = m.remetente !== 'lead' && m.status_entrega !== 'failed' && (idxUltLead > i || ultLeadTs >= new Date(m.enviada_em).getTime()) ? 'read' : (m.status_entrega || (m.wa_message_id ? 'sent' : ''));
+      const tk = m.remetente === 'lead' ? '' : ({ sent: tick(1, '#7b8a96', 'Enviada (ainda não chegou no celular da pessoa)'), delivered: tick(2, '#7b8a96', 'Entregue, ainda não visualizada'), read: tick(2, '#1d9bf0', 'Visualizada'), failed: ' <span title="Não entregue: a Meta não entregou esta mensagem (número sem WhatsApp, bloqueio ou limite de marketing). Ligue ou mande e-mail." style="color:#ff6b6b;font-weight:800">❗ não entregue</span>' })[stE] || '';
       return sep + `<div class="aai-m ${cls}${pode}">${q}${corpo}<small>${esc(autor)}${hr}${tk}</small></div>`;
     }).join('');
     const pausada = iaPausada(l);
