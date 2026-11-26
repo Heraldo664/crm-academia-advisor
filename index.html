@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.44'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.45'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17765,6 +17765,7 @@ function limparErrosLocais() {
   #page-conversas.active{display:block;max-width:none;padding:14px 18px}
   .aai{display:grid;grid-template-columns:var(--aai-w,272px) 1fr;gap:14px;height:calc(100vh - 120px);min-height:520px}
   .aai-side{order:-1}
+  .aai-pend{opacity:.75}
   .aai-liberar{background:#dc2626!important;border:1px solid #dc2626!important;color:#fff!important;font-weight:800!important}
   .aai-liberar:hover{background:#b91c1c!important}
   .aai-side{position:relative}
@@ -18362,20 +18363,29 @@ function limparErrosLocais() {
       } catch (e) { m.textContent = e.message; }
     };
   };
+  // bolha que aparece NA HORA na conversa, enquanto o envio termina por trás
+  function bolhaPendente(html){
+    const th = document.getElementById('aai-th'); if (!th) return null;
+    const d = document.createElement('div'); d.className = 'aai-m aai-hum aai-pend';
+    const hr = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    d.innerHTML = `${html}<small>Você · ${hr} <span title="Enviando">🕓</span></small>`;
+    th.appendChild(d); th.scrollTop = th.scrollHeight; return d;
+  }
+  function enviada(d){ const sp = d && d.querySelector('small span[title="Enviando"]'); if (sp) { sp.title = 'Enviada'; sp.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-2px"><path d="M1.5 6.5l3 3 6-7" fill="none" stroke="#7b8a96" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; } }
   window.aaiEnviar = async () => {
     const t = document.getElementById('aai-txt'), msg = document.getElementById('aai-msg');
-    const texto = (t.value || '').trim(); if (!texto || st.enviando) return;
-    st.enviando = true; msg.textContent = 'Enviando...';
+    const texto = (t.value || '').trim(); if (!texto) return;
+    msg.textContent = '';
     t.value = ''; window.aaiTroca && aaiTroca();   // limpa o campo na hora (se der erro, o texto volta)
+    const pend = bolhaPendente(linkar(texto)); st.assinatura = '';
     try {
       const rsp = st.resp && st.resp.lead === st.sel ? st.resp : null;
       await call('enviar_manual', { lead_id: st.sel, texto, ...(rsp ? { resposta_a: rsp.id, resposta_a_texto: rsp.texto } : {}) });
       const t2 = document.getElementById('aai-txt'); if (t2 && t2.value.trim() === texto) t2.value = '';
       st.resp = null;
       const l = leadDe(st.sel); if (l) l.automacao_whatsapp_status = 'pausada_humano';
-      await atualizar(true);
-    } catch (e) { const t3 = document.getElementById('aai-txt'); if (t3 && !t3.value) t3.value = texto; const m2 = document.getElementById('aai-msg'); if (m2) m2.innerHTML = `<span style="color:#ff6b6b">${esc(e.message)}</span>`; }
-    finally { st.enviando = false; }
+      enviada(pend); atualizar(true).catch(() => {});   // marca como enviada na hora; a lista atualiza por trás
+    } catch (e) { pend && pend.remove(); const t3 = document.getElementById('aai-txt'); if (t3 && !t3.value) t3.value = texto; const m2 = document.getElementById('aai-msg'); if (m2) m2.innerHTML = `<span style="color:#ff6b6b">Não enviou: ${esc(e.message)}</span>`; }
   };
 
   // ------------------------------------------------ áudio estilo WhatsApp: segurar, travar, cancelar
@@ -18442,13 +18452,16 @@ function limparErrosLocais() {
       G.rec = null; G.stream = null; G.travado = false; uiGravando(false);
       if (!enviar) { st.gravando = false; aviso('Áudio cancelado.'); return; }
       if (dur < 1000) { st.gravando = false; aviso('Segure o botão para gravar. Ou clique uma vez para gravar sem segurar.'); return; }
+      const bruto = new Blob(pedacos, { type: tipo });
+      const pend = bolhaPendente(`<audio controls preload="none" src="${URL.createObjectURL(bruto)}" style="display:block;max-width:280px;height:38px;margin:2px 0"></audio>`);
+      st.gravando = false;
       try {
-        aviso('Enviando áudio…');
-        const mp3 = await paraMp3(new Blob(pedacos, { type: tipo }));
+        aviso('');
+        const mp3 = await paraMp3(bruto);
         await call('enviar_audio', { lead_id: st.sel, audio_base64: await b64(mp3), mime: 'audio/mpeg' });
         const l = leadDe(st.sel); if (l) l.automacao_whatsapp_status = 'pausada_humano';
-        aviso(''); st.gravando = false; st.assinatura = ''; await atualizar(true);
-      } catch (e) { st.gravando = false; aviso(e.message, true); }
+        aviso(''); st.assinatura = ''; enviada(pend); atualizar(true).catch(() => {});
+      } catch (e) { pend && pend.remove(); aviso('Áudio não enviado: ' + e.message, true); }
     };
     rec.stop();
   }
