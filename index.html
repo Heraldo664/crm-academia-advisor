@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.45'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.47'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18039,13 +18039,13 @@ function limparErrosLocais() {
   // nos intervalos, só as mensagens novas desde a última verificação
   async function carregar(){
     const COLS = 'id,lead_id,remetente,texto,enviada_em,precisa_humano,autor_nome,tipo';
-    const completo = !st.msgs.length || !st.msgsEm || Date.now() - st.msgsEm > 15 * 60e3;
+    const completo = !st.msgs.length || !st.msgsEm || (!document.hidden && Date.now() - st.msgsEm > 60 * 60e3);   // economia de Egress: lista completa só ao abrir e a cada 60 min
     let novosIds = [];
     if (completo) {
-      const m = await _origGet('whatsapp_conversas', `?select=${COLS}&order=enviada_em.desc&limit=1500`);
+      const m = await _origGet('whatsapp_conversas', `?select=${COLS}&order=enviada_em.desc&limit=1000`);
       st.msgs = m || []; st.msgsEm = Date.now(); st.threadSujo = true;
     } else {
-      const desde = new Date(Date.parse(st.msgs[0]?.enviada_em || new Date(Date.now() - 3600e3).toISOString()) - 120e3).toISOString();
+      const desde = new Date(Date.parse(st.msgs[0]?.enviada_em || new Date(Date.now() - 3600e3).toISOString()) - 45e3).toISOString();
       const m = await _origGet('whatsapp_conversas', `?select=${COLS}&enviada_em=gte.${encodeURIComponent(desde)}&order=enviada_em.desc&limit=300`) || [];
       const ja = new Set(st.msgs.map(x => String(x.id)));
       const novas = m.filter(x => !ja.has(String(x.id)));
@@ -18064,7 +18064,8 @@ function limparErrosLocais() {
     // atualiza status/Bia dos leads: completo a cada 15 min; nos intervalos, só de quem mandou mensagem nova
     if (!completo && !novosIds.length) return;
     try {
-      const ids = completo ? [...new Set(st.msgs.map(x => x.lead_id))].filter(Boolean).slice(0, 150) : novosIds.slice(0, 50);
+      const lim3d = new Date(Date.now() - 3 * 86400e3).toISOString();
+      const ids = completo ? [...new Set(st.msgs.filter(x => String(x.enviada_em) >= lim3d || !leadDe(x.lead_id)).map(x => x.lead_id))].filter(Boolean).slice(0, 60) : novosIds.slice(0, 30);
       if (ids.length) {
         const fr = await get('leads', `?id=in.(${ids.join(',')})&select=*`).catch(() => []);
         (fr || []).forEach(n => { const i = (typeof leads !== 'undefined') ? leads.findIndex(l => String(l.id) === String(n.id)) : -1; if (i >= 0) Object.assign(leads[i], n); else if (st.extra[n.id]) Object.assign(st.extra[n.id], n); });
@@ -18188,7 +18189,7 @@ function limparErrosLocais() {
     const rascunho = document.getElementById('aai-txt') ? document.getElementById('aai-txt').value : '';
     const tFoco = document.activeElement && document.activeElement.id === 'aai-txt' ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
     // a conversa aberta só é baixada de novo quando chega mensagem nova nela, ao trocar de conversa, ou a cada 2 min
-    if (!rolar && !st.threadSujo && st.threadLead === String(st.sel) && Date.now() - (st.threadEm || 0) < 120e3 && document.getElementById('aai-th')) return;
+    if (!rolar && !st.threadSujo && st.threadLead === String(st.sel) && Date.now() - (st.threadEm || 0) < 300e3 && document.getElementById('aai-th')) return;
     const msgs = await _origGet('whatsapp_conversas', `?lead_id=eq.${encodeURIComponent(st.sel)}&select=*&order=enviada_em.asc&limit=500`).catch(() => []) || [];
     st.threadSujo = false; st.threadLead = String(st.sel); st.threadEm = Date.now();
     if (String(l.id) !== String(st.sel)) return;
@@ -18297,10 +18298,12 @@ function limparErrosLocais() {
   }
   function ativo(){ const p = document.getElementById('page-conversas'); return p && p.classList.contains('active'); }
   function ligarTimer(){ clearInterval(st.timer); st.timer = setInterval(() => {
-    if (document.hidden) { st.tickOculto = (st.tickOculto || 0) + 1; if (st.tickOculto % 15) return; carregar().then(() => atualizarContador(conversas().filter(c => c.naoLidas).length)).catch(() => {}); return; } // minimizado: verifica a cada 2 min
+    st.tick = (st.tick || 0) + 1;
+    if (document.hidden) { st.tickOculto = (st.tickOculto || 0) + 1; if (st.tickOculto % 10) return; carregar().then(() => atualizarContador(conversas().filter(c => c.naoLidas).length)).catch(() => {}); return; } // minimizado: verifica a cada 2 min
     if (ativo()) atualizar(false);
+    else if (st.tick % 6) return;   // outras telas: a cada 3 min
     else carregar().then(() => atualizarContador(conversas().filter(c => c.naoLidas).length)).catch(() => {});
-  }, 8000); }
+  }, 30000); }   // tela de Conversas: a cada 30 s · outras telas: 3 min · minimizado: 5 min
 
   // ------------------------------------------------ ações (globais p/ onclick)
   window.aaiFiltro = k => { st.filtro = k; renderLista(); };
@@ -18890,7 +18893,9 @@ function limparErrosLocais() {
       ]);
       A.ags = ags || []; A.closers = cls || [];
       // garante os dados de briefing dos leads com consultoria no período
-      const ids = [...new Set(A.ags.map(a => a.lead_id))].filter(Boolean);
+      A.leadsEm = A.leadsEm || {};
+      const ids = [...new Set(A.ags.map(a => a.lead_id))].filter(Boolean).filter(id => { const l = leads.find(x => String(x.id) === String(id)); return !l || !l.respostas || Date.now() - (A.leadsEm[id] || 0) > 30 * 60e3; });
+      ids.forEach(id => A.leadsEm[id] = Date.now());
       if (ids.length) {
         const fr = await get('leads', `?id=in.(${ids.join(',')})&select=*`).catch(() => []);
         (fr || []).forEach(n => { const i = leads.findIndex(l => String(l.id) === String(n.id)); if (i >= 0) Object.assign(leads[i], n); else if (user.papel === 'admin') leads.push(n); });
@@ -19125,7 +19130,7 @@ function limparErrosLocais() {
   window.renderCloserAgenda = function(){ renderNova(); carregarExtras(false); };
   try { renderCloserAgenda = window.renderCloserAgenda; } catch (e) {}
   setInterval(() => { if (!user) return; if (!document.hidden) renderNova(); verificarAlertas(); }, 30000);
-  setInterval(() => { if (user) carregarExtras(true); }, 120000);
+  setInterval(() => { if (user && !document.hidden) carregarExtras(true); }, 600000);   // economia de Egress: 10 min e só com o CRM visível
 })();
 </script>
 
