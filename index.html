@@ -7602,7 +7602,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.31'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.32'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18135,7 +18135,7 @@ function limparErrosLocais() {
         <div class="aai-av ${fx ? 'f' + esc(fx) : ''}">${esc((l.nome || '?').trim().charAt(0).toUpperCase())}<i class="${estado}"></i></div>
         <div class="aai-cb">
           <div class="aai-cn"><span class="aai-nome">${esc(l.nome || l.telefone || 'Sem nome')}${window.aaTocandoLead === String(c.id) ? '<span class="aai-tocando" title="Áudio desta conversa tocando">🔊</span>' : ''}${podeLigar(l) ? '<span class="aai-telok" title="Autorizou ligações pelo WhatsApp">📞</span>' : ''}</span><span class="aai-ct ${c.naoLidas ? 'nova' : ''}">${hora(u.enviada_em)}</span></div>
-          <div class="aai-l2"><div class="aai-cp ${c.naoLidas ? 'nova' : ''}">${esc(quem + (u.texto || ''))}</div>${c.naoLidas ? `<span class="aai-un">${c.naoLidas}</span>` : ''}</div>
+          <div class="aai-l2"><div class="aai-cp ${c.naoLidas ? 'nova' : ''}">${esc(quem + String(u.texto || '').replace(/\*/g, ''))}</div>${c.naoLidas ? `<span class="aai-un">${c.naoLidas}</span>` : ''}</div>
           <div class="aai-meta">${meta}</div>
         </div></div>`;
     }).join('');
@@ -18260,7 +18260,7 @@ function limparErrosLocais() {
   }
   // links clicáveis nas mensagens (abrem em outra aba)
   function linkar(t) {
-    return esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g, '<a href="$1" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;word-break:break-all">$1</a>');
+    return esc(t).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(^|[\s(])\*([^*\n]+?)\*(?=[\s.,!?:;)]|$)/g, '$1<b>$2</b>').replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g, '<a href="$1" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;word-break:break-all">$1</a>');
   }
 
   async function atualizar(rolar){
@@ -19536,6 +19536,70 @@ function limparErrosLocais() {
     } catch (_) {}
   };
   setTimeout(aaCreditoChecar, 4000); setInterval(aaCreditoChecar, 15 * 60000);
+})();
+</script>
+<!-- ===== Tema "Azul profissional" das Conversas (4.32): lateral escura separada, conversa em fundo azul com escritório ou desenhos, balões claros de alto contraste ===== -->
+<style id="aai-tema-azul">
+  .aai{gap:0!important}
+  .aai .aai-side{background:#0b1424!important;border:1px solid #1c2b45!important;border-right:0!important;border-radius:14px 0 0 14px!important;box-shadow:4px 0 18px rgba(0,0,0,.35);z-index:2}
+  .aai .aai-main{background:#0d1a2e!important;border:1px solid #1c2b45!important;border-radius:0 14px 14px 0!important}
+  @media (max-width:900px){.aai .aai-side,.aai .aai-main{border-radius:14px!important;border:1px solid #1c2b45!important}}
+  .aai .aai-side-h{background:#0e1a2f;border-bottom:1px solid #1c2b45}
+  .aai .aai-side-h input{background:#132238!important;border:1px solid #24385a!important;color:#fff}
+  .aai .aai-side-h input:focus{outline:none;border-color:#3b82f6!important;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+  .aai .aai-f{background:#0b1424!important;border-color:#1f3150!important}
+  .aai .aai-f button.on{background:#3b82f6!important;color:#fff!important}
+  .aai .aai-f button.on .n{background:rgba(255,255,255,.25)!important;color:#fff!important}
+  .aai .aai-c{border-bottom:1px solid #15233a}
+  .aai .aai-c:hover{background:#111f36}
+  .aai .aai-c.sel{background:linear-gradient(90deg,rgba(59,130,246,.22),rgba(59,130,246,.06))}
+  .aai .aai-c.sel:before{background:#3b82f6;width:4px}
+  .aai .aai-av i{border-color:#0b1424}
+  .aai .aai-head{background:linear-gradient(90deg,#0f1f3a,#123063);border-bottom:1px solid #22406f;box-shadow:0 2px 10px rgba(0,0,0,.25);position:relative;z-index:1}
+  /* área da conversa */
+  .aai .aai-th{position:relative;padding:18px 22px;background-color:#0c2547;background-repeat:no-repeat,repeat,no-repeat;background-size:cover,260px 260px,cover;background-position:center}
+  .aai .aai-th.fundo-esc1{background-image:linear-gradient(160deg,rgba(8,28,60,.90),rgba(18,62,128,.82) 55%,rgba(9,34,74,.92)),none,url(material/fundo-escritorio-1.jpg);background-attachment:local,local,local}
+  .aai .aai-th.fundo-esc2{background-image:linear-gradient(160deg,rgba(8,28,60,.90),rgba(18,62,128,.80) 55%,rgba(9,34,74,.92)),none,url(material/fundo-escritorio-2.jpg)}
+  .aai .aai-th.fundo-desenho{background-image:linear-gradient(160deg,rgba(9,36,78,.0),rgba(9,36,78,.0)),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260' fill='none' stroke='%23ffffff' stroke-opacity='.075' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 30h44a8 8 0 0 1 8 8v22a8 8 0 0 1-8 8H38l-12 10v-10h-6a8 8 0 0 1-8-8V38a8 8 0 0 1 8-8z'/%3E%3Crect x='150' y='24' width='44' height='32' rx='5'/%3E%3Cpath d='M164 24v-6h16v6M150 38h44'/%3E%3Cpath d='M210 120l12-14 10 8 16-20'/%3E%3Cpath d='M206 132h46'/%3E%3Ccircle cx='60' cy='140' r='16'/%3E%3Cpath d='M60 131v18M65 134c-2-2-9-3-10 1s9 4 10 8-8 4-10 1'/%3E%3Cpath d='M120 108l3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z'/%3E%3Cpath d='M150 190l40-16-14 38-8-14z'/%3E%3Cpath d='M168 208l8-10'/%3E%3Crect x='30' y='196' width='22' height='38' rx='5'/%3E%3Cpath d='M38 228h6'/%3E%3Cpath d='M96 222l26-10 26 10-26 10z'/%3E%3Cpath d='M108 226v10c8 5 20 5 28 0v-10'/%3E%3Cpath d='M98 74c6-8 16-8 22 0'/%3E%3Ccircle cx='236' cy='214' r='6'/%3E%3Cpath d='M226 236c2-8 18-8 20 0'/%3E%3C/svg%3E"),linear-gradient(160deg,#0a2650,#1557a0 55%,#0c3166)}
+  .aai .aai-m{box-shadow:0 1px 1.5px rgba(0,0,0,.28);font-size:14.8px;color:#111b21}
+  .aai .aai-lead{background:#ffffff;color:#111b21}
+  .aai .aai-ia{background:#d9fdd3;color:#111b21}
+  .aai .aai-hum{background:#fff1c2;color:#2b2105}
+  .aai .aai-m small{color:#5b6b75;opacity:1}
+  .aai .aai-sis{background:rgba(255,236,236,.96);color:#8a1c1c;box-shadow:none}
+  .aai .aai-sis small{color:#a05a5a}
+  .aai .aai-dia{background:rgba(225,238,255,.92);color:#1d3557;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .aai .aai-q{background:rgba(0,0,0,.06);border-left-color:#3b82f6;color:#3b4a54;opacity:1}
+  .aai .aai-tr button{color:#1a73e8}
+  .aai .aai-tr div{background:rgba(0,0,0,.06);color:#26343c}
+  .aai .aai-m a{color:#0b57d0!important}
+  .aai .aai-m.cit:hover{filter:brightness(.97)}
+  .aai .aai-vazio{color:#dbe7ff}
+  .aai .aai-comp{background:#0f1d33;border-top:1px solid #22406f}
+  .aai .aai-comp textarea,.aai .aai-rec{background:#16253f!important;border:1px solid #2a4168!important;color:#fff}
+  .aai .aai-comp textarea:focus{outline:none;border-color:#3b82f6!important}
+  .aai .aai-resp{background:rgba(59,130,246,.12);border-left-color:#3b82f6}
+  .aai-fundo-bt{position:absolute;right:16px;top:12px;z-index:3}
+  #aai-fundo{background:rgba(10,30,60,.65);border:1px solid rgba(255,255,255,.25);color:#e6efff;border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(4px)}
+  #aai-fundo:hover{background:rgba(10,30,60,.9)}
+</style>
+<script>
+(function(){
+  // fundo da conversa: escritório 1 → escritório 2 → desenhos (fica salvo neste navegador)
+  const OPC = ['fundo-esc1', 'fundo-esc2', 'fundo-desenho'], NOME = { 'fundo-esc1': 'Escritório', 'fundo-esc2': 'Escritório 2', 'fundo-desenho': 'Desenhos' };
+  const atual = () => { let v = 'fundo-esc1'; try { v = localStorage.getItem('aai_fundo') || v; } catch (e) {} return OPC.includes(v) ? v : 'fundo-esc1'; };
+  function aplicar(){
+    const th = document.getElementById('aai-th'); if (!th) return;
+    const f = atual(); OPC.forEach(c => th.classList.toggle(c, c === f));
+    const main = th.parentElement; if (!main) return;
+    if (getComputedStyle(main).position === 'static') main.style.position = 'relative';
+    let bt = document.getElementById('aai-fundo');
+    if (!bt) { const w = document.createElement('div'); w.className = 'aai-fundo-bt'; w.innerHTML = '<button id="aai-fundo" title="Trocar o fundo da conversa"></button>'; const head = main.querySelector('.aai-head'); (head || main).after ? th.before(w) : main.appendChild(w); bt = document.getElementById('aai-fundo'); bt.onclick = () => { const i = (OPC.indexOf(atual()) + 1) % OPC.length; try { localStorage.setItem('aai_fundo', OPC[i]); } catch (e) {} aplicar(); }; }
+    const head = main.querySelector('.aai-head'); if (head && bt.parentElement) bt.parentElement.style.top = (head.offsetHeight + 10) + 'px';
+    bt.textContent = '🖼 Fundo: ' + NOME[f];
+  }
+  new MutationObserver(() => { const th = document.getElementById('aai-th'); if (th && !OPC.some(c => th.classList.contains(c))) aplicar(); }).observe(document.body, { childList: true, subtree: true });
+  window.addEventListener('resize', aplicar);
 })();
 </script>
 </body>
