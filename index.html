@@ -7602,7 +7602,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.30'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.31'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -18277,7 +18277,13 @@ function limparErrosLocais() {
   // ------------------------------------------------ ações (globais p/ onclick)
   window.aaiFiltro = k => { st.filtro = k; renderLista(); };
   window.aaiBusca = v => { st.busca = v; renderLista(); };
-  window.aaiAbrir = id => { st.sel = id; document.getElementById('aai').classList.add('tem-sel'); renderLista(); renderThread(true); };
+  window.aaiAbrir = id => {
+    st.sel = id;
+    // abriu a conversa: o alerta vermelho ("Precisa de você") é dado como visto e a conversa sai da aba Atenção
+    const comAlerta = st.msgs.filter(m => String(m.lead_id) === String(id) && m.precisa_humano);
+    if (comAlerta.length) { comAlerta.forEach(m => m.precisa_humano = false); call('alerta_visto', { lead_id: id }).catch(() => {}); }
+    document.getElementById('aai').classList.add('tem-sel'); renderLista(); renderThread(true);
+  };
   window.aaiVoltar = () => { st.sel = null; document.getElementById('aai').classList.remove('tem-sel'); renderLista(); };
   window.aaiFicha = () => { const l = leadDe(st.sel); if (!l) return; if (leads.find(x => String(x.id) === String(l.id))) editLead(l.id); else openLeadModal(l); };
   window.aaiAcao = async acao => {
