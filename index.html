@@ -7601,7 +7601,7 @@ window.__initGuiaMentor = init;
 // CONFIG
 // ============================================================
 const SUPA_URL = 'https://spnhtjqwafqubgybyobx.supabase.co';
-const APP_VERSION = '4.38'; // Incremente ao publicar atualizacoes;
+const APP_VERSION = '4.41'; // Incremente ao publicar atualizacoes;
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbmh0anF3YWZxdWJneWJ5b2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDU1MDAsImV4cCI6MjA5NzM4MTUwMH0.JSIxno7WlwcR0nBliBnwgvppnSByvKPyCP319ghn6Es';
 
 const TICKET_FORMACAO = 2997;
@@ -17475,7 +17475,7 @@ function limparErrosLocais() {
         <button type="button" class="btn btn-primary btn-sm" onclick="aaEnviarManual('${id}')">Enviar pelo WhatsApp oficial</button>
         ${(lead.automacao_whatsapp_status && lead.automacao_whatsapp_status !== 'ativa')
           ? `<button type="button" class="btn btn-sm aa-btw" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaAcaoLead('devolver','${id}')">▶ Devolver para a Bia</button>`
-          : `<button type="button" class="btn btn-sm aa-btw" title="A Bia para de responder nesta conversa e você assume" onclick="aaAcaoLead('assumir','${id}')">⏸ Pausar Bia e assumir</button>`}
+          : `<button type="button" class="btn btn-sm aa-btw" title="A Bia para de responder nesta conversa e você assume" onclick="aaAcaoLead('assumir','${id}')">⏸ Pausar</button>`}
         ${lead.status === 'Fechado' ? `<button type="button" class="btn btn-sm aa-btw" title="O aluno foi aprovado ou promovido: registra a conquista e a Bia parabeniza, pede um depoimento em vídeo e envia o link de indicação" onclick="aaConquista('${id}')">🏆 Registrar conquista</button>` : ''}
         <button type="button" class="btn btn-sm aa-btw" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaAcaoLead('noshow','${id}')">No-show: oferecer novo horário</button>
         <span id="aa-wa-msg" style="font-size:13px"></span>
@@ -17763,8 +17763,11 @@ function limparErrosLocais() {
      =================================================================== -->
 <style>
   #page-conversas.active{display:block;max-width:none;padding:14px 18px}
-  .aai{display:grid;grid-template-columns:380px 1fr;gap:14px;height:calc(100vh - 120px);min-height:520px}
+  .aai{display:grid;grid-template-columns:272px 1fr;gap:14px;height:calc(100vh - 120px);min-height:520px}
   .aai-side{order:-1}
+  #aai-busca{background:#1b3358 !important;border:1.5px solid #3b82f6 !important;color:#fff !important;border-radius:12px;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+  #aai-busca::placeholder{color:#b7c7e3 !important;opacity:1}
+  #aai-busca:focus{outline:none;background:#20406e !important;border-color:#60a5fa !important;box-shadow:0 0 0 3px rgba(96,165,250,.3)}
   .aai-main,.aai-side{background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
   .aai-side-h{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
   .aai-side-h input{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:10px;color:inherit;padding:9px 11px;font:inherit;font-size:14px}
@@ -18218,7 +18221,7 @@ function limparErrosLocais() {
           <div class="aai-sub aai-sub2">${l.status ? `<span class="aai-st" style="--c:${corStatus(l.status)}">${esc(l.status)}</span>` : ''}${(l.produto_sugerido || l.programa) ? `<span class="aai-prog">${/mba/i.test(l.programa || l.produto_sugerido || '') ? 'MBA' : 'FBA'}</span>` : ''}${l.respostas && l.respostas._pos_conquista ? `<span class="aai-prog" title="Combinado pós-conquista" style="border-color:#f5a623;color:#f5a623">🤝 ${esc({ aguardando: 'aguardando conquista', conquistou: 'conquistou', cobrado: 'lembrado', link_enviado: 'link enviado', pago: 'pago' }[l.respostas._pos_conquista.status] || '')}</span>` : ''}</div>
           <div class="aai-sub">${l.respostas && l.respostas._bloqueado ? '<b style="color:#ff6b6b">⛔ Contato bloqueado</b>' : (pausada ? '<b style="color:#f5a623">⏸ Bia pausada: você está no controle</b>' : '<b style="color:#22c97b">🟢 Bia respondendo sozinha</b>') + (l.opt_out ? ' · <b style="color:#ff6b6b">pediu para não receber mensagens</b>' : '')}</div></div>
         <div class="aai-acts">
-          ${pausada ? `<button class="btn btn-primary btn-sm" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a Bia</button>` : `<button class="btn btn-primary btn-sm" title="A Bia para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar Bia e assumir</button>`}
+          ${pausada ? `<button class="btn btn-primary btn-sm" title="A Bia lê as últimas mensagens (inclusive as suas) e continua a conversa do ponto em que parou" onclick="aaiAcao('devolver')">▶ Devolver para a Bia</button>` : `<button class="btn btn-primary btn-sm" title="A Bia para de responder nesta conversa e você assume" onclick="aaiAcao('assumir')">⏸ Pausar</button>`}
           <button class="btn btn-sm aai-bt" title="Abre o cadastro completo do lead no CRM" onclick="aaiFicha()">Abrir ficha</button>
           <button class="btn btn-sm aai-bt" title="O lead faltou à consultoria: marca no-show e envia 2 novos horários pelo WhatsApp" onclick="aaiAcao('noshow')">No-show</button>
           <button class="btn btn-sm aai-bt" title="Gera o link de pagamento no Asaas e envia ao lead pelo WhatsApp. Quando ele pagar, o lead vira Fechado sozinho e a Bia começa o acompanhamento do aluno." onclick="aaiCobrar()">💳 Cobrar</button>
